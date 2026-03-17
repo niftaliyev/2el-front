@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="3d9a77ff-ce27-4530-8720-85a87477e1cb" name="musahesenli.com">
+        <fileTransfer accessType="SFTP" host="195.201.236.7" port="22" sshConfigId="8699bbc2-6628-4a5f-b316-fc5d0214b10f" sshConfig="root@195.201.236.7:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
