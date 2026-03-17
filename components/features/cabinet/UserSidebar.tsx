@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { ROUTES } from '@/constants';
 
 interface NavItem {
   href: string;
@@ -19,17 +21,22 @@ const navItems: NavItem[] = [
 
 export default function UserSidebar() {
   const pathname = usePathname();
+  const { user: authUser, logout } = useAuth();
 
-  // Mock user data - replace with actual user data from context/API
+  // Use auth user data if available, fallback to defaults
   const user = {
-    name: 'İstifadəçi Adı',
-    email: 'istifadeci@email.com',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA9h-XmVJv6N25dPs8zT8pri_Ur0Um5gDYqnDIF31Uehc_Csxkdog8jdZQxy2Klbty1deZ-l3MRyd3N_yEz0aqPsNbFYksypbKUHRgyL5w82hnkJCjHbyX5paO56i3kj1vRYDSdAfIlgaqInGlqrNGhDNhGV00D2BGn6TKaJuDds2s-DK3UlcBGDNoUSzRespVXdXSkut4Ib9pFWVutQHDlGsZUPJNBwB5Qzkrfs_8isy3B55TWNeJdyyqErZJ7EoCwXi3UwVK4WnE'
+    name: authUser?.name || 'İstifadəçi Adı',
+    email: authUser?.email || 'istifadeci@email.com',
+    avatar: authUser?.avatar || 'https://lh3.googleusercontent.com/aida-public/AB6AXuA9h-XmVJv6N25dPs8zT8pri_Ur0Um5gDYqnDIF31Uehc_Csxkdog8jdZQxy2Klbty1deZ-l3MRyd3N_yEz0aqPsNbFYksypbKUHRgyL5w82hnkJCjHbyX5paO56i3kj1vRYDSdAfIlgaqInGlqrNGhDNhGV00D2BGn6TKaJuDds2s-DK3UlcBGDNoUSzRespVXdXSkut4Ib9pFWVutQHDlGsZUPJNBwB5Qzkrfs_8isy3B55TWNeJdyyqErZJ7EoCwXi3UwVK4WnE'
   };
 
-  const handleLogout = () => {
-    // Implement logout functionality
-    console.log('Logging out...');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.href = ROUTES.HOME;
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
@@ -63,25 +70,22 @@ export default function UserSidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive
                       ? 'bg-primary/10 text-primary'
                       : 'text-gray-900 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`material-symbols-outlined ${
-                      isActive ? 'text-primary' : 'text-gray-600'
-                    }`}
+                    className={`material-symbols-outlined ${isActive ? 'text-primary' : 'text-gray-600'
+                      }`}
                     style={item.filled && isActive ? { fontVariationSettings: "'FILL' 1, 'wght' 400" } : undefined}
                   >
                     {item.icon}
                   </span>
-                  <p className={`text-sm leading-normal ${
-                    isActive
+                  <p className={`text-sm leading-normal ${isActive
                       ? 'text-primary font-bold'
                       : 'text-gray-900 font-medium'
-                  }`}>
+                    }`}>
                     {item.label}
                   </p>
                 </Link>

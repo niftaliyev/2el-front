@@ -4,9 +4,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { ROUTES } from '@/constants';
 import { useAuth } from '@/contexts/AuthContext';
+import CategoryDropdown from './CategoryDropdown';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -21,7 +23,18 @@ export default function Header() {
   return (
     <header className="w-full bg-white border-b border-solid border-gray-200 sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between whitespace-nowrap px-4 sm:px-10 py-3">
-        <div className="flex items-center gap-8">
+        
+        {/* Left side */}
+        <div className="flex items-center gap-3 sm:gap-8">
+          {/* Mobile hamburger - opens catalog on mobile */}
+          <button
+            className="lg:hidden flex items-center justify-center rounded-lg size-10 text-gray-700 hover:bg-gray-100 transition-colors"
+            onClick={() => setIsCatalogOpen(true)}
+          >
+            <span className="material-symbols-outlined text-[24px]">menu</span>
+          </button>
+
+          {/* Logo */}
           <div className="flex items-center gap-4 text-gray-900">
             <Link href={ROUTES.HOME} className="flex items-center gap-4">
               <div className="size-6 text-primary">
@@ -32,19 +45,46 @@ export default function Header() {
               <h2 className="text-gray-900 text-lg font-bold leading-tight tracking-[-0.015em]">Elan.az</h2>
             </Link>
           </div>
-          <label className="hidden md:flex flex-col min-w-40 !h-10 max-w-64">
-            <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
-              <div className="text-gray-500 flex border-none bg-gray-100 items-center justify-center pl-4 rounded-l-lg border-r-0">
-                <span className="material-symbols-outlined">search</span>
+
+          {/* Desktop Katalog button */}
+          <div className="relative hidden lg:block">
+            <button 
+              onClick={() => setIsCatalogOpen(!isCatalogOpen)}
+              className={`flex items-center gap-2 px-5 h-12 rounded-xl font-black text-sm transition-all shadow-sm ${
+                isCatalogOpen ? 'bg-primary text-white' : 'bg-primary text-white hover:brightness-110 active:scale-95'
+              }`}
+            >
+              <span className="material-symbols-outlined font-bold text-[22px]">
+                {isCatalogOpen ? 'close' : 'menu'}
+              </span>
+              <span className="tracking-wide">Kataloq</span>
+            </button>
+            <CategoryDropdown isOpen={isCatalogOpen} onClose={() => setIsCatalogOpen(false)} />
+          </div>
+
+          {/* Mobile CategoryDropdown (rendered outside the hidden div) */}
+          <div className="lg:hidden">
+            <CategoryDropdown isOpen={isCatalogOpen} onClose={() => setIsCatalogOpen(false)} />
+          </div>
+
+          {/* Desktop search bar */}
+          <label className="hidden md:flex flex-col min-w-[300px] !h-12 max-w-[500px]">
+            <div className="flex w-full flex-1 items-stretch rounded-xl h-full overflow-hidden border border-gray-100 shadow-sm">
+              <div className="text-gray-400 flex bg-white items-center justify-center pl-4">
+                <span className="material-symbols-outlined text-[22px]">search</span>
               </div>
               <input
-                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-gray-900 focus:outline-0 focus:ring-0 border-none bg-gray-100 focus:border-none h-full placeholder:text-gray-500 px-4 pl-2 text-base font-normal leading-normal"
-                placeholder="Axtarış"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden text-gray-900 focus:outline-0 focus:ring-0 border-none bg-white focus:border-none h-full placeholder:text-gray-400 px-4 pl-3 text-[15px] font-medium leading-normal"
+                placeholder="Əşya və ya xidmət axtarışı"
               />
+              <button className="bg-primary text-white px-6 font-bold text-sm hover:brightness-110 transition-all">
+                Tap
+              </button>
             </div>
           </label>
         </div>
 
+        {/* Right side */}
         <div className="flex flex-1 justify-end gap-4 md:gap-8">
           <div className="hidden lg:flex items-center gap-9">
             <Link href={ROUTES.LISTINGS} className="text-gray-900 text-sm font-medium leading-normal hover:text-primary transition-colors">
@@ -85,16 +125,6 @@ export default function Header() {
                 </button>
               </Link>
             )}
-
-            {/* Mobile menu button */}
-            <button
-              className="lg:hidden flex items-center justify-center rounded-lg h-10 px-2.5 bg-gray-100 text-gray-600"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <span className="material-symbols-outlined">
-                {isMobileMenuOpen ? 'close' : 'menu'}
-              </span>
-            </button>
           </div>
 
           {isAuthenticated && (
@@ -104,31 +134,6 @@ export default function Header() {
           )}
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden border-t border-gray-200">
-          <div className="container mx-auto px-4 py-4">
-            <nav className="flex flex-col space-y-3">
-              <Link href={ROUTES.LISTINGS} className="text-gray-900 hover:text-primary transition-colors py-2">
-                Bütün elanlar
-              </Link>
-              <Link href="/stores" className="text-gray-900 hover:text-primary transition-colors py-2">
-                Mağazalar
-              </Link>
-              <Link href="#" className="text-gray-900 hover:text-primary transition-colors py-2">
-                Yardım
-              </Link>
-              <Link href={ROUTES.FAVORITES} className="text-gray-900 hover:text-primary transition-colors py-2 sm:hidden">
-                Favoritlər
-              </Link>
-              <Link href={ROUTES.MESSAGES} className="text-gray-900 hover:text-primary transition-colors py-2 sm:hidden">
-                Bildirişlər
-              </Link>
-            </nav>
-          </div>
-        </div>
-      )}
     </header>
   );
 }

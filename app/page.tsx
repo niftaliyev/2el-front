@@ -8,20 +8,7 @@ import { adService, PremiumAd } from '@/services/ad.service';
 import { getImageUrl } from '@/lib/utils';
 
 // Mock data - replace with actual API calls
-const mockCategories: Category[] = [
-  { id: '1', name: 'Nəqliyyat', slug: 'transport', icon: 'directions_car' },
-  { id: '2', name: 'Daşınmaz əmlak', slug: 'real-estate', icon: 'home' },
-  { id: '3', name: 'Elektronika', slug: 'electronics', icon: 'devices' },
-  { id: '4', name: 'İş və biznes', slug: 'business', icon: 'work' },
-  { id: '5', name: 'Şəxsi əşyalar', slug: 'personal', icon: 'watch' },
-  { id: '6', name: 'Hobbi və asudə', slug: 'hobbies', icon: 'sports_esports' },
-  { id: '7', name: 'Heyvanlar', slug: 'animals', icon: 'pets' },
-  { id: '8', name: 'Xidmətlər', slug: 'services', icon: 'home_repair_service' },
-  { id: '9', name: 'Uşaq aləmi', slug: 'kids', icon: 'stroller' },
-  { id: '10', name: 'Ev və bağ üçün', slug: 'home-garden', icon: 'chair' },
-  { id: '11', name: 'Təmir və tikinti', slug: 'construction', icon: 'construction' },
-  { id: '12', name: 'Digər', slug: 'other', icon: 'more_horiz' },
-];
+import { CATEGORIES } from '@/constants';
 
 export default function Home() {
   const [premiumProducts, setPremiumProducts] = useState<Product[]>([]);
@@ -43,7 +30,7 @@ export default function Home() {
             price: ad.price,
             currency: 'AZN',
             images: imageUrl ? [imageUrl] : [],
-            category: mockCategories[0], // Default category
+            category: CATEGORIES[0] as any, // Default category
             location: { id: '1', city: 'Bakı', region: 'Bakı', country: 'Azerbaijan' },
             seller: { 
               id: '1', 
@@ -91,7 +78,7 @@ export default function Home() {
           {/* Main Content */}
           <div className="flex-1 min-w-0">
             {/* Categories Section */}
-            <CategoryGrid categories={mockCategories} />
+            <CategoryGrid categories={CATEGORIES as any} />
 
             {/* Premium Products */}
             {isLoading ? (
