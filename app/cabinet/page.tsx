@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import UserListingCard from '@/components/features/cabinet/UserListingCard';
-import { adService, AccountAd } from '@/services/ad.service';
+import { adService } from '@/services/ad.service';
+import { AdListItem } from '@/types/api';
 import { getImageUrl } from '@/lib/utils';
 
 interface Listing {
@@ -35,7 +36,7 @@ export default function CabinetPage() {
       setIsLoading(true);
       setError(null);
       try {
-        let ads: AccountAd[] = [];
+        let ads: AdListItem[] = [];
         switch (activeTab) {
           case 'active':
             ads = await adService.getActiveAds();
@@ -51,37 +52,18 @@ export default function CabinetPage() {
             break;
         }
 
-        // Transform API response to Listing format
         const transformedListings: Listing[] = ads.map(ad => {
-          // Format date
-          let formattedDate = '';
-          if (ad.createdAt) {
-            try {
-              const date = new Date(ad.createdAt);
-              formattedDate = date.toLocaleDateString('az-AZ', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              });
-            } catch (e) {
-              formattedDate = ad.createdAt;
-            }
-          }
-
-          // Get first image and prepend base URL if it's a relative path
-          const imageUrl = ad.images && ad.images.length > 0
-            ? getImageUrl(ad.images[0])
+          const formattedDate = ad.createdDate
+            ? new Date(ad.createdDate).toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric' })
             : '';
-
-          // Normalize status to lowercase
+          const imageUrl = ad.image ? getImageUrl(ad.image) : '';
           const normalizedStatus = ad.status.toLowerCase() as 'active' | 'pending' | 'inactive' | 'rejected';
-
           return {
             id: ad.id.toString(),
             title: ad.title,
             location: ad.city || 'Şəhər göstərilməyib',
             price: ad.price,
-            imageUrl: imageUrl,
+            imageUrl,
             postedDate: formattedDate,
             status: normalizedStatus,
           };
@@ -129,65 +111,25 @@ export default function CabinetPage() {
   };
 
   const handlePromote = async (id: string) => {
+    // promoteAd removed from service (buy packages via ad detail instead)
+    // Just reload the current tab
     try {
-      await adService.promoteAd(parseInt(id));
-      // Refresh current tab
-      const fetchAds = async () => {
-        let ads: AccountAd[] = [];
-        switch (activeTab) {
-          case 'active':
-            ads = await adService.getActiveAds();
-            break;
-          case 'pending':
-            ads = await adService.getPendingAds();
-            break;
-          case 'inactive':
-            ads = await adService.getInactiveAds();
-            break;
-          case 'rejected':
-            ads = await adService.getRejectedAds();
-            break;
-        }
-        const transformedListings: Listing[] = ads.map(ad => {
-          // Format date
-          let formattedDate = '';
-          if (ad.createdAt) {
-            try {
-              const date = new Date(ad.createdAt);
-              formattedDate = date.toLocaleDateString('az-AZ', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              });
-            } catch (e) {
-              formattedDate = ad.createdAt;
-            }
-          }
-
-          // Get first image and prepend base URL if it's a relative path
-          const imageUrl = ad.images && ad.images.length > 0
-            ? getImageUrl(ad.images[0])
-            : '';
-
-          // Normalize status to lowercase
-          const normalizedStatus = ad.status.toLowerCase() as 'active' | 'pending' | 'inactive' | 'rejected';
-
-          return {
-            id: ad.id.toString(),
-            title: ad.title,
-            location: ad.city || 'Şəhər göstərilməyib',
-            price: ad.price,
-            imageUrl: imageUrl,
-            postedDate: formattedDate,
-            status: normalizedStatus,
-          };
-        });
-        setListings(transformedListings);
-      };
-      await fetchAds();
+      const ads = await (activeTab === 'active' ? adService.getActiveAds()
+        : activeTab === 'pending' ? adService.getPendingAds()
+        : activeTab === 'inactive' ? adService.getInactiveAds()
+        : adService.getRejectedAds());
+      const mapped: Listing[] = ads.map(ad => ({
+        id: ad.id.toString(),
+        title: ad.title,
+        location: ad.city || 'Şəhər göstərilməyib',
+        price: ad.price,
+        imageUrl: ad.image ? getImageUrl(ad.image) : '',
+        postedDate: ad.createdDate ? new Date(ad.createdDate).toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '',
+        status: ad.status.toLowerCase() as 'active' | 'pending' | 'inactive' | 'rejected',
+      }));
+      setListings(mapped);
     } catch (err: any) {
-      console.error('Error promoting ad:', err);
-      alert(err.message || 'Elanı önə çıxarmaq mümkün olmadı');
+      console.error('Error refreshing ads:', err);
     }
   };
 
@@ -204,7 +146,7 @@ export default function CabinetPage() {
     }
 
     try {
-      await adService.deleteAd(parseInt(id));
+      await adService.deleteAd(id);
       // Remove from current list
       setListings(prev => prev.filter(listing => listing.id !== id));
       // Update counts

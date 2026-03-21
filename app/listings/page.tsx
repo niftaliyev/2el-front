@@ -9,7 +9,8 @@ import { SearchFilters, Product } from '@/types';
 import { SORT_OPTIONS } from '@/constants';
 import Select, { SelectOption } from '@/components/ui/Select';
 import { SingleValue } from 'react-select';
-import { adService, ListingResponse } from '@/services/ad.service';
+import { adService } from '@/services/ad.service';
+import { AdListItem } from '@/types/api';
 
 const getImageUrl = (imagePath: string) => {
   if (!imagePath) return '/placeholder-product.jpg';
@@ -28,27 +29,28 @@ export default function ListingsPage() {
     const fetchAds = async () => {
       try {
         setLoading(true);
-        const data = await adService.getAllAds();
+        const paged = await adService.getAllAds({ pageNumber: 1, pageSize: 50 });
+        const items: AdListItem[] = paged.data ?? [];
 
-        // Map API response to Product type
-        const mappedProducts: Product[] = data.map((item: ListingResponse) => ({
+        // Map AdListItem to Product type
+        const mappedProducts: Product[] = items.map((item: AdListItem) => ({
           id: item.id.toString(),
           title: item.title,
-          description: '', // Not provided in list API
+          description: item.description ?? '',
           price: item.price,
-          currency: '₼', // Assuming currency
-          images: [getImageUrl(item.image)],
-          category: { id: '0', name: 'Unknown', slug: 'unknown' }, // Placeholder
-          location: { id: '0', city: 'Baku', region: '', country: 'Azerbaijan' }, // Placeholder
-          seller: { id: '0', name: 'User', email: '', createdAt: new Date('2024-01-01'), isVerified: false }, // Placeholder
-          condition: 'used', // Default or need more info
-          status: item.status.toLowerCase() as any,
-          viewCount: 0,
+          currency: '₼',
+          images: [getImageUrl(item.image ?? '')],
+          category: { id: item.categoryId ?? '0', name: item.category ?? 'Unknown', slug: 'unknown' },
+          location: { id: '0', city: item.city ?? 'Bakı', region: '', country: 'Azerbaijan' },
+          seller: { id: '0', name: item.fullName ?? 'User', email: item.email ?? '', createdAt: new Date(), isVerified: false },
+          condition: item.isNew ? 'new' : 'used',
+          status: (item.status ?? 'active').toLowerCase() as any,
+          viewCount: item.viewCount ?? 0,
           favoriteCount: 0,
-          createdAt: new Date(item.createdAt),
-          updatedAt: new Date(item.createdAt),
-          isFeatured: false,
-          isPremium: false,
+          createdAt: new Date(item.createdDate),
+          updatedAt: new Date(item.createdDate),
+          isPremium: item.isPremium,
+          isFeatured: item.isVip,
         }));
 
         setProducts(mappedProducts);

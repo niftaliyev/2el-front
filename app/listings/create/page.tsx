@@ -7,7 +7,8 @@ import { ROUTES } from '@/constants';
 import Select, { SelectOption } from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
-import { adService, CategoryResponse, AdType } from '@/services/ad.service';
+import { adService } from '@/services/ad.service';
+import { CategoryDto, LookupItem } from '@/types/api';
 
 const cityOptions: SelectOption[] = [
   { value: '1', label: 'Bakı' },
@@ -109,7 +110,7 @@ export default function CreateListingPage() {
         setSubCategories([]);
         setFormData(prev => ({ ...prev, subcategoryId: '' }));
         try {
-          const categories = await adService.getCategories(parseInt(formData.categoryId));
+          const categories = await adService.getCategories(formData.categoryId || undefined);
           const options: SelectOption[] = categories.map(cat => ({
             value: cat.id.toString(),
             label: cat.name,
@@ -284,15 +285,15 @@ export default function CreateListingPage() {
       }
 
       await adService.createAd({
-        CityId: parseInt(formData.cityId),
+        CityId: formData.cityId,
         Price: parseFloat(formData.price) || 0,
         IsDeliverable: formData.isDeliverable,
         IsNew: formData.isNew,
         PhoneNumber: formData.phone,
-        AdTypeId: parseInt(formData.adTypeId),
+        AdTypeId: formData.adTypeId,
         Title: formData.title,
         Images: images,
-        CategoryId: parseInt(categoryId),
+        CategoryId: categoryId,
         FullName: formData.name,
         Email: formData.email,
         Description: formData.description,

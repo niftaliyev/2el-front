@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import CategoryGrid from '@/components/features/categories/CategoryGrid';
 import ProductGrid from '@/components/features/products/ProductGrid';
 import { Category, Product } from '@/types';
-import { adService, PremiumAd } from '@/services/ad.service';
+import { adService } from '@/services/ad.service';
+import { AdListItem } from '@/types/api';
 import { getImageUrl } from '@/lib/utils';
 
 // Mock data - replace with actual API calls
@@ -17,34 +18,36 @@ export default function Home() {
   useEffect(() => {
     const fetchPremiumAds = async () => {
       try {
-        const premiumAds = await adService.getPremiumAds();
+        const paged = await adService.getAllAds({ pageNumber: 1, pageSize: 20 });
+        const ads: AdListItem[] = paged.data ?? [];
+        const premiumAds = ads.filter(a => a.isPremium);
         
-        // Transform PremiumAd to Product format
-        const transformedProducts: Product[] = premiumAds.map((ad: PremiumAd) => {
-          const imageUrl = getImageUrl(ad.image);
+        // Transform AdListItem to Product format
+        const transformedProducts: Product[] = premiumAds.map((ad: AdListItem) => {
+          const imageUrl = getImageUrl(ad.image ?? '');
           
           return {
             id: ad.id.toString(),
             title: ad.title,
-            description: '',
+            description: ad.description ?? '',
             price: ad.price,
             currency: 'AZN',
             images: imageUrl ? [imageUrl] : [],
-            category: CATEGORIES[0] as any, // Default category
-            location: { id: '1', city: 'Bakı', region: 'Bakı', country: 'Azerbaijan' },
+            category: { id: ad.categoryId ?? '1', name: ad.category ?? '', slug: '' },
+            location: { id: '1', city: ad.city ?? 'Bakı', region: 'Bakı', country: 'Azerbaijan' },
             seller: { 
               id: '1', 
-              name: '', 
-              email: '', 
+              name: ad.fullName ?? '', 
+              email: ad.email ?? '', 
               createdAt: new Date(), 
               isVerified: false 
             },
-            condition: 'used',
+            condition: ad.isNew ? 'new' : 'used',
             status: 'active',
-            viewCount: 0,
+            viewCount: ad.viewCount ?? 0,
             favoriteCount: 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: new Date(ad.createdDate),
+            updatedAt: new Date(ad.createdDate),
             isPremium: true,
           };
         });

@@ -115,7 +115,7 @@ export default function EditListingPage() {
     const fetchAdData = async () => {
         if (!id) return;
         try {
-            const ad = await adService.getAdById(parseInt(id));
+            const ad = await adService.getAdById(id);
             setFormData({
                 categoryId: '1', // Mock: assume category 1 for now or map from ad.category if you have ID
                 subcategoryId: '',
@@ -126,9 +126,9 @@ export default function EditListingPage() {
                 name: ad.fullName,
                 email: ad.email,
                 phone: ad.phoneNumber,
-                cityId: '1', // Mock city ID
-                isDeliverable: ad.isDeliverable,
-                isNew: ad.isNew,
+                cityId: ad.cityId?.toString() ?? '1',
+                isDeliverable: false, // AdDetail doesn't expose isDeliverable; default false
+                isNew: false, // AdDetail doesn't expose isNew; default false
             });
 
             // If ad has images, we'd load them here. For now mock doesn't have images array populated with urls
@@ -150,7 +150,7 @@ export default function EditListingPage() {
                 // Don't clear subcategoryId if it was set by fetchAdData and matches the category
                 // setFormData(prev => ({ ...prev, subcategoryId: '' })); 
                 try {
-                    const categories = await adService.getCategories(parseInt(formData.categoryId));
+                    const categories = await adService.getCategories(formData.categoryId);
                     const options: SelectOption[] = categories.map(cat => ({
                         value: cat.id.toString(),
                         label: cat.name,
@@ -321,22 +321,20 @@ export default function EditListingPage() {
             // Allow updating without new images if existing ones are kept (mock logic)
             // if (images.length === 0) { ... } 
 
-            const updateData = {
-                CityId: parseInt(formData.cityId),
+            await adService.updateAd(id, {
+                CityId: formData.cityId,
                 Price: parseFloat(formData.price) || 0,
                 IsDeliverable: formData.isDeliverable,
                 IsNew: formData.isNew,
                 PhoneNumber: formData.phone,
-                AdTypeId: parseInt(formData.adTypeId),
+                AdTypeId: formData.adTypeId,
                 Title: formData.title,
                 Images: images,
-                CategoryId: parseInt(categoryId),
+                CategoryId: categoryId,
                 FullName: formData.name,
                 Email: formData.email,
                 Description: formData.description,
-            };
-
-            await adService.updateAd(parseInt(id), updateData);
+            });
 
             // Redirect to cabinet on success
             router.push('/cabinet');
