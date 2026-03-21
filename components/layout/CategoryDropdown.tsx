@@ -4,6 +4,23 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { CATEGORIES, ROUTES } from '@/constants';
 import { Category } from '@/types';
+import { adService } from '@/services/ad.service';
+
+const ICONS: Record<string, string> = {
+  'Elektronika': 'devices',
+  'Nəqliyyat': 'directions_car',
+  'Ev və bağ üçün': 'chair',
+  'Ehtiyat hissələri və aksesuarlar (avto)': 'build',
+  'Daşınmaz əmlak': 'home',
+  'Xidmətlər və biznes': 'home_repair_service',
+  'Şəxsi əşyalar': 'watch',
+  'Hobbi və asudə': 'sports_esports',
+  'Uşaq aləmi': 'stroller',
+  'Heyvanlar': 'pets',
+  'İş elanları': 'work',
+  'Məktəblilər üçün': 'school',
+  'Mağazalar': 'store',
+};
 
 interface CategoryDropdownProps {
   isOpen: boolean;
@@ -11,16 +28,59 @@ interface CategoryDropdownProps {
 }
 
 export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownProps) {
-  const [activeMain, setActiveMain] = useState<any>(CATEGORIES[0]);
+  const [categories, setCategories] = useState<any[]>([...CATEGORIES]);
+  const [activeMain, setActiveMain] = useState<any>(null);
   const [activeSub, setActiveSub] = useState<any>(null);
+  const [subCategoriesForActive, setSubCategoriesForActive] = useState<any[]>([]);
+  const [isLoadingSub, setIsLoadingSub] = useState(false);
+
+  useEffect(() => {
+    const fetchTree = async () => {
+      try {
+        const tree = await adService.getCategoryTree();
+        if (tree && tree.length > 0) {
+          const dynamicTree = tree.map(cat => ({
+            id: cat.id, name: cat.name, slug: cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            icon: ICONS[cat.name] || 'category', description: '',
+            children: cat.children?.map(c => ({
+              id: c.id, name: c.name, slug: c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+            })) || []
+          }));
+          setCategories(dynamicTree);
+          if (!activeMain) setActiveMain(dynamicTree[0]);
+        }
+      } catch(e) {}
+    };
+    fetchTree();
+  }, []);
+
+  const handleActiveSubChange = async (sub: any) => {
+    setActiveSub(sub);
+    setIsLoadingSub(true);
+    try {
+      const data = await adService.getSubCategories(sub.id);
+      if (data && data.length > 0) {
+        setSubCategoriesForActive(data.map((d: any) => ({
+           id: d.id, name: d.name, slug: d.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        })));
+      } else {
+        setSubCategoriesForActive([]);
+      }
+    } catch(e) {
+      setSubCategoriesForActive([]);
+    } finally {
+      setIsLoadingSub(false);
+    }
+  };
 
   // Reset states when dropdown closes
   useEffect(() => {
     if (!isOpen) {
-      setActiveMain(CATEGORIES[0]);
+      if (categories.length > 0) setActiveMain(categories[0]);
       setActiveSub(null);
+      setSubCategoriesForActive([]);
     }
-  }, [isOpen]);
+  }, [isOpen, categories]);
 
   // Lock body scroll when open on mobile
   useEffect(() => {
@@ -52,7 +112,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
 
         {/* Mobile Category List */}
         <div className="flex-1 overflow-y-auto">
-          {CATEGORIES.map((category: any) => (
+          {categories.map((category: any) => (
             <Link
               key={category.id}
               href={ROUTES.CATEGORY(category.slug)}
@@ -100,7 +160,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
         {/* Column 1: Main Categories */}
         <div className="w-[280px] border-r border-gray-100 overflow-y-auto bg-gray-50/50">
           <div className="py-2">
-            {CATEGORIES.map((category: any) => (
+            {categories.map((category: any) => (
               <div
                 key={category.id}
                 onMouseEnter={() => {
@@ -136,7 +196,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
               {activeMain.children.map((sub: any) => (
                 <div
                   key={sub.id}
-                  onMouseEnter={() => setActiveSub(sub)}
+                  onMouseEnter={() => handleActiveSubChange(sub)}
                   className={`group flex items-center justify-between px-6 py-3 cursor-pointer transition-colors ${
                     activeSub?.id === sub.id ? 'bg-gray-50 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-primary'
                   }`}
@@ -157,9 +217,13 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
 
         {/* Column 3: Detailed Items */}
         <div className="flex-1 overflow-y-auto bg-white p-6">
-          {activeSub?.children ? (
-            <div className="grid grid-cols-1 gap-1">
-              {activeSub.children.map((item: any) => (
+          {isLoadingSub ? (
+             <div className="h-full flex flex-col justify-center items-center p-8">
+               <span className="material-symbols-outlined text-3xl animate-spin text-primary">progress_activity</span>
+             </div>
+          ) : subCategoriesForActive && subCategoriesForActive.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {subCategoriesForActive.map((item: any) => (
                 <Link
                   key={item.id}
                   href={ROUTES.CATEGORY(item.slug)}
@@ -177,7 +241,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
                </span>
                <p className="text-sm font-medium">Alt kateqoriya seçin</p>
              </div>
-          ) : activeSub && !activeSub.children ? (
+          ) : activeSub && subCategoriesForActive.length === 0 ? (
             <div className="grid grid-cols-1 gap-4">
               <Link
                 href={ROUTES.CATEGORY(activeSub.slug)}

@@ -2,7 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '@/services/auth.service';
-import { User, LoginRequest, RegisterRequest } from '@/types/auth';
+import { AuthUser, LoginRequest, RegisterRequest } from '@/types/auth';
+
+type User = AuthUser;
 
 interface AuthContextType {
   user: User | null;
@@ -66,8 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (userData: RegisterRequest) => {
     try {
-      const user = await authService.register(userData);
-      setUser(user);
+      await authService.register(userData);
+      // After register, user must login manually - no auto-login
     } catch (error) {
       console.error('Register error:', error);
       throw error;

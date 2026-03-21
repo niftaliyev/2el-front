@@ -1,6 +1,8 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 // Base URL for all API requests
+// Production: 'https://ikinci.musahesenli.com/api/'
+// Local: 'http://localhost:5156/api/'
 const BASE_URL = 'https://ikinci.musahesenli.com/api/';
 
 // Create axios instance with default config

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import CategoryGrid from '@/components/features/categories/CategoryGrid';
 import ProductGrid from '@/components/features/products/ProductGrid';
 import { Category, Product } from '@/types';
-import { adService, PremiumAd } from '@/services/ad.service';
+import { adService } from '@/services/ad.service';
+import { AdListItem } from '@/types/api';
 import { getImageUrl } from '@/lib/utils';
 
 // Mock data - replace with actual API calls
@@ -12,39 +13,84 @@ import { CATEGORIES } from '@/constants';
 
 export default function Home() {
   const [premiumProducts, setPremiumProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>(CATEGORIES as any);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const ICONS: Record<string, string> = {
+      'Elektronika': 'devices',
+      'Nəqliyyat': 'directions_car',
+      'Ev və bağ üçün': 'chair',
+      'Ehtiyat hissələri və aksesuarlar (avto)': 'build',
+      'Daşınmaz əmlak': 'home',
+      'Xidmətlər və biznes': 'home_repair_service',
+      'Şəxsi əşyalar': 'watch',
+      'Hobbi və asudə': 'sports_esports',
+      'Uşaq aləmi': 'stroller',
+      'Heyvanlar': 'pets',
+      'İş elanları': 'work',
+      'Məktəblilər üçün': 'school',
+      'Mağazalar': 'store',
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const tree = await adService.getCategoryTree();
+        if (tree && tree.length > 0) {
+          const dynamicCategories: Category[] = tree.map((cat: any) => ({
+            id: cat.id,
+            name: cat.name,
+            slug: cat.name.toLowerCase().replace(/[^a-z0-9_]+/g, '-'),
+            icon: ICONS[cat.name] || 'category',
+            description: '',
+            children: cat.children?.map((child: any) => ({
+              id: child.id,
+              name: child.name,
+              slug: child.name.toLowerCase().replace(/[^a-z0-9_]+/g, '-'),
+            })) || []
+          }));
+          setCategories(dynamicCategories);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchPremiumAds = async () => {
       try {
-        const premiumAds = await adService.getPremiumAds();
+        const paged = await adService.getAllAds({ pageNumber: 1, pageSize: 20 });
+        const ads: AdListItem[] = paged.data ?? [];
+        const premiumAds = ads.filter(a => a.isPremium);
         
-        // Transform PremiumAd to Product format
-        const transformedProducts: Product[] = premiumAds.map((ad: PremiumAd) => {
-          const imageUrl = getImageUrl(ad.image);
+        // Transform AdListItem to Product format
+        const transformedProducts: Product[] = premiumAds.map((ad: AdListItem) => {
+          const imageUrl = getImageUrl(ad.image ?? '');
           
           return {
             id: ad.id.toString(),
             title: ad.title,
-            description: '',
+            description: ad.description ?? '',
             price: ad.price,
             currency: 'AZN',
             images: imageUrl ? [imageUrl] : [],
-            category: CATEGORIES[0] as any, // Default category
-            location: { id: '1', city: 'Bakı', region: 'Bakı', country: 'Azerbaijan' },
+            category: { id: ad.categoryId ?? '1', name: ad.category ?? '', slug: '' },
+            location: { id: '1', city: ad.city ?? 'Bakı', region: 'Bakı', country: 'Azerbaijan' },
             seller: { 
               id: '1', 
-              name: '', 
-              email: '', 
+              name: ad.fullName ?? '', 
+              email: ad.email ?? '', 
               createdAt: new Date(), 
               isVerified: false 
             },
-            condition: 'used',
+            condition: ad.isNew ? 'new' : 'used',
             status: 'active',
-            viewCount: 0,
+            viewCount: ad.viewCount ?? 0,
             favoriteCount: 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: new Date(ad.createdDate),
+            updatedAt: new Date(ad.createdDate),
             isPremium: true,
           };
         });
@@ -78,7 +124,7 @@ export default function Home() {
           {/* Main Content */}
           <div className="flex-1 min-w-0">
             {/* Categories Section */}
-            <CategoryGrid categories={CATEGORIES as any} />
+            <CategoryGrid categories={categories} />
 
             {/* Premium Products */}
             {isLoading ? (

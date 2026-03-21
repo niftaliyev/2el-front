@@ -1,9 +1,6 @@
-export interface User {
-  id: string;
-  fullName: string;
-  email: string;
-  roles: string[];
-}
+// ================================
+// AUTH TYPES (matches DTOs/Auth)
+// ================================
 
 export interface LoginRequest {
   email: string;
@@ -17,11 +14,21 @@ export interface RegisterRequest {
   phoneNumber: string;
 }
 
+export interface AuthUser {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  balance?: number;
+  userType?: string;
+  roles: string[];
+}
+
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
-  user: User;
+  user: AuthUser;
 }
 
 export interface RefreshTokenRequest {
@@ -31,5 +38,7 @@ export interface RefreshTokenRequest {
 export interface RefreshTokenResponse {
   accessToken: string;
   refreshToken: string;
-  expiresIn: number;
 }
+
+// Keep old User alias for compatibility
+export type User = AuthUser;

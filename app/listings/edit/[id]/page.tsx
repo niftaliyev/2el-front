@@ -9,14 +9,7 @@ import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import { adService } from '@/services/ad.service';
 
-const cityOptions: SelectOption[] = [
-    { value: '1', label: 'Bakı' },
-    { value: '2', label: 'Gəncə' },
-    { value: '3', label: 'Sumqayıt' },
-    { value: '4', label: 'Mingəçevir' },
-    { value: '5', label: 'Lənkəran' },
-    { value: '6', label: 'Şirvan' },
-];
+// cityOptions removed - now fetched from API
 
 export default function EditListingPage() {
     const router = useRouter();
@@ -41,10 +34,12 @@ export default function EditListingPage() {
     const [parentCategories, setParentCategories] = useState<SelectOption[]>([]);
     const [subCategories, setSubCategories] = useState<SelectOption[]>([]);
     const [adTypes, setAdTypes] = useState<SelectOption[]>([]);
+    const [cities, setCities] = useState<SelectOption[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
     const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
     const [isLoadingAdTypes, setIsLoadingAdTypes] = useState(false);
+    const [isLoadingCities, setIsLoadingCities] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showSubcategory, setShowSubcategory] = useState(false);
@@ -68,6 +63,7 @@ export default function EditListingPage() {
                 await Promise.all([
                     fetchParentCategories(),
                     fetchAdTypes(),
+                    fetchCities(),
                     fetchAdData()
                 ]);
             } catch (err: any) {
@@ -112,10 +108,26 @@ export default function EditListingPage() {
         }
     };
 
+    const fetchCities = async () => {
+        try {
+            setIsLoadingCities(true);
+            const citiesList = await adService.getCities();
+            const options: SelectOption[] = citiesList.map(city => ({
+                value: city.id.toString(),
+                label: city.name,
+            }));
+            setCities(options);
+        } catch (err) {
+            console.error('Error fetching cities:', err);
+        } finally {
+            setIsLoadingCities(false);
+        }
+    };
+
     const fetchAdData = async () => {
         if (!id) return;
         try {
-            const ad = await adService.getAdById(parseInt(id));
+            const ad = await adService.getAdById(id);
             setFormData({
                 categoryId: '1', // Mock: assume category 1 for now or map from ad.category if you have ID
                 subcategoryId: '',
@@ -126,9 +138,9 @@ export default function EditListingPage() {
                 name: ad.fullName,
                 email: ad.email,
                 phone: ad.phoneNumber,
-                cityId: '1', // Mock city ID
-                isDeliverable: ad.isDeliverable,
-                isNew: ad.isNew,
+                cityId: ad.cityId?.toString() ?? '1',
+                isDeliverable: false, // AdDetail doesn't expose isDeliverable; default false
+                isNew: false, // AdDetail doesn't expose isNew; default false
             });
 
             // If ad has images, we'd load them here. For now mock doesn't have images array populated with urls
@@ -150,7 +162,7 @@ export default function EditListingPage() {
                 // Don't clear subcategoryId if it was set by fetchAdData and matches the category
                 // setFormData(prev => ({ ...prev, subcategoryId: '' })); 
                 try {
-                    const categories = await adService.getCategories(parseInt(formData.categoryId));
+                    const categories = await adService.getCategories(formData.categoryId);
                     const options: SelectOption[] = categories.map(cat => ({
                         value: cat.id.toString(),
                         label: cat.name,
@@ -321,22 +333,20 @@ export default function EditListingPage() {
             // Allow updating without new images if existing ones are kept (mock logic)
             // if (images.length === 0) { ... } 
 
-            const updateData = {
-                CityId: parseInt(formData.cityId),
+            await adService.updateAd(id, {
+                CityId: formData.cityId,
                 Price: parseFloat(formData.price) || 0,
                 IsDeliverable: formData.isDeliverable,
                 IsNew: formData.isNew,
                 PhoneNumber: formData.phone,
-                AdTypeId: parseInt(formData.adTypeId),
+                AdTypeId: formData.adTypeId,
                 Title: formData.title,
                 Images: images,
-                CategoryId: parseInt(categoryId),
+                CategoryId: categoryId,
                 FullName: formData.name,
                 Email: formData.email,
                 Description: formData.description,
-            };
-
-            await adService.updateAd(parseInt(id), updateData);
+            });
 
             // Redirect to cabinet on success
             router.push('/cabinet');
@@ -435,12 +445,13 @@ export default function EditListingPage() {
                             {/* City */}
                             <Select
                                 label="Şəhər"
-                                options={cityOptions}
-                                value={cityOptions.find(option => option.value === formData.cityId)}
+                                options={cities}
+                                value={cities.find(option => option.value === formData.cityId)}
                                 onChange={(option) => setFormData(prev => ({ ...prev, cityId: option?.value || '' }))}
-                                placeholder="Şəhər seçin"
+                                placeholder={isLoadingCities ? 'Yüklənir...' : 'Şəhər seçin'}
                                 isClearable
                                 required
+                                isLoading={isLoadingCities}
                             />
 
                             {/* Title */}

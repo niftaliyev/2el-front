@@ -7,22 +7,17 @@ import { ROUTES } from '@/constants';
 import Select, { SelectOption } from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
-import { adService, CategoryResponse, AdType } from '@/services/ad.service';
+import { adService } from '@/services/ad.service';
+import { CategoryDto, LookupItem } from '@/types/api';
 
-const cityOptions: SelectOption[] = [
-  { value: '1', label: 'Bakı' },
-  { value: '2', label: 'Gəncə' },
-  { value: '3', label: 'Sumqayıt' },
-  { value: '4', label: 'Mingəçevir' },
-  { value: '5', label: 'Lənkəran' },
-  { value: '6', label: 'Şirvan' },
-];
+// cityOptions removed - now fetched from API
 
 export default function CreateListingPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     categoryId: '',
     subcategoryId: '',
+    brandId: '',
     adTypeId: '',
     title: '',
     description: '',
@@ -38,12 +33,18 @@ export default function CreateListingPage() {
   const [parentCategories, setParentCategories] = useState<SelectOption[]>([]);
   const [subCategories, setSubCategories] = useState<SelectOption[]>([]);
   const [adTypes, setAdTypes] = useState<SelectOption[]>([]);
+  const [cities, setCities] = useState<SelectOption[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
   const [isLoadingAdTypes, setIsLoadingAdTypes] = useState(false);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSubcategory, setShowSubcategory] = useState(false);
+  
+  const [brands, setBrands] = useState<SelectOption[]>([]);
+  const [isLoadingBrands, setIsLoadingBrands] = useState(false);
+  const [showBrands, setShowBrands] = useState(false);
 
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -100,6 +101,27 @@ export default function CreateListingPage() {
     fetchAdTypes();
   }, []);
 
+  // Fetch cities on mount
+  useEffect(() => {
+    const fetchCities = async () => {
+      setIsLoadingCities(true);
+      try {
+        const categories = await adService.getCities();
+        const options: SelectOption[] = categories.map(city => ({
+          value: city.id.toString(),
+          label: city.name,
+        }));
+        setCities(options);
+      } catch (err: any) {
+        console.error('Error fetching cities:', err);
+      } finally {
+        setIsLoadingCities(false);
+      }
+    };
+
+    fetchCities();
+  }, []);
+
   // Fetch subcategories when parent category is selected
   useEffect(() => {
     if (formData.categoryId) {
@@ -109,7 +131,7 @@ export default function CreateListingPage() {
         setSubCategories([]);
         setFormData(prev => ({ ...prev, subcategoryId: '' }));
         try {
-          const categories = await adService.getCategories(parseInt(formData.categoryId));
+          const categories = await adService.getCategories(formData.categoryId || undefined);
           const options: SelectOption[] = categories.map(cat => ({
             value: cat.id.toString(),
             label: cat.name,
@@ -130,6 +152,41 @@ export default function CreateListingPage() {
       setFormData(prev => ({ ...prev, subcategoryId: '' }));
     }
   }, [formData.categoryId]);
+
+  // Fetch brands/types when subcategory (child category) is selected
+  useEffect(() => {
+    if (formData.subcategoryId) {
+      const fetchBrands = async () => {
+        setIsLoadingBrands(true);
+        setBrands([]);
+        setFormData(prev => ({ ...prev, brandId: '' }));
+        try {
+          const fetchedBrands = await adService.getSubCategories(formData.subcategoryId);
+          if (fetchedBrands && fetchedBrands.length > 0) {
+            const options: SelectOption[] = fetchedBrands.map(b => ({
+              value: b.id.toString(),
+              label: b.name,
+            }));
+            setBrands(options);
+            setShowBrands(true);
+          } else {
+            setShowBrands(false);
+          }
+        } catch (err: any) {
+          console.error('Error fetching brands:', err);
+          setShowBrands(false);
+        } finally {
+          setIsLoadingBrands(false);
+        }
+      };
+
+      fetchBrands();
+    } else {
+      setShowBrands(false);
+      setBrands([]);
+      setFormData(prev => ({ ...prev, brandId: '' }));
+    }
+  }, [formData.subcategoryId]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -284,15 +341,16 @@ export default function CreateListingPage() {
       }
 
       await adService.createAd({
-        CityId: parseInt(formData.cityId),
+        CityId: formData.cityId,
         Price: parseFloat(formData.price) || 0,
         IsDeliverable: formData.isDeliverable,
         IsNew: formData.isNew,
         PhoneNumber: formData.phone,
-        AdTypeId: parseInt(formData.adTypeId),
+        AdTypeId: formData.adTypeId,
         Title: formData.title,
         Images: images,
-        CategoryId: parseInt(categoryId),
+        CategoryId: categoryId,
+        SubCategoryId: formData.brandId || undefined,
         FullName: formData.name,
         Email: formData.email,
         Description: formData.description,
@@ -373,6 +431,19 @@ export default function CreateListingPage() {
                 />
               )}
 
+              {/* Brand/Type - Hidden until child category is selected and has brands */}
+              {showBrands && (
+                <Select
+                  label="Marka / Çeşid"
+                  options={brands}
+                  value={brands.find(option => option.value === formData.brandId)}
+                  onChange={(option) => setFormData(prev => ({ ...prev, brandId: option?.value || '' }))}
+                  placeholder={isLoadingBrands ? 'Yüklənir...' : 'Marka / Çeşid seçin'}
+                  isClearable
+                  isLoading={isLoadingBrands}
+                />
+              )}
+
               {/* Ad Type */}
               <Select
                 label="Elan növü"
@@ -388,12 +459,13 @@ export default function CreateListingPage() {
               {/* City */}
               <Select
                 label="Şəhər"
-                options={cityOptions}
-                value={cityOptions.find(option => option.value === formData.cityId)}
+                options={cities}
+                value={cities.find(option => option.value === formData.cityId)}
                 onChange={(option) => setFormData(prev => ({ ...prev, cityId: option?.value || '' }))}
-                placeholder="Şəhər seçin"
+                placeholder={isLoadingCities ? 'Yüklənir...' : 'Şəhər seçin'}
                 isClearable
                 required
+                isLoading={isLoadingCities}
               />
 
               {/* Title */}

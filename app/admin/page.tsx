@@ -17,12 +17,18 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [statsData, activitiesData] = await Promise.all([
-          adminService.getDashboardStats(),
-          adminService.getRecentActivities(),
-        ]);
-        setStats(statsData);
-        setActivities(activitiesData);
+        const pendingData = await adminService.getPendingAds(1, 1);
+        // Build minimal stats from real API data
+        setStats({
+          totalUsers: 0, // No dedicated user list API for admin yet
+          totalAds: pendingData.totalElements,
+          pendingApprovals: pendingData.totalElements,
+          activeAds: 0,
+          todayUsers: 0,
+          todayAds: 0,
+          totalRevenue: 0,
+        } as DashboardStats);
+        setActivities([]);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {

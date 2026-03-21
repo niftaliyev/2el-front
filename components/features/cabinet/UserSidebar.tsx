@@ -25,9 +25,9 @@ export default function UserSidebar() {
 
   // Use auth user data if available, fallback to defaults
   const user = {
-    name: authUser?.name || 'İstifadəçi Adı',
+    name: authUser?.fullName || 'İstifadəçi Adı',
     email: authUser?.email || 'istifadeci@email.com',
-    avatar: authUser?.avatar || 'https://lh3.googleusercontent.com/aida-public/AB6AXuA9h-XmVJv6N25dPs8zT8pri_Ur0Um5gDYqnDIF31Uehc_Csxkdog8jdZQxy2Klbty1deZ-l3MRyd3N_yEz0aqPsNbFYksypbKUHRgyL5w82hnkJCjHbyX5paO56i3kj1vRYDSdAfIlgaqInGlqrNGhDNhGV00D2BGn6TKaJuDds2s-DK3UlcBGDNoUSzRespVXdXSkut4Ib9pFWVutQHDlGsZUPJNBwB5Qzkrfs_8isy3B55TWNeJdyyqErZJ7EoCwXi3UwVK4WnE'
+    avatar: null as string | null, // Backend does not provide avatar yet
   };
 
   const handleLogout = async () => {
