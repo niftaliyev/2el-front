@@ -98,6 +98,8 @@ export function getImageUrl(imagePath: string | undefined | null): string {
   
   // If relative path, prepend base URL
   if (imagePath.startsWith('/')) {
+    // Production: 'https://ikinci.musahesenli.com'
+    // Local: 'http://localhost:5156'
     return `https://ikinci.musahesenli.com${imagePath}`;
   }
   

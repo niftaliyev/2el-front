@@ -88,6 +88,7 @@ export interface CreateAdRequest {
   Title: string;
   Images: File[];
   CategoryId: string;
+  SubCategoryId?: string;
   FullName: string;
   Email: string;
   Description: string;

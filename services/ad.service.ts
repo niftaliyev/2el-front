@@ -50,6 +50,18 @@ class AdService {
     return response.data;
   }
 
+  /** Category Tree (for navigation, filters, etc.) */
+  async getCategoryTree(): Promise<CategoryDto[]> {
+    const response = await axiosInstance.get<CategoryDto[]>('/category/tree');
+    return response.data;
+  }
+
+  /** SubCategories (brands, types, etc.) */
+  async getSubCategories(categoryId: string): Promise<CategoryDto[]> {
+    const response = await axiosInstance.get<CategoryDto[]>(`/category/${categoryId}/subcategories`);
+    return response.data;
+  }
+
   /** Ad types lookup */
   async getAdTypes(): Promise<LookupItem[]> {
     const response = await axiosInstance.get<LookupItem[]>('/ad/types');
@@ -73,6 +85,7 @@ class AdService {
     formData.append('AdTypeId', adData.AdTypeId);
     formData.append('Title', adData.Title);
     formData.append('CategoryId', adData.CategoryId);
+    if (adData.SubCategoryId) formData.append('SubCategoryId', adData.SubCategoryId);
     formData.append('FullName', adData.FullName);
     formData.append('Email', adData.Email);
     formData.append('Description', adData.Description);
@@ -91,6 +104,7 @@ class AdService {
     formData.append('AdTypeId', adData.AdTypeId);
     formData.append('Title', adData.Title);
     formData.append('CategoryId', adData.CategoryId);
+    if (adData.SubCategoryId) formData.append('SubCategoryId', adData.SubCategoryId);
     formData.append('FullName', adData.FullName);
     formData.append('Email', adData.Email);
     formData.append('Description', adData.Description);

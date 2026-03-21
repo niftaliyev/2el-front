@@ -13,7 +13,50 @@ import { CATEGORIES } from '@/constants';
 
 export default function Home() {
   const [premiumProducts, setPremiumProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>(CATEGORIES as any);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const ICONS: Record<string, string> = {
+      'Elektronika': 'devices',
+      'Nəqliyyat': 'directions_car',
+      'Ev və bağ üçün': 'chair',
+      'Ehtiyat hissələri və aksesuarlar (avto)': 'build',
+      'Daşınmaz əmlak': 'home',
+      'Xidmətlər və biznes': 'home_repair_service',
+      'Şəxsi əşyalar': 'watch',
+      'Hobbi və asudə': 'sports_esports',
+      'Uşaq aləmi': 'stroller',
+      'Heyvanlar': 'pets',
+      'İş elanları': 'work',
+      'Məktəblilər üçün': 'school',
+      'Mağazalar': 'store',
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const tree = await adService.getCategoryTree();
+        if (tree && tree.length > 0) {
+          const dynamicCategories: Category[] = tree.map((cat: any) => ({
+            id: cat.id,
+            name: cat.name,
+            slug: cat.name.toLowerCase().replace(/[^a-z0-9_]+/g, '-'),
+            icon: ICONS[cat.name] || 'category',
+            description: '',
+            children: cat.children?.map((child: any) => ({
+              id: child.id,
+              name: child.name,
+              slug: child.name.toLowerCase().replace(/[^a-z0-9_]+/g, '-'),
+            })) || []
+          }));
+          setCategories(dynamicCategories);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchPremiumAds = async () => {
@@ -81,7 +124,7 @@ export default function Home() {
           {/* Main Content */}
           <div className="flex-1 min-w-0">
             {/* Categories Section */}
-            <CategoryGrid categories={CATEGORIES as any} />
+            <CategoryGrid categories={categories} />
 
             {/* Premium Products */}
             {isLoading ? (
