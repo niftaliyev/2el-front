@@ -1,3 +1,4 @@
+import React, { useId } from 'react';
 import ReactSelect, { Props as ReactSelectProps, StylesConfig } from 'react-select';
 
 export interface SelectOption {
@@ -94,7 +95,9 @@ const customSelectStyles: StylesConfig<SelectOption, false> = {
   }),
 };
 
-const Select = ({ label, error, options, required, ...props }: SelectProps) => {
+const Select = ({ label, error, options, required, instanceId, ...props }: SelectProps) => {
+  const id = useId();
+
   return (
     <div className="w-full">
       {label && (
@@ -104,6 +107,7 @@ const Select = ({ label, error, options, required, ...props }: SelectProps) => {
         </label>
       )}
       <ReactSelect<SelectOption, false>
+        instanceId={instanceId || id}
         options={options}
         styles={customSelectStyles}
         {...props}

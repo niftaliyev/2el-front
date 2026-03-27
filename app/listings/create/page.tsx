@@ -8,7 +8,8 @@ import Select, { SelectOption } from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import { adService } from '@/services/ad.service';
-import { CategoryDto, LookupItem } from '@/types/api';
+import { CategoryDto, CategoryFieldDto, LookupItem } from '@/types/api';
+import { parseCurrency } from '@/lib/utils';
 
 // cityOptions removed - now fetched from API
 
@@ -41,7 +42,7 @@ export default function CreateListingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSubcategory, setShowSubcategory] = useState(false);
-  
+
   const [brands, setBrands] = useState<SelectOption[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(false);
   const [showBrands, setShowBrands] = useState(false);
@@ -56,6 +57,10 @@ export default function CreateListingPage() {
   const dragItemIndex = useRef<number | null>(null);
   const dragOverIndex = useRef<number | null>(null);
   const createdUrlsRef = useRef<string[]>([]);
+
+  // Dynamic category fields
+  const [categoryFields, setCategoryFields] = useState<CategoryFieldDto[]>([]);
+  const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, string>>({});
 
   // Fetch parent categories on mount
   useEffect(() => {
@@ -77,6 +82,24 @@ export default function CreateListingPage() {
     };
 
     fetchParentCategories();
+  }, []);
+
+  // Auto-fill contact info from logged-in user
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        const info = await adService.getContactInfo();
+        setFormData(prev => ({
+          ...prev,
+          name: info.fullName || prev.name,
+          email: info.email || prev.email,
+          phone: info.phoneNumber || prev.phone,
+        }));
+      } catch (err) {
+        // User not logged in or no contact info - ignore
+      }
+    };
+    fetchContactInfo();
   }, []);
 
   // Fetch ad types on mount
@@ -152,6 +175,32 @@ export default function CreateListingPage() {
       setFormData(prev => ({ ...prev, subcategoryId: '' }));
     }
   }, [formData.categoryId]);
+
+  // Load category fields when subcategory (child category) is selected
+  useEffect(() => {
+    if (formData.subcategoryId) {
+      // Find the selected child category from subCategories and get its parent's fields
+      // The fields come from the selected child category (which is the actual category with fields)
+      const loadCategoryFields = async () => {
+        try {
+          const cats = await adService.getCategories(formData.categoryId || undefined);
+          // Find the selected subcategory and get its categoryFields
+          const selectedCat = cats.find(c => c.id === formData.subcategoryId);
+          if (selectedCat?.categoryFields && selectedCat.categoryFields.length > 0) {
+            setCategoryFields(selectedCat.categoryFields);
+          } else {
+            setCategoryFields([]);
+          }
+        } catch {
+          setCategoryFields([]);
+        }
+      };
+      loadCategoryFields();
+    } else {
+      setCategoryFields([]);
+    }
+    setDynamicFieldValues({});
+  }, [formData.subcategoryId, formData.categoryId]);
 
   // Fetch brands/types when subcategory (child category) is selected
   useEffect(() => {
@@ -241,7 +290,7 @@ export default function CreateListingPage() {
       const url = prev[index];
       try {
         URL.revokeObjectURL(url);
-      } catch (e) {}
+      } catch (e) { }
       createdUrlsRef.current = createdUrlsRef.current.filter(u => u !== url);
       return newPreviews;
     });
@@ -313,7 +362,7 @@ export default function CreateListingPage() {
       createdUrlsRef.current.forEach(url => {
         try {
           URL.revokeObjectURL(url);
-        } catch (e) {}
+        } catch (e) { }
       });
       createdUrlsRef.current = [];
     };
@@ -342,7 +391,7 @@ export default function CreateListingPage() {
 
       await adService.createAd({
         CityId: formData.cityId,
-        Price: parseFloat(formData.price) || 0,
+        Price: parseCurrency(formData.price),
         IsDeliverable: formData.isDeliverable,
         IsNew: formData.isNew,
         PhoneNumber: formData.phone,
@@ -354,13 +403,16 @@ export default function CreateListingPage() {
         FullName: formData.name,
         Email: formData.email,
         Description: formData.description,
+        DynamicFieldsJson: Object.keys(dynamicFieldValues).length > 0
+          ? JSON.stringify(dynamicFieldValues)
+          : undefined,
       });
 
       // Redirect to home page on success
       router.push(ROUTES.HOME);
     } catch (err: any) {
       let errorMessage = 'Elan yerləşdirilərkən xəta baş verdi';
-      
+
       if (err.message) {
         errorMessage = err.message;
       } else if (err.data) {
@@ -373,7 +425,7 @@ export default function CreateListingPage() {
           errorMessage = err.data.error;
         }
       }
-      
+
       setError(errorMessage);
       console.error('Error creating ad:', err);
     } finally {
@@ -492,13 +544,11 @@ export default function CreateListingPage() {
               {/* Price */}
               <Input
                 label="Qiymət (₼)"
-                type="number"
+                type="text"
                 name="price"
                 value={formData.price}
                 onChange={handleInputChange}
                 placeholder="0"
-                min="0"
-                step="0.01"
                 required
               />
 
@@ -523,6 +573,88 @@ export default function CreateListingPage() {
                   <span className="text-gray-900 text-sm font-medium">Çatdırılma mümkündür</span>
                 </label>
               </div>
+
+              {/* Dynamic Category Fields */}
+              {categoryFields.length > 0 && (
+                <div className="space-y-4 pt-4 border-t border-gray-100">
+                  <h3 className="text-gray-700 text-sm font-semibold">Kateqoriyaya aid məlumatlar</h3>
+                  {categoryFields.map((field) => {
+                    if (field.fieldType === 'select' || field.fieldType === 'dependent_select') {
+                      let parsedOptions: string[] = [];
+                      try {
+                        const parsed = field.optionsJson ? JSON.parse(field.optionsJson) : [];
+                        
+                        if (Array.isArray(parsed)) {
+                          parsedOptions = parsed;
+                        } else if (parsed && typeof parsed === 'object' && field.fieldType === 'dependent_select') {
+                          // Handle dependent select (e.g. Model depends on Brand)
+                          // Check for selected brand label first
+                          const selectedBrandLabel = brands.find(b => b.value === formData.brandId)?.label;
+                          if (selectedBrandLabel && Array.isArray(parsed[selectedBrandLabel])) {
+                            parsedOptions = parsed[selectedBrandLabel];
+                          } else {
+                            // Try by ID as fallback
+                            if (formData.brandId && Array.isArray(parsed[formData.brandId])) {
+                              parsedOptions = parsed[formData.brandId];
+                            }
+                          }
+                        }
+                      } catch (e) {
+                        console.error('Error parsing optionsJson:', e);
+                      }
+
+                      const options: SelectOption[] = parsedOptions.map((opt: string) => ({ value: opt, label: opt }));
+                      return (
+                        <Select
+                          key={field.id}
+                          label={field.name + (field.isRequired ? ' *' : '')}
+                          options={options}
+                          value={options.find(o => o.value === dynamicFieldValues[field.id])}
+                          onChange={(opt) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: opt?.value || '' }))}
+                          placeholder={`${field.name} seçin`}
+                          isClearable
+                        />
+                      );
+                    }
+                    if (field.fieldType === 'number') {
+                      return (
+                        <Input
+                          key={field.id}
+                          label={field.name + (field.isRequired ? ' *' : '')}
+                          type="number"
+                          value={dynamicFieldValues[field.id] || ''}
+                          onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                          placeholder={field.name}
+                        />
+                      );
+                    }
+                    if (field.fieldType === 'checkbox') {
+                      return (
+                        <label key={field.id} className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={dynamicFieldValues[field.id] === 'true'}
+                            onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.checked.toString() }))}
+                            className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
+                          />
+                          <span className="text-gray-900 text-sm font-medium">{field.name}</span>
+                        </label>
+                      );
+                    }
+                    // Default: text field
+                    return (
+                      <Input
+                        key={field.id}
+                        label={field.name + (field.isRequired ? ' *' : '')}
+                        type="text"
+                        value={dynamicFieldValues[field.id] || ''}
+                        onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        placeholder={field.name}
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -537,11 +669,10 @@ export default function CreateListingPage() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-                isDragging
-                  ? 'border-primary bg-primary/5'
-                  : 'border-gray-300 hover:border-primary hover:bg-gray-50'
-              }`}
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragging
+                ? 'border-primary bg-primary/5'
+                : 'border-gray-300 hover:border-primary hover:bg-gray-50'
+                }`}
             >
               <div className="flex flex-col items-center gap-3">
                 <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">

@@ -6,6 +6,7 @@ import { Button, Input, Select } from '@/components/ui';
 import { SelectOption } from '@/components/ui/Select';
 import { SearchFilters } from '@/types';
 import { PRODUCT_CONDITIONS, SORT_OPTIONS } from '@/constants';
+import { parseCurrency } from '@/lib/utils';
 
 interface FilterPanelProps {
   filters: SearchFilters;
@@ -16,7 +17,11 @@ export default function FilterPanel({ filters, onFilterChange }: FilterPanelProp
   const [localFilters, setLocalFilters] = useState<SearchFilters>(filters);
 
   const handleFilterChange = (key: keyof SearchFilters, value: any) => {
-    const newFilters = { ...localFilters, [key]: value };
+    let finalValue = value;
+    if ((key === 'minPrice' || key === 'maxPrice') && typeof value === 'string') {
+      finalValue = parseCurrency(value) || undefined;
+    }
+    const newFilters = { ...localFilters, [key]: finalValue };
     setLocalFilters(newFilters);
   };
 
@@ -54,21 +59,19 @@ export default function FilterPanel({ filters, onFilterChange }: FilterPanelProp
           <div className="grid grid-cols-2 gap-3">
             <div className="relative">
               <Input
-                type="number"
+                type="text"
                 placeholder="Min"
                 value={localFilters.minPrice || ''}
-                onChange={(e) => handleFilterChange('minPrice', e.target.value ? Number(e.target.value) : undefined)}
-                min="0"
+                onChange={(e) => handleFilterChange('minPrice', e.target.value)}
                 className="pl-3"
               />
             </div>
             <div className="relative">
               <Input
-                type="number"
+                type="text"
                 placeholder="Maks"
                 value={localFilters.maxPrice || ''}
-                onChange={(e) => handleFilterChange('maxPrice', e.target.value ? Number(e.target.value) : undefined)}
-                min="0"
+                onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
                 className="pl-3"
               />
             </div>

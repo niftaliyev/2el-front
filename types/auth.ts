@@ -19,6 +19,7 @@ export interface AuthUser {
   fullName: string;
   email: string;
   phoneNumber?: string;
+  profilePhoto?: string;
   balance?: number;
   userType?: string;
   roles: string[];

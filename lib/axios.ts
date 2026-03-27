@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 // Base URL for all API requests
 // Production: 'https://ikinci.musahesenli.com/api/'
 // Local: 'http://localhost:5156/api/'
-const BASE_URL = 'https://ikinci.musahesenli.com/api/';
+const BASE_URL = 'http://localhost:5156/api/';
 
 // Create axios instance with default config
 const axiosInstance: AxiosInstance = axios.create({
@@ -92,23 +92,22 @@ axiosInstance.interceptors.response.use(
     // Handle other errors
     if (error.response) {
       // Server responded with error status
-      const message = error.response.data || 'Bir xəta baş verdi';
-      return Promise.reject({
-        status: error.response.status,
-        message,
-        data: error.response.data,
-      });
+      const data = error.response.data as any;
+      let message = 'Bir xəta baş verdi';
+
+      if (typeof data === 'string') {
+        message = data;
+      } else if (data && typeof data === 'object') {
+        // Handle ASP.NET Core ProblemDetails or custom { message: "..." }
+        message = data.message || data.title || (data.errors ? Object.values(data.errors).flat().join(', ') : 'Bir xəta baş verdi');
+      }
+
+      error.message = message;
     } else if (error.request) {
-      // Request made but no response received
-      return Promise.reject({
-        message: 'Serverə qoşulmaq mümkün olmadı',
-      });
-    } else {
-      // Error setting up the request
-      return Promise.reject({
-        message: error.message || 'Bir xəta baş verdi',
-      });
+      error.message = 'Serverə qoşulmaq mümkün olmadı';
     }
+
+    return Promise.reject(error);
   }
 );
 

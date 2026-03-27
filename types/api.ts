@@ -32,6 +32,7 @@ export interface AdListItem {
   viewCount: number;
   expiresAt?: string;
   isStore: boolean;
+  isFavourite: boolean;
 }
 
 // Matches AdDetailDto
@@ -47,17 +48,23 @@ export interface AdDetail {
   images: string[];
   category?: string;
   categoryId?: string;
+  subCategory?: string;
+  subCategoryId?: string;
   city?: string;
   cityId?: string;
   adType?: string;
   adTypeId?: string;
+  isNew: boolean;
+  isDeliverable: boolean;
   fullName: string;
   phoneNumber: string;
   email: string;
   isVip: boolean;
   isPremium: boolean;
   isBoosted: boolean;
+  isFavourite: boolean;
   viewCount: number;
+  dynamicFields: AdFieldDto[];
 }
 
 // Matches AdEditDto
@@ -67,6 +74,8 @@ export interface AdEditData {
   description: string;
   price: number;
   categoryId?: string;
+  subCategoryId?: string;
+  brandId?: string;
   cityId?: string;
   adTypeId?: string;
   isNew: boolean;
@@ -75,6 +84,7 @@ export interface AdEditData {
   phoneNumber: string;
   email: string;
   images: AdImage[];
+  dynamicFields: AdFieldDto[];
 }
 
 // For create request (form)
@@ -92,17 +102,43 @@ export interface CreateAdRequest {
   FullName: string;
   Email: string;
   Description: string;
+  DynamicFieldsJson?: string;
 }
 
-// ================================
-// CATEGORY TYPES (matches DTOs/Category)
-// ================================
+export interface CategoryFieldDto {
+  id: string;
+  name: string;
+  fieldType: string;
+  isRequired: boolean;
+  optionsJson?: string;
+}
+
+export interface AdFieldDto {
+  categoryFieldId: string;
+  name: string;
+  value: string;
+}
+
+export interface SubCategoryDto {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  categoryId: string;
+}
+
+export interface ContactInfo {
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+}
 
 export interface CategoryDto {
   id: string;
   name: string;
   parentId?: string;
+  imageUrl?: string;
   children?: CategoryDto[];
+  categoryFields?: CategoryFieldDto[];
 }
 
 // ================================

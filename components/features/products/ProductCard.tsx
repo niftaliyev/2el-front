@@ -4,8 +4,11 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from '@/types';
-import { formatPrice, formatRelativeTime } from '@/lib/utils';
+import { formatPrice, formatRelativeTime, getImageUrl } from '@/lib/utils';
 import { ROUTES } from '@/constants';
+import { adService } from '@/services/ad.service';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface ProductCardProps {
   product: Product;
@@ -13,64 +16,105 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [mounted, setMounted] = useState(false);
-  const mainImage = product.images[0] || '/placeholder-product.jpg';
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isChangingFav, setIsChangingFav] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  
+  const mainImage = product.images?.[0] || '/placeholder-product.jpg';
+
+  const [imageSrc, setImageSrc] = useState(mainImage);
+
+  useEffect(() => {
+    setImageSrc(mainImage);
+  }, [mainImage]);
+
+  useEffect(() => {
+    if (product.isFavourite !== undefined) {
+      setIsFavorite(product.isFavourite);
+    }
+  }, [product.isFavourite]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Ensure image URL is absolute or valid for Next.Image if it's from external source
-  // For this mock, we assume URLs are valid or configured in next.config.js
+  const handleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      router.push(ROUTES.LOGIN);
+      return;
+    }
+
+    if (isChangingFav) return;
+
+    setIsChangingFav(true);
+    try {
+      if (isFavorite) {
+        await adService.removeFromFavourites(product.id);
+        setIsFavorite(false);
+      } else {
+        await adService.addToFavourites(product.id);
+        setIsFavorite(true);
+      }
+    } catch (error) {
+      console.error('Favorite action failed:', error);
+    } finally {
+      setIsChangingFav(false);
+    }
+  };
 
   return (
     <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 flex flex-col h-full overflow-hidden">
-      {/* Image Container */}
-      <Link href={ROUTES.PRODUCT(product.id)} className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
-        <Image
-          src={mainImage}
-          alt={product.title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        />
-
-        {/* Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {product.isPremium && (
-            <div className="bg-yellow-400 text-black text-[10px] font-bold px-2 py-1 rounded-full shadow-lg backdrop-blur-sm flex items-center gap-1">
-              <span className="material-symbols-outlined !text-[14px]">workspace_premium</span>
-              <span>PREMIUM</span>
-            </div>
-          )}
-          {product.condition === 'new' && (
-            <div className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg backdrop-blur-sm">
-              YENİ
-            </div>
-          )}
-        </div>
-
-        {/* Favorite Button - Visible on Hover (or always on mobile if needed) */}
+      {/* Image Container Area */}
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+        <Link href={ROUTES.PRODUCT(product.id)} className="block w-full h-full">
+          <Image
+            src={imageSrc}
+            alt={product.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            onError={() => setImageSrc('/placeholder-product.jpg')}
+          />
+          {/* Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </Link>
+        
+        {/* Top Overlay Gradient for Heart Contrast */}
+        <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/30 to-transparent pointer-events-none z-10 opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+        
+        {/* Favorite Button - Minimalist Tap.az Style */}
         <button
-          className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white text-gray-400 hover:text-red-500 rounded-full shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0"
-          onClick={(e) => {
-            e.preventDefault();
-            // Handle favorite logic
-          }}
+          className={`absolute top-3 right-3 z-20 transition-all duration-300 hover:scale-110 focus:outline-none ${
+            isFavorite 
+              ? 'text-[#ff4d4d]' 
+              : 'text-white/90 hover:text-white'
+          }`}
+          onClick={handleFavorite}
+          disabled={isChangingFav}
         >
-          <span className="material-symbols-outlined !text-[20px] block">favorite</span>
+          <span 
+            className="material-symbols-outlined !text-[28px] block"
+            style={{ 
+              fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0",
+              filter: !isFavorite ? 'drop-shadow(0 1px 3px rgba(0,0,0,0.4))' : 'none'
+            }}
+          >
+            favorite
+          </span>
         </button>
 
         {/* Store Badge */}
         {product.store && (
-          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 pointer-events-none">
             <span className="material-symbols-outlined text-white !text-[16px]">storefront</span>
             <span className="text-white text-xs font-medium truncate max-w-[100px]">{product.store.name}</span>
           </div>
         )}
-      </Link>
+      </div>
 
       {/* Content */}
       <div className="p-4 flex flex-col flex-grow">
@@ -95,13 +139,25 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Footer Info */}
         <div className="pt-3 mt-1 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center gap-1 truncate max-w-[60%]">
+          <div className="flex items-center gap-1 truncate max-w-[50%]">
             <span className="material-symbols-outlined !text-[14px]">location_on</span>
             <span className="truncate">{product.location.city}</span>
           </div>
-          <span className="flex-shrink-0">
-            {mounted ? formatRelativeTime(product.createdAt) : '\u00A0'}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span>{mounted ? formatRelativeTime(product.createdAt) : '\u00A0'}</span>
+            <div className="flex items-center gap-1">
+              {product.isFeatured && (
+                <div className="text-blue-600 flex items-center" title="VIP">
+                  <span className="material-symbols-outlined !text-[16px]">stars</span>
+                </div>
+              )}
+              {product.isPremium && (
+                <div className="text-yellow-500 flex items-center" title="Premium">
+                  <span className="material-symbols-outlined !text-[16px]">workspace_premium</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

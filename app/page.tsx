@@ -61,14 +61,9 @@ export default function Home() {
   useEffect(() => {
     const fetchPremiumAds = async () => {
       try {
-        const paged = await adService.getAllAds({ pageNumber: 1, pageSize: 20 });
-        const ads: AdListItem[] = paged.data ?? [];
-        const premiumAds = ads.filter(a => a.isPremium);
-        
-        // Transform AdListItem to Product format
-        const transformedProducts: Product[] = premiumAds.map((ad: AdListItem) => {
-          const imageUrl = getImageUrl(ad.image ?? '');
-          
+        const ads = await adService.getPremiumAds();
+        const transformedProducts: Product[] = ads.map((ad: AdListItem) => {
+          const imageUrl = ad.image ? getImageUrl(ad.image) : null;
           return {
             id: ad.id.toString(),
             title: ad.title,
@@ -77,14 +72,8 @@ export default function Home() {
             currency: 'AZN',
             images: imageUrl ? [imageUrl] : [],
             category: { id: ad.categoryId ?? '1', name: ad.category ?? '', slug: '' },
-            location: { id: '1', city: ad.city ?? 'Bakı', region: 'Bakı', country: 'Azerbaijan' },
-            seller: { 
-              id: '1', 
-              name: ad.fullName ?? '', 
-              email: ad.email ?? '', 
-              createdAt: new Date(), 
-              isVerified: false 
-            },
+            location: { id: '1', city: ad.city ?? '', region: '', country: 'Azerbaijan' },
+            seller: { id: '1', name: '', email: '', createdAt: new Date(), isVerified: false },
             condition: ad.isNew ? 'new' : 'used',
             status: 'active',
             viewCount: ad.viewCount ?? 0,
@@ -92,13 +81,12 @@ export default function Home() {
             createdAt: new Date(ad.createdDate),
             updatedAt: new Date(ad.createdDate),
             isPremium: true,
-          };
+            isFavourite: ad.isFavourite,
+          } as Product;
         });
-
         setPremiumProducts(transformedProducts);
       } catch (error) {
         console.error('Error fetching premium ads:', error);
-        // Keep empty array on error
         setPremiumProducts([]);
       } finally {
         setIsLoading(false);
@@ -106,6 +94,10 @@ export default function Home() {
     };
 
     fetchPremiumAds();
+
+    // Random rotation every 5 minutes
+    const interval = setInterval(fetchPremiumAds, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
