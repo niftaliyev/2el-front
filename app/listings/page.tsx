@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Container } from '@/components/layout';
 import SearchBar from '@/components/features/search/SearchBar';
 import FilterPanel from '@/components/features/filters/FilterPanel';
@@ -11,25 +12,48 @@ import Select, { SelectOption } from '@/components/ui/Select';
 import { SingleValue } from 'react-select';
 import { adService } from '@/services/ad.service';
 import { AdListItem } from '@/types/api';
+import { getImageUrl } from '@/lib/utils';
 
-const getImageUrl = (imagePath: string) => {
-  if (!imagePath) return '/placeholder-product.jpg';
-  if (imagePath.startsWith('http')) return imagePath;
-  return `https://ikinci.musahesenli.com${imagePath}`;
-};
-
-export default function ListingsPage() {
+function ListingsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  
   const [filters, setFilters] = useState<SearchFilters>({
     sortBy: 'latest',
+    query: searchParams.get('q') || '',
+    categoryId: searchParams.get('categoryId') || '',
+    subCategoryId: searchParams.get('subCategoryId') || '',
+    minPrice: searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
+    maxPrice: searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined,
   });
+
+  // Sync state when URL params change
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      query: searchParams.get('q') || '',
+      categoryId: searchParams.get('categoryId') || '',
+      subCategoryId: searchParams.get('subCategoryId') || '',
+      minPrice: searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
+      maxPrice: searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined,
+    }));
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchAds = async () => {
       try {
         setLoading(true);
-        const paged = await adService.getAllAds({ pageNumber: 1, pageSize: 50 });
+        const paged = await adService.getAllAds({ 
+          pageNumber: 1, 
+          pageSize: 50,
+          minPrice: filters.minPrice,
+          maxPrice: filters.maxPrice,
+          search: filters.query,
+          categoryId: filters.categoryId,
+          subCategoryId: filters.subCategoryId
+        });
         const items: AdListItem[] = paged.data ?? [];
 
         // Map AdListItem to Product type
@@ -39,7 +63,7 @@ export default function ListingsPage() {
           description: item.description ?? '',
           price: item.price,
           currency: '₼',
-          images: [getImageUrl(item.image ?? '')],
+          images: item.image ? [getImageUrl(item.image)] : [],
           category: { id: item.categoryId ?? '0', name: item.category ?? 'Unknown', slug: 'unknown' },
           location: { id: '0', city: item.city ?? 'Bakı', region: '', country: 'Azerbaijan' },
           seller: { id: '0', name: item.fullName ?? 'User', email: item.email ?? '', createdAt: new Date(), isVerified: false },
@@ -51,6 +75,7 @@ export default function ListingsPage() {
           updatedAt: new Date(item.createdDate),
           isPremium: item.isPremium,
           isFeatured: item.isVip,
+          isFavourite: item.isFavourite,
         }));
 
         setProducts(mappedProducts);
@@ -62,14 +87,19 @@ export default function ListingsPage() {
     };
 
     fetchAds();
-  }, [filters]); // Re-fetch when filters change (logic to be added)
+  }, [filters]); 
 
   const handleFilterChange = (newFilters: SearchFilters) => {
-    setFilters(newFilters);
-    // In a real app, fetch products with new filters
+    const params = new URLSearchParams();
+    if (newFilters.query) params.set('q', newFilters.query);
+    if (newFilters.categoryId) params.set('categoryId', newFilters.categoryId);
+    if (newFilters.subCategoryId) params.set('subCategoryId', newFilters.subCategoryId);
+    if (newFilters.minPrice) params.set('minPrice', newFilters.minPrice.toString());
+    if (newFilters.maxPrice) params.set('maxPrice', newFilters.maxPrice.toString());
+    if (newFilters.sortBy) params.set('sortBy', newFilters.sortBy);
+    
+    router.push(`/listings?${params.toString()}`);
   };
-
-
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
@@ -80,7 +110,10 @@ export default function ListingsPage() {
             <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-6 tracking-tight">
               Bütün Elanlar
             </h1>
-            <SearchBar initialQuery={filters.query} />
+            <SearchBar 
+              initialQuery={filters.query} 
+              onSearch={(q) => handleFilterChange({ ...filters, query: q })} 
+            />
           </div>
         </Container>
       </div>
@@ -150,5 +183,17 @@ export default function ListingsPage() {
         </div>
       </Container>
     </div>
+  );
+}
+
+export default function ListingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <ListingsContent />
+    </Suspense>
   );
 }

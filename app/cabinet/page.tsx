@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import UserListingCard from '@/components/features/cabinet/UserListingCard';
+import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
 import { adService } from '@/services/ad.service';
 import { AdListItem } from '@/types/api';
 import { getImageUrl } from '@/lib/utils';
@@ -23,6 +24,7 @@ export default function CabinetPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [promoteAdId, setPromoteAdId] = useState<string | null>(null);
   const [counts, setCounts] = useState({
     active: 0,
     pending: 0,
@@ -110,27 +112,8 @@ export default function CabinetPage() {
     return counts[status];
   };
 
-  const handlePromote = async (id: string) => {
-    // promoteAd removed from service (buy packages via ad detail instead)
-    // Just reload the current tab
-    try {
-      const ads = await (activeTab === 'active' ? adService.getActiveAds()
-        : activeTab === 'pending' ? adService.getPendingAds()
-        : activeTab === 'inactive' ? adService.getInactiveAds()
-        : adService.getRejectedAds());
-      const mapped: Listing[] = ads.map(ad => ({
-        id: ad.id.toString(),
-        title: ad.title,
-        location: ad.city || 'Şəhər göstərilməyib',
-        price: ad.price,
-        imageUrl: ad.image ? getImageUrl(ad.image) : '',
-        postedDate: ad.createdDate ? new Date(ad.createdDate).toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '',
-        status: ad.status.toLowerCase() as 'active' | 'pending' | 'inactive' | 'rejected',
-      }));
-      setListings(mapped);
-    } catch (err: any) {
-      console.error('Error refreshing ads:', err);
-    }
+  const handlePromote = (id: string) => {
+    setPromoteAdId(id);
   };
 
   const router = useRouter();
@@ -317,6 +300,13 @@ export default function CabinetPage() {
           </div>
         </div>
       </div>
+
+      {/* Promote Modal */}
+      <PromoteAdModal
+        isOpen={!!promoteAdId}
+        onClose={() => setPromoteAdId(null)}
+        adId={promoteAdId || ''}
+      />
     </main>
   );
 }

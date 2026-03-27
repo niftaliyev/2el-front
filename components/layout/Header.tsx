@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { ROUTES } from '@/constants';
 import { useAuth } from '@/contexts/AuthContext';
+import { getImageUrl } from '@/lib/utils';
 import CategoryDropdown from './CategoryDropdown';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user, isAuthenticated, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -17,6 +19,18 @@ export default function Header() {
       window.location.href = ROUTES.HOME;
     } catch (error) {
       console.error('Logout failed:', error);
+    }
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      window.location.href = `${ROUTES.LISTINGS}?q=${encodeURIComponent(searchQuery.trim())}`;
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
     }
   };
 
@@ -76,8 +90,14 @@ export default function Header() {
               <input
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden text-gray-900 focus:outline-0 focus:ring-0 border-none bg-white focus:border-none h-full placeholder:text-gray-400 px-4 pl-3 text-[15px] font-medium leading-normal"
                 placeholder="Əşya və ya xidmət axtarışı"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
               />
-              <button className="bg-primary text-white px-6 font-bold text-sm hover:brightness-110 transition-all">
+              <button 
+                onClick={handleSearch}
+                className="bg-primary text-white px-6 font-bold text-sm hover:brightness-110 transition-all font-sans"
+              >
                 Tap
               </button>
             </div>
@@ -129,7 +149,14 @@ export default function Header() {
 
           {isAuthenticated && (
             <Link href={ROUTES.PROFILE}>
-              <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-gray-300 hover:ring-2 hover:ring-primary transition-all cursor-pointer" />
+              <div 
+                className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-gray-100 border border-gray-200 hover:ring-2 hover:ring-primary transition-all cursor-pointer flex items-center justify-center overflow-hidden"
+                style={user?.profilePhoto ? { backgroundImage: `url("${getImageUrl(user.profilePhoto)}")` } : {}}
+              >
+                {!user?.profilePhoto && (
+                  <span className="material-symbols-outlined text-gray-400">person</span>
+                )}
+              </div>
             </Link>
           )}
         </div>

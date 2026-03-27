@@ -89,19 +89,64 @@ export function debounce<T extends (...args: any[]) => any>(
  * Get full image URL from relative path
  */
 export function getImageUrl(imagePath: string | undefined | null): string {
-  if (!imagePath) return '';
+  // Handle missing, empty, or whitespace-only paths
+  if (!imagePath || !imagePath.trim()) return '';
   
-  // If already a full URL, return as is
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+  // If already a full URL (including blobs), return as is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('blob:')) {
     return imagePath;
   }
   
-  // If relative path, prepend base URL
-  if (imagePath.startsWith('/')) {
-    // Production: 'https://ikinci.musahesenli.com'
-    // Local: 'http://localhost:5156'
-    return `https://ikinci.musahesenli.com${imagePath}`;
+  // Local Development: 'http://localhost:5156'
+  const baseUrl = 'http://localhost:5156';
+  
+  // Build normalized path (ensuring it starts with / and doesn't overlap)
+  const cleanPath = imagePath.trim();
+  const normalizedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+  
+  return `${baseUrl}${normalizedPath}`;
+}
+
+/**
+ * Parse a price string into a number, handling dots and commas based on AZ/TR locale
+ */
+export function parseCurrency(value: string): number {
+  if (!value) return 0;
+  
+  // Remove all non-digit and non-punctuation characters (like spaces, currency symbols)
+  let sanitized = value.replace(/[^\d.,-]/g, '');
+  
+  // If it has both , and .
+  if (sanitized.includes(',') && sanitized.includes('.')) {
+    // Assume the last one is the decimal separator
+    const commaIndex = sanitized.lastIndexOf(',');
+    const dotIndex = sanitized.lastIndexOf('.');
+    if (commaIndex > dotIndex) {
+      // 800.000,50 -> 800000.50
+      sanitized = sanitized.replace(/\./g, '').replace(',', '.');
+    } else {
+      // 800,000.50 -> 800000.50
+      sanitized = sanitized.replace(/,/g, '');
+    }
+  } else if (sanitized.includes(',')) {
+    // If only comma exists, check if it's thousands or decimal
+    const parts = sanitized.split(',');
+    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+      // 800,000 -> 800000
+      sanitized = sanitized.replace(/,/g, '');
+    } else {
+      // 800,50 -> 800.50
+      sanitized = sanitized.replace(',', '.');
+    }
+  } else if (sanitized.includes('.')) {
+    // If only dot exists, check if it's thousands or decimal
+    const parts = sanitized.split('.');
+    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+      // 800.000 -> 800000
+      sanitized = sanitized.replace(/\./g, '');
+    }
+    // Else it's 800.50 which is already fine for parseFloat
   }
   
-  return imagePath;
+  return parseFloat(sanitized) || 0;
 }

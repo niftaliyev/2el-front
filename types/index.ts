@@ -55,12 +55,14 @@ export interface Product {
   isFeatured?: boolean;
   isPromoted?: boolean;
   isPremium?: boolean;
+  isFavourite?: boolean;
   store?: Store;
 }
 
 export interface SearchFilters {
   query?: string;
   categoryId?: string;
+  subCategoryId?: string;
   locationId?: string;
   minPrice?: number;
   maxPrice?: number;

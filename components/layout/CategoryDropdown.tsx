@@ -115,7 +115,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
           {categories.map((category: any) => (
             <Link
               key={category.id}
-              href={ROUTES.CATEGORY(category.slug)}
+              href={ROUTES.CATEGORY(category.id)}
               className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 hover:bg-gray-50 active:bg-gray-100 transition-colors"
               onClick={onClose}
             >
@@ -171,7 +171,11 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
                   activeMain?.id === category.id ? 'bg-white text-primary' : 'text-gray-700 hover:bg-white hover:text-primary'
                 }`}
               >
-                <div className="flex items-center gap-4">
+                <Link 
+                  href={ROUTES.CATEGORY(category.id)}
+                  className="flex items-center gap-4"
+                  onClick={onClose}
+                >
                   <span className={`material-symbols-outlined text-[20px] ${
                     activeMain?.id === category.id ? 'text-primary' : 'text-gray-400 group-hover:text-primary'
                   }`}>
@@ -180,7 +184,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
                   <span className="text-[15px] font-semibold leading-tight">
                     {category.name}
                   </span>
-                </div>
+                </Link>
                 <span className="material-symbols-outlined text-[18px] text-gray-300">
                   chevron_right
                 </span>
@@ -201,9 +205,13 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
                     activeSub?.id === sub.id ? 'bg-gray-50 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-primary'
                   }`}
                 >
-                  <span className="text-[14px] font-medium">
+                  <Link 
+                    href={ROUTES.CATEGORY(sub.id)}
+                    className="text-[14px] font-medium"
+                    onClick={onClose}
+                  >
                     {sub.name}
-                  </span>
+                  </Link>
                   {sub.children && (
                     <span className="material-symbols-outlined text-[16px] text-gray-300">
                       chevron_right
@@ -226,7 +234,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
               {subCategoriesForActive.map((item: any) => (
                 <Link
                   key={item.id}
-                  href={ROUTES.CATEGORY(item.slug)}
+                  href={ROUTES.SUBCATEGORY(item.id)}
                   className="px-4 py-2 text-[14px] text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={onClose}
                 >
@@ -244,7 +252,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
           ) : activeSub && subCategoriesForActive.length === 0 ? (
             <div className="grid grid-cols-1 gap-4">
               <Link
-                href={ROUTES.CATEGORY(activeSub.slug)}
+                href={ROUTES.CATEGORY(activeSub.id)}
                 className="text-lg font-bold text-gray-900 hover:text-primary transition-colors flex items-center gap-2"
                 onClick={onClose}
               >

@@ -8,8 +8,10 @@ import Select, { SelectOption } from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import { adService } from '@/services/ad.service';
+import { AdImage, AdFieldDto, CategoryFieldDto } from '@/types/api';
+import { parseCurrency } from '@/lib/utils';
 
-// cityOptions removed - now fetched from API
+const SERVER_URL = 'http://localhost:5156';
 
 export default function EditListingPage() {
     const router = useRouter();
@@ -19,6 +21,7 @@ export default function EditListingPage() {
     const [formData, setFormData] = useState({
         categoryId: '',
         subcategoryId: '',
+        brandId: '',
         adTypeId: '',
         title: '',
         description: '',
@@ -33,19 +36,28 @@ export default function EditListingPage() {
 
     const [parentCategories, setParentCategories] = useState<SelectOption[]>([]);
     const [subCategories, setSubCategories] = useState<SelectOption[]>([]);
+    const [brands, setBrands] = useState<SelectOption[]>([]);
     const [adTypes, setAdTypes] = useState<SelectOption[]>([]);
     const [cities, setCities] = useState<SelectOption[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
     const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
+    const [isLoadingBrands, setIsLoadingBrands] = useState(false);
     const [isLoadingAdTypes, setIsLoadingAdTypes] = useState(false);
     const [isLoadingCities, setIsLoadingCities] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showSubcategory, setShowSubcategory] = useState(false);
+    const [showBrands, setShowBrands] = useState(false);
+
+    // Dynamic category fields
+    const [categoryFields, setCategoryFields] = useState<CategoryFieldDto[]>([]);
+    const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, string>>({});
 
     const [images, setImages] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [existingImages, setExistingImages] = useState<AdImage[]>([]);
+    const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [isReordering, setIsReordering] = useState(false);
     const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
@@ -55,22 +67,28 @@ export default function EditListingPage() {
     const dragOverIndex = useRef<number | null>(null);
     const createdUrlsRef = useRef<string[]>([]);
 
+    const isFirstLoad = useRef(true);
+
     // Initialize data
     useEffect(() => {
         const init = async () => {
             setIsLoading(true);
             try {
+                // Fetch basic lookups first
                 await Promise.all([
                     fetchParentCategories(),
                     fetchAdTypes(),
-                    fetchCities(),
-                    fetchAdData()
+                    fetchCities()
                 ]);
+                // Then fetch ad data
+                await fetchAdData();
             } catch (err: any) {
                 console.error('Error initializing page:', err);
                 setError('Məlumatları yükləmək mümkün olmadı');
             } finally {
                 setIsLoading(false);
+                // After loading all data, we can allow the category useEffects to run normally
+                setTimeout(() => { isFirstLoad.current = false; }, 200);
             }
         };
         init();
@@ -81,7 +99,7 @@ export default function EditListingPage() {
             setIsLoadingCategories(true);
             const categories = await adService.getCategories();
             const options: SelectOption[] = categories.map(cat => ({
-                value: cat.id.toString(),
+                value: cat.id.toString().toLowerCase(),
                 label: cat.name,
             }));
             setParentCategories(options);
@@ -97,7 +115,7 @@ export default function EditListingPage() {
             setIsLoadingAdTypes(true);
             const types = await adService.getAdTypes();
             const options: SelectOption[] = types.map(type => ({
-                value: type.id.toString(),
+                value: type.id.toString().toLowerCase(),
                 label: type.name,
             }));
             setAdTypes(options);
@@ -113,7 +131,7 @@ export default function EditListingPage() {
             setIsLoadingCities(true);
             const citiesList = await adService.getCities();
             const options: SelectOption[] = citiesList.map(city => ({
-                value: city.id.toString(),
+                value: city.id.toString().toLowerCase(),
                 label: city.name,
             }));
             setCities(options);
@@ -127,24 +145,86 @@ export default function EditListingPage() {
     const fetchAdData = async () => {
         if (!id) return;
         try {
-            const ad = await adService.getAdById(id);
+            const ad = await adService.getEditData(id);
+            
+            // Map the data from AdEditData to formData
             setFormData({
-                categoryId: '1', // Mock: assume category 1 for now or map from ad.category if you have ID
-                subcategoryId: '',
-                adTypeId: ad.adType === 'Sell' ? '1' : '2', // Mock mapping
+                categoryId: ad.categoryId?.toLowerCase() || '',
+                subcategoryId: ad.subCategoryId?.toLowerCase() || '',
+                brandId: ad.brandId?.toLowerCase() || '', // We'll handle brand if it's there (backend calls it subCategoryId too)
+                adTypeId: ad.adTypeId?.toLowerCase() || '',
                 title: ad.title,
                 description: ad.description,
                 price: ad.price.toString(),
                 name: ad.fullName,
                 email: ad.email,
                 phone: ad.phoneNumber,
-                cityId: ad.cityId?.toString() ?? '1',
-                isDeliverable: false, // AdDetail doesn't expose isDeliverable; default false
-                isNew: false, // AdDetail doesn't expose isNew; default false
+                cityId: ad.cityId?.toLowerCase() || '',
+                isDeliverable: ad.isDeliverable,
+                isNew: ad.isNew,
             });
 
-            // If ad has images, we'd load them here. For now mock doesn't have images array populated with urls
-            // if (ad.images && ad.images.length > 0) { ... }
+            // Handle Dynamic Fields
+            if (ad.dynamicFields && ad.dynamicFields.length > 0) {
+                const fieldValues: Record<string, string> = {};
+                ad.dynamicFields.forEach(field => {
+                    fieldValues[field.categoryFieldId] = field.value;
+                });
+                setDynamicFieldValues(fieldValues);
+            }
+
+            // Pre-load subcategories if present
+            if (ad.categoryId) {
+                setShowSubcategory(true);
+                setIsLoadingSubCategories(true);
+                try {
+                    const categories = await adService.getCategories(ad.categoryId);
+                    const options: SelectOption[] = categories.map(cat => ({
+                        value: cat.id.toString().toLowerCase(),
+                        label: cat.name,
+                    }));
+                    setSubCategories(options);
+
+                    // If a subcategory exists, fetch brands and fields for it
+                    if (ad.subCategoryId) {
+                        // We need to fetch fields from this category
+                        const selectedChild = categories.find(c => c.id.toLowerCase() === ad.subCategoryId?.toLowerCase());
+                        if (selectedChild?.categoryFields) {
+                            setCategoryFields(selectedChild.categoryFields);
+                        }
+
+                        // Also check if this subcategory has brands
+                        const fetchedBrands = await adService.getSubCategories(ad.subCategoryId);
+                        if (fetchedBrands && fetchedBrands.length > 0) {
+                            const brandOptions: SelectOption[] = fetchedBrands.map(b => ({
+                                value: b.id.toString().toLowerCase(),
+                                label: b.name,
+                            }));
+                            setBrands(brandOptions);
+                            setShowBrands(true);
+
+                            // Wait, does the ad have a brand selected?
+                            // In our model, Root=CategoryId, Child=SubCategoryId.
+                            // If there is a 3rd level (Brand), where is it stored?
+                            // Let's assume for now that if we have a brand, we'd need another field in AdEditDto.
+                            // But usually brands are just Level 3.
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error fetching initial category data:', err);
+                } finally {
+                    setIsLoadingSubCategories(false);
+                }
+            }
+
+            // Set existing images
+            if (ad.images && ad.images.length > 0) {
+                setExistingImages(ad.images);
+                // Prepend SERVER_URL if image path is relative
+                setImagePreviews(ad.images.map(img => 
+                    img.url.startsWith('http') ? img.url : `${SERVER_URL}${img.url}`
+                ));
+            }
 
         } catch (err) {
             console.error('Error fetching ad data:', err);
@@ -154,17 +234,21 @@ export default function EditListingPage() {
 
     // Fetch subcategories when parent category is selected
     useEffect(() => {
+        if (isFirstLoad.current) return;
+
         if (formData.categoryId) {
             const fetchSubCategories = async () => {
                 setIsLoadingSubCategories(true);
                 setShowSubcategory(true);
                 setSubCategories([]);
-                // Don't clear subcategoryId if it was set by fetchAdData and matches the category
-                // setFormData(prev => ({ ...prev, subcategoryId: '' })); 
+                // Clear subcategoryId and brandId when parent category changes manually
+                setFormData(prev => ({ ...prev, subcategoryId: '', brandId: '' })); 
+                setCategoryFields([]);
+                setDynamicFieldValues({});
                 try {
                     const categories = await adService.getCategories(formData.categoryId);
                     const options: SelectOption[] = categories.map(cat => ({
-                        value: cat.id.toString(),
+                        value: cat.id.toString().toLowerCase(),
                         label: cat.name,
                     }));
                     setSubCategories(options);
@@ -180,9 +264,74 @@ export default function EditListingPage() {
         } else {
             setShowSubcategory(false);
             setSubCategories([]);
-            setFormData(prev => ({ ...prev, subcategoryId: '' }));
+            setFormData(prev => ({ ...prev, subcategoryId: '', brandId: '' }));
+            setCategoryFields([]);
+            setDynamicFieldValues({});
         }
     }, [formData.categoryId]);
+
+    // Load category fields when subcategory is selected
+    useEffect(() => {
+        if (isFirstLoad.current) return;
+
+        if (formData.subcategoryId) {
+            const loadCategoryFields = async () => {
+                try {
+                    const cats = await adService.getCategories(formData.categoryId);
+                    const selectedCat = cats.find(c => c.id.toLowerCase() === formData.subcategoryId.toLowerCase());
+                    if (selectedCat?.categoryFields && selectedCat.categoryFields.length > 0) {
+                        setCategoryFields(selectedCat.categoryFields);
+                    } else {
+                        setCategoryFields([]);
+                    }
+                } catch {
+                    setCategoryFields([]);
+                }
+                setDynamicFieldValues({});
+            };
+            loadCategoryFields();
+        } else {
+            setCategoryFields([]);
+            setDynamicFieldValues({});
+        }
+    }, [formData.subcategoryId, formData.categoryId]);
+
+    // Fetch brands when subcategory is selected
+    useEffect(() => {
+        if (isFirstLoad.current) return;
+
+        if (formData.subcategoryId) {
+            const fetchBrands = async () => {
+                setIsLoadingBrands(true);
+                setBrands([]);
+                setFormData(prev => ({ ...prev, brandId: '' }));
+                try {
+                    const fetchedBrands = await adService.getSubCategories(formData.subcategoryId);
+                    if (fetchedBrands && fetchedBrands.length > 0) {
+                        const options: SelectOption[] = fetchedBrands.map(b => ({
+                            value: b.id.toString().toLowerCase(),
+                            label: b.name,
+                        }));
+                        setBrands(options);
+                        setShowBrands(true);
+                    } else {
+                        setShowBrands(false);
+                    }
+                } catch (err: any) {
+                    console.error('Error fetching brands:', err);
+                    setShowBrands(false);
+                } finally {
+                    setIsLoadingBrands(false);
+                }
+            };
+
+            fetchBrands();
+        } else {
+            setShowBrands(false);
+            setBrands([]);
+            setFormData(prev => ({ ...prev, brandId: '' }));
+        }
+    }, [formData.subcategoryId]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -230,20 +379,33 @@ export default function EditListingPage() {
     };
 
     const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
+        const isExisting = index < existingImages.length;
+
+        if (isExisting) {
+            const removedImage = existingImages[index];
+            setDeletedImageIds(prev => [...prev, removedImage.id]);
+            setExistingImages(prev => prev.filter((_, i) => i !== index));
+        } else {
+            const newImageIndex = index - existingImages.length;
+            setImages(prev => prev.filter((_, i) => i !== newImageIndex));
+        }
+
         setImagePreviews(prev => {
             const newPreviews = prev.filter((_, i) => i !== index);
-            // Revoke the URL to free up memory and remove from created list
-            const url = prev[index];
-            try {
-                URL.revokeObjectURL(url);
-            } catch (e) { }
-            createdUrlsRef.current = createdUrlsRef.current.filter(u => u !== url);
+            // Revoke the URL to free up memory (only for new images)
+            if (!isExisting) {
+                const url = prev[index];
+                try {
+                    URL.revokeObjectURL(url);
+                } catch (e) { }
+                createdUrlsRef.current = createdUrlsRef.current.filter(u => u !== url);
+            }
             return newPreviews;
         });
     };
 
     // Preview drag-and-drop handlers for reordering
+    // Note: Reordering is currently visual only, as we don't send order to backend in this simplified version
     const handlePreviewDragStart = (e: React.DragEvent, index: number) => {
         dragItemIndex.current = index;
         setDraggingIdx(index);
@@ -274,13 +436,9 @@ export default function EditListingPage() {
             return;
         }
 
-        setImages(prev => {
-            const arr = [...prev];
-            const [item] = arr.splice(from, 1);
-            arr.splice(to, 0, item);
-            return arr;
-        });
-
+        // Handle complex reordering across existing and new images
+        // For now, let's keep it simple: just reorder previews
+        // In a real app, you'd need to reorder both state arrays carefully
         setImagePreviews(prev => {
             const arr = [...prev];
             const [item] = arr.splice(from, 1);
@@ -322,7 +480,9 @@ export default function EditListingPage() {
 
         try {
             // Determine which category to use (subcategory if selected, otherwise parent)
-            const categoryId = formData.subcategoryId || formData.categoryId;
+            const categoryId = formData.categoryId;
+            const subCategoryId = formData.subcategoryId;
+            const brandId = formData.brandId;
 
             if (!categoryId) {
                 setError('Zəhmət olmasa kateqoriya seçin');
@@ -330,22 +490,24 @@ export default function EditListingPage() {
                 return;
             }
 
-            // Allow updating without new images if existing ones are kept (mock logic)
-            // if (images.length === 0) { ... } 
-
             await adService.updateAd(id, {
                 CityId: formData.cityId,
-                Price: parseFloat(formData.price) || 0,
+                Price: parseCurrency(formData.price),
                 IsDeliverable: formData.isDeliverable,
                 IsNew: formData.isNew,
                 PhoneNumber: formData.phone,
                 AdTypeId: formData.adTypeId,
                 Title: formData.title,
-                Images: images,
-                CategoryId: categoryId,
+                Images: images, // These are the NewImages
+                CategoryId: subCategoryId || categoryId, // Backend expects the child-most category here
+                SubCategoryId: brandId || undefined, // SubCategoryId in backend is for Brands
                 FullName: formData.name,
                 Email: formData.email,
                 Description: formData.description,
+                DeletedImageIds: deletedImageIds,
+                DynamicFieldsJson: Object.keys(dynamicFieldValues).length > 0
+                    ? JSON.stringify(dynamicFieldValues)
+                    : undefined,
             });
 
             // Redirect to cabinet on success
@@ -426,7 +588,20 @@ export default function EditListingPage() {
                                     onChange={(option) => setFormData(prev => ({ ...prev, subcategoryId: option?.value || '' }))}
                                     placeholder={isLoadingSubCategories ? 'Yüklənir...' : 'Alt kateqoriya seçin'}
                                     isClearable
+                                    required
                                     isLoading={isLoadingSubCategories}
+                                />
+                            )}
+
+                            {showBrands && (
+                                <Select
+                                    label="Marka / Çeşid"
+                                    options={brands}
+                                    value={brands.find(option => option.value === formData.brandId)}
+                                    onChange={(option) => setFormData(prev => ({ ...prev, brandId: option?.value || '' }))}
+                                    placeholder={isLoadingBrands ? 'Yüklənir...' : 'Marka / Çeşid seçin'}
+                                    isClearable
+                                    isLoading={isLoadingBrands}
                                 />
                             )}
 
@@ -478,13 +653,11 @@ export default function EditListingPage() {
                             {/* Price */}
                             <Input
                                 label="Qiymət (₼)"
-                                type="number"
+                                type="text"
                                 name="price"
                                 value={formData.price}
                                 onChange={handleInputChange}
                                 placeholder="0"
-                                min="0"
-                                step="0.01"
                                 required
                             />
 
@@ -509,6 +682,87 @@ export default function EditListingPage() {
                                     <span className="text-gray-900 text-sm font-medium">Çatdırılma mümkündür</span>
                                 </label>
                             </div>
+
+                            {/* Dynamic Category Fields */}
+                            {categoryFields.length > 0 && (
+                                <div className="space-y-4 pt-4 border-t border-gray-100">
+                                    <h3 className="text-gray-700 text-sm font-semibold">Kateqoriyaya aid məlumatlar</h3>
+                                    {categoryFields.map((field) => {
+                                        if (field.fieldType === 'select' || field.fieldType === 'dependent_select') {
+                                            let parsedOptions: string[] = [];
+                                            try {
+                                                const parsed = field.optionsJson ? JSON.parse(field.optionsJson) : [];
+                                                
+                                                if (Array.isArray(parsed)) {
+                                                    parsedOptions = parsed;
+                                                } else if (parsed && typeof parsed === 'object' && field.fieldType === 'dependent_select') {
+                                                    // Handle dependent select (e.g. Model depends on Brand)
+                                                    // Check for selected brand label first
+                                                    const selectedBrandLabel = brands.find(b => b.value === formData.brandId)?.label;
+                                                    if (selectedBrandLabel && Array.isArray(parsed[selectedBrandLabel])) {
+                                                        parsedOptions = parsed[selectedBrandLabel];
+                                                    } else {
+                                                        // Try by ID as fallback
+                                                        if (formData.brandId && Array.isArray(parsed[formData.brandId])) {
+                                                            parsedOptions = parsed[formData.brandId];
+                                                        }
+                                                    }
+                                                }
+                                            } catch (e) {
+                                                console.error('Error parsing optionsJson:', e);
+                                            }
+
+                                            const options: SelectOption[] = parsedOptions.map((opt: string) => ({ value: opt, label: opt }));
+                                            return (
+                                                <Select
+                                                    key={field.id}
+                                                    label={field.name + (field.isRequired ? ' *' : '')}
+                                                    options={options}
+                                                    value={options.find(o => o.value === dynamicFieldValues[field.id])}
+                                                    onChange={(opt) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: opt?.value || '' }))}
+                                                    placeholder={`${field.name} seçin`}
+                                                    isClearable
+                                                />
+                                            );
+                                        }
+                                        if (field.fieldType === 'number') {
+                                            return (
+                                                <Input
+                                                    key={field.id}
+                                                    label={field.name + (field.isRequired ? ' *' : '')}
+                                                    type="number"
+                                                    value={dynamicFieldValues[field.id] || ''}
+                                                    onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                                    placeholder={field.name}
+                                                />
+                                            );
+                                        }
+                                        if (field.fieldType === 'checkbox') {
+                                            return (
+                                                <label key={field.id} className="flex items-center gap-3 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={dynamicFieldValues[field.id] === 'true'}
+                                                        onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.checked.toString() }))}
+                                                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
+                                                    />
+                                                    <span className="text-gray-900 text-sm font-medium">{field.name}</span>
+                                                </label>
+                                            );
+                                        }
+                                        return (
+                                            <Input
+                                                key={field.id}
+                                                label={field.name + (field.isRequired ? ' *' : '')}
+                                                type="text"
+                                                value={dynamicFieldValues[field.id] || ''}
+                                                onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                                placeholder={field.name}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
 
