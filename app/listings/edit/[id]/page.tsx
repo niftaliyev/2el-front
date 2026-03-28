@@ -8,7 +8,7 @@ import Select, { SelectOption } from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import { adService } from '@/services/ad.service';
-import { AdImage, AdFieldDto, CategoryFieldDto } from '@/types/api';
+import { AdImage, AdFieldDto, CategoryFieldDto, CategoryDto } from '@/types/api';
 import { parseCurrency } from '@/lib/utils';
 
 const SERVER_URL = 'http://localhost:5156';
@@ -46,9 +46,12 @@ export default function EditListingPage() {
     const [isLoadingAdTypes, setIsLoadingAdTypes] = useState(false);
     const [isLoadingCities, setIsLoadingCities] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<React.ReactNode | null>(null);
     const [showSubcategory, setShowSubcategory] = useState(false);
     const [showBrands, setShowBrands] = useState(false);
+
+    const [selectedCategory, setSelectedCategory] = useState<CategoryDto | null>(null);
+    const [categoryUsage, setCategoryUsage] = useState<number | null>(null);
 
     // Dynamic category fields
     const [categoryFields, setCategoryFields] = useState<CategoryFieldDto[]>([]);
@@ -192,6 +195,17 @@ export default function EditListingPage() {
                         if (selectedChild?.categoryFields) {
                             setCategoryFields(selectedChild.categoryFields);
                         }
+                        setSelectedCategory(selectedChild || null);
+                        
+                        // Fetch usage
+                        if (selectedChild) {
+                            try {
+                                const usage = await adService.getCategoryUsage(selectedChild.id);
+                                setCategoryUsage(usage);
+                            } catch {
+                                setCategoryUsage(null);
+                            }
+                        }
 
                         // Also check if this subcategory has brands
                         const fetchedBrands = await adService.getSubCategories(ad.subCategoryId);
@@ -283,6 +297,17 @@ export default function EditListingPage() {
                         setCategoryFields(selectedCat.categoryFields);
                     } else {
                         setCategoryFields([]);
+                    }
+                    setSelectedCategory(selectedCat || null);
+
+                    // Fetch usage
+                    if (selectedCat) {
+                        try {
+                            const usage = await adService.getCategoryUsage(selectedCat.id);
+                            setCategoryUsage(usage);
+                        } catch {
+                            setCategoryUsage(null);
+                        }
                     }
                 } catch {
                     setCategoryFields([]);
@@ -514,10 +539,32 @@ export default function EditListingPage() {
             router.push('/cabinet');
         } catch (err: any) {
             let errorMessage = 'Elan yenilənərkən xəta baş verdi';
+            let isLimitError = false;
+
             if (err.message) {
                 errorMessage = err.message;
+            } else if (err.data) {
+                if (typeof err.data === 'string') {
+                    errorMessage = err.data;
+                } else if (err.data.message) {
+                    errorMessage = err.data.message;
+                } else if (err.data.error) {
+                    errorMessage = err.data.error;
+                }
             }
-            setError(errorMessage);
+
+            if (typeof errorMessage === 'string' && (errorMessage.toLowerCase().includes('limit') || errorMessage.toLowerCase().includes('balans'))) {
+                isLimitError = true;
+            }
+
+            setError(isLimitError ? (
+                <div className="flex flex-col gap-2">
+                    <span>{errorMessage}</span>
+                    <Link href="/cabinet" className="text-white underline font-bold mt-1">
+                        Balansı artırmaq üçün şəxsi kabinetə keçin →
+                    </Link>
+                </div>
+            ) : errorMessage);
             console.error('Error updating ad:', err);
         } finally {
             setIsSubmitting(false);
@@ -562,6 +609,12 @@ export default function EditListingPage() {
                 </h1>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
+                    {error && (
+                        <div className={`p-4 rounded-xl border flex items-start gap-3 ${typeof error === 'string' ? 'bg-red-50 border-red-100 text-red-600' : 'bg-amber-600 border-amber-700 text-white'}`}>
+                            <span className="material-symbols-outlined mt-0.5">error</span>
+                            <div className="text-sm font-medium">{error}</div>
+                        </div>
+                    )}
                     {/* Section 1: Basic Information */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <h2 className="text-gray-900 text-xl font-bold mb-6">Əsas Məlumatlar</h2>
@@ -616,6 +669,42 @@ export default function EditListingPage() {
                                 required
                                 isLoading={isLoadingAdTypes}
                             />
+
+                            {/* Limit Information */}
+                            {selectedCategory && (
+                                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex items-start gap-3 mb-4">
+                                    <span className="material-symbols-outlined text-blue-600 !text-2xl mt-0.5">info</span>
+                                    <div className="flex-1">
+                                        <p className="text-gray-900 text-sm font-semibold">Kateqoriya məlumatı</p>
+                                        <div className="text-gray-600 text-xs mt-1 leading-relaxed">
+                                            {selectedCategory.freeLimit > 0 ? (
+                                                <>Bu bölmədə pulsuz elan limiti: <span className="font-bold text-gray-900">{selectedCategory.freeLimit}</span></>
+                                            ) : (
+                                                <span className="text-amber-700 font-bold">Bu bölmədə bütün elanlar ödənişlidir.</span>
+                                            )}
+
+                                            {categoryUsage !== null && (
+                                                <div className="mt-1 text-gray-500 italic">
+                                                Mövcud istifadə: <span className={`font-bold ${categoryUsage >= selectedCategory.freeLimit ? 'text-error' : 'text-emerald-600'}`}>
+                                                    {categoryUsage} / {selectedCategory.freeLimit}
+                                                </span> (son 30 gündə)
+                                                </div>
+                                            )}
+
+                                            {selectedCategory.paidPrice1 > 0 && (
+                                                <div className="mt-1 border-t border-blue-100/50 pt-1">
+                                                Qiymət: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} AZN</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <Link href="/pages/limits_by_category" className="text-primary text-[10px] font-bold uppercase tracking-wider hover:underline">
+                                                Bütün limitlərə bax
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* City */}
                             <Select

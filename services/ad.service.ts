@@ -249,6 +249,12 @@ class AdService {
   async incrementViewCount(id: string): Promise<void> {
     await axiosInstance.post(`/ad/${id}/view`);
   }
+
+  /** Get user's category usage (count in last 30 days) */
+  async getCategoryUsage(categoryId: string): Promise<number> {
+    const response = await axiosInstance.get<{ usage: number }>(`/ad/usage/${categoryId}`);
+    return response.data.usage;
+  }
 }
 
 export const adService = new AdService();
