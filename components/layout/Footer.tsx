@@ -44,6 +44,7 @@ export default function Footer() {
               <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Haqqımızda</a></li>
               <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Qaydalar</a></li>
               <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Məxfilik siyasəti</a></li>
+              <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href="/pages/limits_by_category">Elan yerləşdirmə limitləri</Link></li>
               <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Reklam</a></li>
             </ul>
           </div>

@@ -40,7 +40,7 @@ export default function CreateListingPage() {
   const [isLoadingAdTypes, setIsLoadingAdTypes] = useState(false);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<React.ReactNode | null>(null);
   const [showSubcategory, setShowSubcategory] = useState(false);
 
   const [brands, setBrands] = useState<SelectOption[]>([]);
@@ -61,6 +61,8 @@ export default function CreateListingPage() {
   // Dynamic category fields
   const [categoryFields, setCategoryFields] = useState<CategoryFieldDto[]>([]);
   const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, string>>({});
+  const [selectedCategory, setSelectedCategory] = useState<CategoryDto | null>(null);
+  const [categoryUsage, setCategoryUsage] = useState<number | null>(null);
 
   // Fetch parent categories on mount
   useEffect(() => {
@@ -184,15 +186,31 @@ export default function CreateListingPage() {
       const loadCategoryFields = async () => {
         try {
           const cats = await adService.getCategories(formData.categoryId || undefined);
-          // Find the selected subcategory and get its categoryFields
           const selectedCat = cats.find(c => c.id === formData.subcategoryId);
-          if (selectedCat?.categoryFields && selectedCat.categoryFields.length > 0) {
-            setCategoryFields(selectedCat.categoryFields);
+          if (selectedCat) {
+            setSelectedCategory(selectedCat);
+            if (selectedCat.categoryFields && selectedCat.categoryFields.length > 0) {
+              setCategoryFields(selectedCat.categoryFields);
+            } else {
+              setCategoryFields([]);
+            }
+
+            // Fetch usage for this category
+            try {
+              const usage = await adService.getCategoryUsage(selectedCat.id);
+              setCategoryUsage(usage);
+            } catch {
+              setCategoryUsage(null);
+            }
           } else {
+            setSelectedCategory(null);
             setCategoryFields([]);
+            setCategoryUsage(null);
           }
         } catch {
+          setSelectedCategory(null);
           setCategoryFields([]);
+          setCategoryUsage(null);
         }
       };
       loadCategoryFields();
@@ -412,11 +430,11 @@ export default function CreateListingPage() {
       router.push(ROUTES.HOME);
     } catch (err: any) {
       let errorMessage = 'Elan yerləşdirilərkən xəta baş verdi';
+      let isLimitError = false;
 
       if (err.message) {
         errorMessage = err.message;
       } else if (err.data) {
-        // Handle different error response formats
         if (typeof err.data === 'string') {
           errorMessage = err.data;
         } else if (err.data.message) {
@@ -426,7 +444,19 @@ export default function CreateListingPage() {
         }
       }
 
-      setError(errorMessage);
+      // Check if it's a limit/balance error to show a better UI
+      if (typeof errorMessage === 'string' && (errorMessage.toLowerCase().includes('limit') || errorMessage.toLowerCase().includes('balans'))) {
+        isLimitError = true;
+      }
+
+      setError(isLimitError ? (
+        <div className="flex flex-col gap-2">
+          <span>{errorMessage}</span>
+          <Link href="/cabinet" className="text-white underline font-bold mt-1">
+            Balansı artırmaq üçün şəxsi kabinetə keçin →
+          </Link>
+        </div>
+      ) : errorMessage);
       console.error('Error creating ad:', err);
     } finally {
       setIsSubmitting(false);
@@ -453,6 +483,12 @@ export default function CreateListingPage() {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          {error && (
+            <div className={`p-4 rounded-xl border flex items-start gap-3 ${typeof error === 'string' ? 'bg-red-50 border-red-100 text-red-600' : 'bg-amber-600 border-amber-700 text-white'}`}>
+              <span className="material-symbols-outlined mt-0.5">error</span>
+              <div className="text-sm font-medium">{error}</div>
+            </div>
+          )}
           {/* Section 1: Basic Information */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-gray-900 text-xl font-bold mb-6">Əsas Məlumatlar</h2>
@@ -507,6 +543,42 @@ export default function CreateListingPage() {
                 required
                 isLoading={isLoadingAdTypes}
               />
+
+              {/* Limit Information */}
+              {selectedCategory && (
+                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex items-start gap-3">
+                  <span className="material-symbols-outlined text-blue-600 !text-2xl mt-0.5">info</span>
+                  <div className="flex-1">
+                    <p className="text-gray-900 text-sm font-semibold">Kateqoriya məlumatı</p>
+                    <div className="text-gray-600 text-xs mt-1 leading-relaxed">
+                      {selectedCategory.freeLimit > 0 ? (
+                        <>Bu bölmədə pulsuz elan limiti: <span className="font-bold text-gray-900">{selectedCategory.freeLimit}</span></>
+                      ) : (
+                        <span className="text-amber-700 font-bold">Bu bölmədə bütün elanlar ödənişlidir.</span>
+                      )}
+
+                      {categoryUsage !== null && (
+                        <div className="mt-1 text-gray-500 italic">
+                          Mövcud istifadə: <span className={`font-bold ${categoryUsage >= selectedCategory.freeLimit ? 'text-error' : 'text-emerald-600'}`}>
+                            {categoryUsage} / {selectedCategory.freeLimit}
+                          </span> (son 30 gündə)
+                        </div>
+                      )}
+
+                      {selectedCategory.paidPrice1 > 0 && (
+                        <div className="mt-1 border-t border-blue-100/50 pt-1">
+                          Qiymət: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} AZN</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 mt-2">
+                      <Link href="/pages/limits_by_category" className="text-primary text-[10px] font-bold uppercase tracking-wider hover:underline">
+                        Bütün limitlərə bax
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* City */}
               <Select
@@ -583,7 +655,7 @@ export default function CreateListingPage() {
                       let parsedOptions: string[] = [];
                       try {
                         const parsed = field.optionsJson ? JSON.parse(field.optionsJson) : [];
-                        
+
                         if (Array.isArray(parsed)) {
                           parsedOptions = parsed;
                         } else if (parsed && typeof parsed === 'object' && field.fieldType === 'dependent_select') {

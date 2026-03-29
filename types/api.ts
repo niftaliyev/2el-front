@@ -139,6 +139,16 @@ export interface CategoryDto {
   imageUrl?: string;
   children?: CategoryDto[];
   categoryFields?: CategoryFieldDto[];
+  freeLimit: number;
+  paidPrice1: number;
+  paidPrice3: number;
+  paidPrice5: number;
+  paidPrice10: number;
+  paidPrice20: number;
+  paidPrice25: number;
+  paidPrice50: number;
+  paidPrice75: number;
+  paidPrice80: number;
 }
 
 // ================================
