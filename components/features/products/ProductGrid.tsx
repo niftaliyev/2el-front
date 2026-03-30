@@ -9,9 +9,11 @@ interface ProductGridProps {
   title?: string;
   description?: string;
   viewAllLink?: string;
+  viewAllText?: string;
+  titleLight?: boolean;
 }
 
-export default function ProductGrid({ products, emptyMessage = 'No products found', title, description, viewAllLink }: ProductGridProps) {
+export default function ProductGrid({ products, emptyMessage = 'No products found', title, description, viewAllLink, viewAllText, titleLight }: ProductGridProps) {
   if (products.length === 0) {
     return (
       <div className="text-center py-12 bg-white rounded-xl border border-gray-100 shadow-sm">
@@ -32,18 +34,15 @@ export default function ProductGrid({ products, emptyMessage = 'No products foun
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
           <div className="flex flex-col gap-2">
             {title && (
-              <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+              <h2 className={`${titleLight ? 'text-lg' : 'text-xl'} font-bold text-[#212121]`}>{title}</h2>
             )}
             {description && (
               <p className="text-gray-500">{description}</p>
             )}
           </div>
           {viewAllLink && (
-            <Link href={viewAllLink}>
-              <button className="flex items-center gap-2 text-primary font-bold hover:text-primary-dark transition-colors group">
-                <span>Hamısına bax</span>
-                <span className="material-symbols-outlined !text-lg transition-transform group-hover:translate-x-1">arrow_forward</span>
-              </button>
+            <Link href={viewAllLink} className="text-[#0057e6] hover:underline text-[15px] pt-2">
+              {viewAllText || 'Hamısına bax'}
             </Link>
           )}
         </div>

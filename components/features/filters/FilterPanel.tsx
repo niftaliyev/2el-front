@@ -1,22 +1,55 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SingleValue } from 'react-select';
 import { Button, Input, Select } from '@/components/ui';
 import { SelectOption } from '@/components/ui/Select';
 import { SearchFilters } from '@/types';
 import { PRODUCT_CONDITIONS, SORT_OPTIONS } from '@/constants';
 import { parseCurrency } from '@/lib/utils';
+import { adService } from '@/services/ad.service';
 
 interface FilterPanelProps {
   filters: SearchFilters;
   onFilterChange: (filters: SearchFilters) => void;
+  categories?: { id: string, name: string }[];
 }
 
-export default function FilterPanel({ filters, onFilterChange }: FilterPanelProps) {
-  const [localFilters, setLocalFilters] = useState<SearchFilters>(filters);
+const EXCLUDED_DELIVERY_CATEGORIES = [
+  'Daşınmaz əmlak',
+  'Nəqliyyat',
+  'Xidmətlər və biznes',
+  'İş elanları'
+];
 
-  const handleFilterChange = (key: keyof SearchFilters, value: any) => {
+export default function FilterPanel({ filters, onFilterChange, categories = [] }: FilterPanelProps) {
+  const [localFilters, setLocalFilters] = useState<SearchFilters>(filters);
+  const [cities, setCities] = useState<SelectOption[]>([]);
+
+  // Accordion states
+  const [isPriceOpen, setIsPriceOpen] = useState(true);
+  const [isCityOpen, setIsCityOpen] = useState(!!filters.cityId);
+  const [isConditionOpen, setIsConditionOpen] = useState(!!filters.condition);
+  const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
+  const [openDynamicFields, setOpenDynamicFields] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const fetchedCities = await adService.getCities();
+        const cityOptions = fetchedCities.map((c: any) => ({
+          value: c.id.toString(),
+          label: c.name
+        }));
+        setCities([{ value: '', label: 'Bütün şəhərlər' }, ...cityOptions]);
+      } catch (error) {
+        console.error('Failed to fetch cities:', error);
+      }
+    };
+    fetchCities();
+  }, []);
+
+  const handleFilterChange = (key: keyof SearchFilters | 'cityId', value: any) => {
     let finalValue = value;
     if ((key === 'minPrice' || key === 'maxPrice') && typeof value === 'string') {
       finalValue = parseCurrency(value) || undefined;
@@ -25,9 +58,35 @@ export default function FilterPanel({ filters, onFilterChange }: FilterPanelProp
     setLocalFilters(newFilters);
   };
 
-  const applyFilters = () => {
-    onFilterChange(localFilters);
+  const handleDynamicPropertyChange = (fieldId: string, value: string | undefined) => {
+    const newDynamicProps = { ...localFilters.dynamicProperties };
+    if (value) {
+      newDynamicProps[fieldId] = value;
+    } else {
+      delete newDynamicProps[fieldId];
+    }
+    setLocalFilters({ ...localFilters, dynamicProperties: newDynamicProps });
   };
+
+  // Replace applyFilters with automatic effect
+  useEffect(() => {
+    // Stringify compare to prevent infinite loop (simple deep compare)
+    if (JSON.stringify(localFilters) === JSON.stringify(filters)) return;
+
+    // For price inputs/text, we debounce to avoid API spam
+    const timer = setTimeout(() => {
+      onFilterChange(localFilters);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [localFilters, filters, onFilterChange]);
+
+  // Sync from props if filters change externally (URL)
+  useEffect(() => {
+    if (JSON.stringify(localFilters) !== JSON.stringify(filters)) {
+      setLocalFilters(filters);
+    }
+  }, [filters]);
 
   const resetFilters = () => {
     const emptyFilters: SearchFilters = { sortBy: 'latest' };
@@ -35,95 +94,241 @@ export default function FilterPanel({ filters, onFilterChange }: FilterPanelProp
     onFilterChange(emptyFilters);
   };
 
+  // Helper to find category in tree
+  const findCategoryInTree = (cats: any[], id: string): any => {
+    for (const cat of cats) {
+      if (cat.id === id) return cat;
+      if (cat.children?.length) {
+        const found = findCategoryInTree(cat.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const selectedCategory = findCategoryInTree(categories, localFilters.subCategoryId || localFilters.categoryId || '');
+  const selectedCategoryName = selectedCategory?.name || '';
+
+  // Find fields from the selected category or its parents
+  const getCategoryFieldsWithParents = (cat: any): any[] => {
+    if (!cat) return [];
+    if (cat.categoryFields?.length) return cat.categoryFields;
+    // If this level has no fields, check parent in the tree (requires categories tree to be comprehensive)
+    // For now, if current cat has no fields, we try to find its parent in the tree
+    if (cat.parentId) {
+      const parent = findCategoryInTree(categories, cat.parentId);
+      return getCategoryFieldsWithParents(parent);
+    }
+    return [];
+  };
+
+  const categoryFields = getCategoryFieldsWithParents(selectedCategory);
+
+  const showDeliveryFilter = !(localFilters.subCategoryId || localFilters.categoryId) || (selectedCategoryName && !EXCLUDED_DELIVERY_CATEGORIES.includes(selectedCategoryName));
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-8 sticky top-24">
-      <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">filter_list</span>
+    <div className="w-full">
+      <div className="flex items-center justify-between pb-3 mt-4 border-t border-gray-100 pt-6">
+        <span className="text-[13px] text-gray-400">
           Filtrlər
-        </h3>
+        </span>
         <button
           onClick={resetFilters}
-          className="text-xs font-semibold text-gray-500 hover:text-primary transition-colors uppercase tracking-wide"
+          className="text-[13px] text-gray-400 hover:text-primary transition-colors"
         >
           Sıfırla
         </button>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-5 mt-2">
         {/* Price Range */}
         <div>
-          <label className="block text-sm font-bold text-gray-900 mb-3">
-            Qiymət Aralığı (AZN)
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="relative">
-              <Input
+          <div
+            className="flex items-center justify-between mb-3 cursor-pointer select-none"
+            onClick={() => setIsPriceOpen(!isPriceOpen)}
+          >
+            <span className="text-[15px] text-[#212121]">Qiymət, AZN</span>
+            <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isPriceOpen ? '' : 'rotate-180'}`}>expand_less</span>
+          </div>
+          {isPriceOpen && (
+            <div className="grid grid-cols-2 gap-2">
+              <input
                 type="text"
-                placeholder="Min"
+                placeholder="min."
                 value={localFilters.minPrice || ''}
                 onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                className="pl-3"
+                className="w-full h-10 px-3 bg-[#f1f2f4] rounded-[10px] outline-none placeholder:text-gray-400 text-sm focus:ring-1 focus:ring-gray-300"
               />
-            </div>
-            <div className="relative">
-              <Input
+              <input
                 type="text"
-                placeholder="Maks"
+                placeholder="maks."
                 value={localFilters.maxPrice || ''}
                 onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                className="pl-3"
+                className="w-full h-10 px-3 bg-[#f1f2f4] rounded-[10px] outline-none placeholder:text-gray-400 text-sm focus:ring-1 focus:ring-gray-300"
               />
             </div>
-          </div>
+          )}
         </div>
 
-        <div className="h-px bg-gray-100"></div>
+        <div className="h-px bg-gray-100 my-4" />
+
+        {/* City Filter */}
+        <div>
+          <div
+            className="flex items-center justify-between mb-3 cursor-pointer select-none"
+            onClick={() => setIsCityOpen(!isCityOpen)}
+          >
+            <span className="text-[15px] text-[#212121]">Şəhər</span>
+            <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isCityOpen ? '' : 'rotate-180'}`}>expand_less</span>
+          </div>
+          {isCityOpen && (
+            <div className="pt-1">
+              <Select
+                value={cities.find(c => c.value === (localFilters as any).cityId) || cities[0]}
+                onChange={(option) => handleFilterChange('cityId', option?.value === '' ? undefined : option?.value)}
+                options={cities.length > 0 ? cities : [{ value: '', label: 'Bütün şəhərlər' }]}
+                placeholder="Şəhər seçin"
+                className="text-sm bg-[#f1f2f4] border-transparent focus:bg-white w-full rounded-[10px]"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="h-px bg-gray-100 my-4" />
 
         {/* Condition */}
         <div>
-          <label className="block text-sm font-bold text-gray-900 mb-3">
-            Məhsulun vəziyyəti
-          </label>
-          <div className="space-y-2">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="radio"
-                name="condition"
-                className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer"
-                checked={!localFilters.condition}
-                onChange={() => handleFilterChange('condition', undefined)}
-              />
-              <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Bütün vəziyyətlər</span>
-            </label>
-            {PRODUCT_CONDITIONS.map(c => (
-              <label key={c.value} className="flex items-center gap-3 cursor-pointer group">
+          <div
+            className="flex items-center justify-between mb-3 cursor-pointer select-none"
+            onClick={() => setIsConditionOpen(!isConditionOpen)}
+          >
+            <span className="text-[15px] text-[#212121]">Məhsulun vəziyyəti</span>
+            <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isConditionOpen ? '' : 'rotate-180'}`}>expand_less</span>
+          </div>
+          {isConditionOpen && (
+            <div className="space-y-[10px] pt-1">
+              <label className="flex items-center gap-3 cursor-pointer group">
                 <input
                   type="radio"
                   name="condition"
-                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer"
-                  checked={localFilters.condition === c.value}
-                  onChange={() => handleFilterChange('condition', c.value)}
+                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
+                  checked={!localFilters.condition}
+                  onChange={() => handleFilterChange('condition', undefined)}
                 />
-                <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">{c.label}</span>
+                <span className="text-[14px] text-[#212121] transition-colors leading-none">Bütün vəziyyətlər</span>
               </label>
-            ))}
-          </div>
+              {PRODUCT_CONDITIONS.map(c => (
+                <label key={c.value} className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="condition"
+                    className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
+                    checked={localFilters.condition === c.value}
+                    onChange={() => handleFilterChange('condition', c.value)}
+                  />
+                  <span className="text-[14px] text-[#212121] transition-colors leading-none">{c.label}</span>
+                </label>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Sort - Mobile only typically, but here we can keep it or move to main page. 
-            Commonly sidebar filters might exclude sort if main page has it. 
-            Keeping it for completeness but usually sort is top right of grid. 
-            I'll keep it as "Secondary Sort" or verify if it duplicates.
-            The plan mentioned moving sort to header. I will remove it from here if I put it in header.
-            I will keep it here for now as a fallback but styled better.
-        */}
-        <div className="h-px bg-gray-100"></div>
+        {/* Dynamic Fields */}
+        {categoryFields.map((field: any) => {
+          const isOpen = openDynamicFields[field.id] ?? true;
+          const options = field.optionsJson ? JSON.parse(field.optionsJson) : [];
 
-        {/* Action Buttons */}
-        <Button onClick={applyFilters} className="w-full h-12 text-base font-bold shadow-md hover:shadow-lg transition-all">
-          Axtar
-        </Button>
+          return (
+            <div key={field.id}>
+              <div className="h-px bg-gray-100 my-4" />
+              <div
+                className="flex items-center justify-between mb-3 cursor-pointer select-none"
+                onClick={() => setOpenDynamicFields(prev => ({ ...prev, [field.id]: !isOpen }))}
+              >
+                <span className="text-[15px] text-[#212121]">{field.name}</span>
+                <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isOpen ? '' : 'rotate-180'}`}>expand_less</span>
+              </div>
+              {isOpen && (
+                <div className="space-y-[10px] pt-1">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name={`field_${field.id}`}
+                      className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
+                      checked={!localFilters.dynamicProperties?.[field.id]}
+                      onChange={() => handleDynamicPropertyChange(field.id, undefined)}
+                    />
+                    <span className="text-[14px] text-[#212121] transition-colors leading-none">Bütün</span>
+                  </label>
+                  {options.map((opt: string) => (
+                    <label key={opt} className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name={`field_${field.id}`}
+                        className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
+                        checked={localFilters.dynamicProperties?.[field.id] === opt}
+                        onChange={() => handleDynamicPropertyChange(field.id, opt)}
+                      />
+                      <span className="text-[14px] text-[#212121] transition-colors leading-none">{opt}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Dynamic Delivery Filter */}
+        {showDeliveryFilter && (
+          <>
+            <div className="h-px bg-gray-100 my-4" />
+            <div className="flex flex-col gap-3">
+              <div
+                className="flex items-center justify-between cursor-pointer select-none"
+                onClick={() => setIsDeliveryOpen(!isDeliveryOpen)}
+              >
+                <span className="text-[15px] text-[#212121]">Çatdırılma</span>
+                <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isDeliveryOpen ? '' : 'rotate-180'}`}>expand_less</span>
+              </div>
+              {isDeliveryOpen && (
+                <div className="flex flex-col gap-[10px] pt-1">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="delivery"
+                      className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
+                      checked={localFilters.isDeliverable === undefined}
+                      onChange={() => handleFilterChange('isDeliverable', undefined)}
+                    />
+                    <span className="text-[14px] text-[#212121] leading-none">Vacib deyil</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="delivery"
+                      className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
+                      checked={localFilters.isDeliverable === true}
+                      onChange={() => handleFilterChange('isDeliverable', true)}
+                    />
+                    <span className="text-[14px] text-[#212121] leading-none">Bəli</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="delivery"
+                      className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
+                      checked={localFilters.isDeliverable === false}
+                      onChange={() => handleFilterChange('isDeliverable', false)}
+                    />
+                    <span className="text-[14px] text-[#212121] leading-none">Xeyr</span>
+                  </label>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Action Buttons removed for Auto-Apply */}
       </div>
     </div>
   );

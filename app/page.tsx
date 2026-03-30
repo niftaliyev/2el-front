@@ -42,11 +42,18 @@ export default function Home() {
             name: cat.name,
             slug: cat.name.toLowerCase().replace(/[^a-z0-9_]+/g, '-'),
             icon: ICONS[cat.name] || 'category',
+            image: cat.imageUrl,
             description: '',
             children: cat.children?.map((child: any) => ({
               id: child.id,
               name: child.name,
               slug: child.name.toLowerCase().replace(/[^a-z0-9_]+/g, '-'),
+              image: child.imageUrl,
+              subCategories: child.subCategories?.map((sc: any) => ({
+                 id: sc.id,
+                 name: sc.name,
+                 image: sc.imageUrl
+              })) || []
             })) || []
           }));
           setCategories(dynamicCategories);
@@ -153,9 +160,9 @@ export default function Home() {
             ) : (
               <ProductGrid
                 products={premiumProducts}
-                title="Premium Elanlar"
-                description="Ən yaxşı və seçilmiş elanları kəşf edin"
-                viewAllLink="/listings?premium=true"
+                title="Premium elanlar"
+                viewAllLink="/listings"
+                viewAllText="Son elanlar"
                 emptyMessage="Premium elan tapılmadı"
               />
             )}

@@ -33,6 +33,11 @@ export interface SearchParams {
   maxPrice?: number;
   search?: string;
   status?: string;
+  cityId?: string;
+  isNew?: boolean;
+  sortBy?: string;
+  isDeliverable?: boolean;
+  [key: string]: any;
 }
 
 // ── Ad Service ────────────────────────────────────────────────────────────────
@@ -102,7 +107,7 @@ class AdService {
   }
 
   /** Update existing ad */
-  async updateAd(id: string, adData: CreateAdRequest & { DeletedImageIds?: string[] }): Promise<void> {
+  async updateAd(id: string, adData: CreateAdRequest & { DeletedImageIds?: string[]; MainImageId?: string; NewMainImageIndex?: number }): Promise<void> {
     const formData = new FormData();
     formData.append('CityId', adData.CityId);
     formData.append('Price', adData.Price.toString());
@@ -125,6 +130,12 @@ class AdService {
     if (adData.DeletedImageIds) {
       adData.DeletedImageIds.forEach(imgId => formData.append('DeletedImageIds', imgId));
     }
+
+    if (adData.MainImageId) {
+      formData.append('MainImageId', adData.MainImageId);
+    } else if (adData.NewMainImageIndex !== undefined) {
+      formData.append('NewMainImageIndex', adData.NewMainImageIndex.toString());
+    }
     
     await axiosInstance.put(`/ad/${id}`, formData);
   }
@@ -141,10 +152,16 @@ class AdService {
     return response.data;
   }
 
-  /** VIP ads */
-  async getVipAds(): Promise<AdListItem[]> {
-    const response = await axiosInstance.get<AdListItem[]>('/ad/vip');
+  /** VIP ads (Random 4) */
+  async getVipAds(params?: SearchParams): Promise<AdListItem[]> {
+    const response = await axiosInstance.get<AdListItem[]>('/ad/vip', { params });
     return response.data ?? [];
+  }
+
+  /** VIP ads (Paginated) */
+  async getPaginatedVipAds(page: number, pageSize: number = 12): Promise<PaginatedResponse<AdListItem[]>> {
+    const response = await axiosInstance.get<PaginatedResponse<AdListItem[]>>('/ad/vip-all', { params: { page, pageSize } });
+    return response.data;
   }
 
   /** Premium ads */

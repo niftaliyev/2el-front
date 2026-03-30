@@ -22,6 +22,7 @@ export interface Category {
   name: string;
   slug: string;
   icon?: string;
+  image?: string;
   parentId?: string;
   children?: Category[];
   productCount?: number;
@@ -44,7 +45,7 @@ export interface Product {
   category: Category;
   location: Location;
   seller: User;
-  condition: 'new' | 'used' | 'refurbished';
+  condition: 'new' | 'used';
   status: 'active' | 'sold' | 'reserved' | 'expired';
   viewCount: number;
   favoriteCount: number;
@@ -64,10 +65,13 @@ export interface SearchFilters {
   categoryId?: string;
   subCategoryId?: string;
   locationId?: string;
+  cityId?: string;
   minPrice?: number;
   maxPrice?: number;
   condition?: Product['condition'];
-  sortBy?: 'latest' | 'price-asc' | 'price-desc' | 'popular';
+  sortBy?: string;
+  isDeliverable?: boolean;
+  dynamicProperties?: Record<string, string>;
   page?: number;
   limit?: number;
 }

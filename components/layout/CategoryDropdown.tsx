@@ -234,7 +234,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
               {subCategoriesForActive.map((item: any) => (
                 <Link
                   key={item.id}
-                  href={ROUTES.SUBCATEGORY(item.id)}
+                  href={`/listings?categoryId=${activeSub?.id || ''}&subCategoryId=${item.id}`}
                   className="px-4 py-2 text-[14px] text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={onClose}
                 >
