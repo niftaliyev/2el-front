@@ -42,7 +42,7 @@ export default function Header() {
         <div className="flex items-center gap-3 sm:gap-8">
           {/* Mobile hamburger - opens catalog on mobile */}
           <button
-            className="lg:hidden flex items-center justify-center rounded-lg size-10 text-gray-700 hover:bg-gray-100 transition-colors"
+            className="lg:hidden flex cursor-pointer items-center justify-center rounded-lg size-10 text-gray-700 hover:bg-gray-100 transition-colors"
             onClick={() => setIsCatalogOpen(true)}
           >
             <span className="material-symbols-outlined text-[24px]">menu</span>
@@ -50,7 +50,7 @@ export default function Header() {
 
           {/* Logo */}
           <div className="flex items-center gap-4 text-gray-900">
-            <Link href={ROUTES.HOME} className="flex items-center gap-4">
+            <Link href={ROUTES.HOME} className="flex cursor-pointer items-center gap-4">
               <div className="size-6 text-primary">
                 <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path>
@@ -64,7 +64,7 @@ export default function Header() {
           <div className="relative hidden lg:block">
             <button 
               onClick={() => setIsCatalogOpen(!isCatalogOpen)}
-              className={`flex items-center gap-2 px-5 h-12 rounded-xl font-black text-sm transition-all shadow-sm ${
+              className={`flex items-center cursor-pointer gap-2 px-5 h-12 rounded-xl font-black text-sm transition-all shadow-sm ${
                 isCatalogOpen ? 'bg-primary text-white' : 'bg-primary text-white hover:brightness-110 active:scale-95'
               }`}
             >
@@ -96,7 +96,7 @@ export default function Header() {
               />
               <button 
                 onClick={handleSearch}
-                className="bg-primary text-white px-6 font-bold text-sm hover:brightness-110 transition-all font-sans"
+                className="bg-primary cursor-pointer text-white px-6 font-bold text-sm hover:brightness-110 transition-all font-sans"
               >
                 Tap
               </button>

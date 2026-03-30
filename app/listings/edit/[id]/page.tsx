@@ -149,7 +149,7 @@ export default function EditListingPage() {
         if (!id) return;
         try {
             const ad = await adService.getEditData(id);
-            
+
             // Map the data from AdEditData to formData
             setFormData({
                 categoryId: ad.categoryId?.toLowerCase() || '',
@@ -196,7 +196,7 @@ export default function EditListingPage() {
                             setCategoryFields(selectedChild.categoryFields);
                         }
                         setSelectedCategory(selectedChild || null);
-                        
+
                         // Fetch usage
                         if (selectedChild) {
                             try {
@@ -235,7 +235,7 @@ export default function EditListingPage() {
             if (ad.images && ad.images.length > 0) {
                 setExistingImages(ad.images);
                 // Prepend SERVER_URL if image path is relative
-                setImagePreviews(ad.images.map(img => 
+                setImagePreviews(ad.images.map(img =>
                     img.url.startsWith('http') ? img.url : `${SERVER_URL}${img.url}`
                 ));
             }
@@ -256,7 +256,7 @@ export default function EditListingPage() {
                 setShowSubcategory(true);
                 setSubCategories([]);
                 // Clear subcategoryId and brandId when parent category changes manually
-                setFormData(prev => ({ ...prev, subcategoryId: '', brandId: '' })); 
+                setFormData(prev => ({ ...prev, subcategoryId: '', brandId: '' }));
                 setCategoryFields([]);
                 setDynamicFieldValues({});
                 try {
@@ -515,6 +515,30 @@ export default function EditListingPage() {
                 return;
             }
 
+            if (images.length === 0 && existingImages.length === 0) {
+                setError('Zəhmət olmasa ən azı bir şəkil yükləyin');
+                setIsSubmitting(false);
+                return;
+            }
+
+            const firstPreviewUrl = imagePreviews[0];
+            let mainImageId: string | undefined = undefined;
+            let newMainImageIndex: number | undefined = undefined;
+
+            if (firstPreviewUrl) {
+                const matchedExisting = existingImages.find(img => {
+                    const fullUrl = img.url.startsWith('http') ? img.url : `${SERVER_URL}${img.url}`;
+                    return fullUrl === firstPreviewUrl;
+                });
+
+                if (matchedExisting) {
+                    mainImageId = matchedExisting.id;
+                } else {
+                    newMainImageIndex = createdUrlsRef.current.indexOf(firstPreviewUrl);
+                    if (newMainImageIndex === -1) newMainImageIndex = undefined;
+                }
+            }
+
             await adService.updateAd(id, {
                 CityId: formData.cityId,
                 Price: parseCurrency(formData.price),
@@ -533,6 +557,8 @@ export default function EditListingPage() {
                 DynamicFieldsJson: Object.keys(dynamicFieldValues).length > 0
                     ? JSON.stringify(dynamicFieldValues)
                     : undefined,
+                MainImageId: mainImageId,
+                NewMainImageIndex: newMainImageIndex,
             });
 
             // Redirect to cabinet on success
@@ -685,15 +711,15 @@ export default function EditListingPage() {
 
                                             {categoryUsage !== null && (
                                                 <div className="mt-1 text-gray-500 italic">
-                                                Mövcud istifadə: <span className={`font-bold ${categoryUsage >= selectedCategory.freeLimit ? 'text-error' : 'text-emerald-600'}`}>
-                                                    {categoryUsage} / {selectedCategory.freeLimit}
-                                                </span> (son 30 gündə)
+                                                    Mövcud istifadə: <span className={`font-bold ${categoryUsage >= selectedCategory.freeLimit ? 'text-error' : 'text-emerald-600'}`}>
+                                                        {categoryUsage} / {selectedCategory.freeLimit}
+                                                    </span> (son 30 gündə)
                                                 </div>
                                             )}
 
                                             {selectedCategory.paidPrice1 > 0 && (
                                                 <div className="mt-1 border-t border-blue-100/50 pt-1">
-                                                Qiymət: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} AZN</span>
+                                                    Qiymət: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} AZN</span>
                                                 </div>
                                             )}
                                         </div>
@@ -781,7 +807,7 @@ export default function EditListingPage() {
                                             let parsedOptions: string[] = [];
                                             try {
                                                 const parsed = field.optionsJson ? JSON.parse(field.optionsJson) : [];
-                                                
+
                                                 if (Array.isArray(parsed)) {
                                                     parsedOptions = parsed;
                                                 } else if (parsed && typeof parsed === 'object' && field.fieldType === 'dependent_select') {
@@ -867,8 +893,8 @@ export default function EditListingPage() {
                             onDrop={handleDrop}
                             onClick={() => fileInputRef.current?.click()}
                             className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragging
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-gray-300 hover:border-primary hover:bg-gray-50'
+                                ? 'border-primary bg-primary/5'
+                                : 'border-gray-300 hover:border-primary hover:bg-gray-50'
                                 }`}
                         >
                             <div className="flex flex-col items-center gap-3">

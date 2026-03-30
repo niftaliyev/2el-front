@@ -18,9 +18,8 @@ export const ROUTES = {
 } as const;
 
 export const PRODUCT_CONDITIONS = [
-  { value: 'new', label: 'New' },
-  { value: 'used', label: 'Used' },
-  { value: 'refurbished', label: 'Refurbished' },
+  { value: 'new', label: 'Yeni' },
+  { value: 'used', label: 'İşlənmiş' },
 ] as const;
 
 export const SORT_OPTIONS = [

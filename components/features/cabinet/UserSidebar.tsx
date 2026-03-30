@@ -17,6 +17,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: '/cabinet', icon: 'list_alt', label: 'Elanlarım', filled: true },
+  { href: '/cabinet/transactions', icon: 'receipt_long', label: 'Ödənişlər' },
+  { href: '/cabinet/payments', icon: 'account_balance_wallet', label: 'Balans artır' },
+  { href: '/cabinet/ad-placement-limits', icon: 'bar_chart_4_bars', label: 'Limitlər' },
   { href: '/cabinet/favorites', icon: 'favorite', label: 'Seçilmiş Elanlar' },
   { href: '/cabinet/messages', icon: 'chat_bubble', label: 'Mesajlar' },
   { href: '/cabinet/settings', icon: 'settings', label: 'Parametrlər' },
