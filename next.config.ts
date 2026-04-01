@@ -16,14 +16,13 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "http",
-        hostname: "localhost",
-        port: "5156",
+        hostname: "34.118.33.240",
         pathname: "/uploads/**",
       },
       {
-        protocol: "https",
+        protocol: "http",
         hostname: "localhost",
-        port: "7095",
+        port: "5156",
         pathname: "/uploads/**",
       },
       {

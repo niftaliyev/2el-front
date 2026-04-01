@@ -26,90 +26,133 @@ export default function TransactionsPage() {
   }, []);
 
   return (
-    <main className="bg-gray-50 min-h-screen">
-      <div className="container mx-auto py-5 sm:py-10 px-4">
-        <div className="flex flex-col lg:flex-row gap-6">
+    <main className="bg-gray-50 min-h-screen font-sans">
+      <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <UserSidebar />
 
-          <div className="flex-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
+          <div className="flex-1 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
               {/* Page Heading */}
-              <div className="mb-8">
-                <h1 className="text-gray-900 text-3xl sm:text-4xl font-black leading-tight tracking-[-0.033em] mb-2 uppercase">
-                  Ödənişlər
+              <div className="mb-8 border-b border-gray-50 pb-6">
+                <h1 className="text-gray-900 text-3xl sm:text-4xl font-bold leading-tight tracking-tight mb-2 uppercase tracking-wide">
+                  Ödəniş Tarixçəsi
                 </h1>
-                <p className="text-gray-500 text-base font-medium">
-                  Balans artımı və xidmət alışları tarixcəniz.
+                <p className="text-gray-500 text-sm font-medium">
+                  Balans artımı və xidmət alışları tarixcəniz
                 </p>
               </div>
 
               {isLoading ? (
                 <div className="flex items-center justify-center py-20">
-                  <div className="animate-spin h-10 w-10 text-primary border-4 border-primary/20 border-t-primary rounded-full" />
+                  <div className="animate-spin h-10 w-10 text-primary border-4 border-primary/20 border-t-primary rounded-full shadow-lg shadow-primary/10" />
                 </div>
               ) : error ? (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg text-center">
-                  {error}
+                <div className="bg-red-50 border border-red-100 text-red-600 p-6 rounded-xl text-center font-bold text-sm">
+                   <span className="material-symbols-outlined block text-3xl mb-2">error</span>
+                   {error}
                 </div>
               ) : transactions.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="py-4 px-4 text-gray-500 text-xs font-bold uppercase tracking-wider">Tarix</th>
-                        <th className="py-4 px-4 text-gray-500 text-xs font-bold uppercase tracking-wider">Xidmət / Təsvir</th>
-                        <th className="py-4 px-4 text-gray-500 text-xs font-bold uppercase tracking-wider text-right">Məbləğ</th>
-                        <th className="py-4 px-4 text-gray-500 text-xs font-bold uppercase tracking-wider text-center">Növ</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {transactions.map((t) => (
-                        <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-5 px-4">
-                            <div className="text-sm font-semibold text-gray-900">
-                              {new Date(t.date).toLocaleDateString('az-AZ', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric'
-                              })}
-                            </div>
-                            <div className="text-[11px] text-gray-400 font-medium">
-                             {new Date(t.date).toLocaleTimeString('az-AZ', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </div>
-                          </td>
-                          <td className="py-5 px-4">
-                             <div className="text-sm font-bold text-gray-900">{t.title}</div>
-                             <div className="text-xs text-gray-500">{t.description}</div>
-                          </td>
-                          <td className="py-5 px-4 text-right">
-                             <span className={`text-sm font-black ${t.type === 'Deposit' ? 'text-green-600' : 'text-gray-900'}`}>
-                               {t.type === 'Deposit' ? '+' : '-'}{t.amount.toFixed(2)} AZN
-                             </span>
-                          </td>
-                          <td className="py-5 px-4 text-center">
-                             <span className={`inline-block px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-tight ${
-                               t.type === 'Deposit' 
-                               ? 'bg-green-100 text-green-700' 
-                               : 'bg-blue-100 text-blue-700'
-                             }`}>
-                               {t.type === 'Deposit' ? 'Mədaxil' : 'Xərc'}
-                             </span>
-                          </td>
+                <div className="space-y-4">
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-hidden rounded-xl border border-gray-100">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50/50 border-b border-gray-100">
+                          <th className="py-4 px-6 text-gray-400 text-[10px] font-bold uppercase tracking-wider">Tarix</th>
+                          <th className="py-4 px-6 text-gray-400 text-[10px] font-bold uppercase tracking-wider">Təsvir</th>
+                          <th className="py-4 px-6 text-gray-400 text-[10px] font-bold uppercase tracking-wider text-right">Məbləğ</th>
+                          <th className="py-4 px-6 text-gray-400 text-[10px] font-bold uppercase tracking-wider text-center">Növ</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {transactions.map((t) => (
+                          <tr key={t.id} className="hover:bg-gray-50/30 transition-all group">
+                            <td className="py-5 px-6">
+                              <div className="text-sm font-bold text-gray-900">
+                                {new Date(t.date).toLocaleDateString('az-AZ', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric'
+                                })}
+                              </div>
+                              <div className="text-[10px] text-gray-400 font-medium">
+                               {new Date(t.date).toLocaleTimeString('az-AZ', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </td>
+                            <td className="py-5 px-6">
+                               <div className="text-sm font-bold text-gray-900">{t.title}</div>
+                               <div className="text-[11px] text-gray-500 leading-relaxed max-w-sm">{t.description}</div>
+                            </td>
+                            <td className="py-5 px-6 text-right">
+                               <div className={`text-base font-bold tabular-nums ${t.type === 'Deposit' ? 'text-emerald-600' : 'text-gray-900'}`}>
+                                 {t.type === 'Deposit' ? '+' : '-'}{t.amount.toFixed(2)} AZN
+                               </div>
+                            </td>
+                            <td className="py-6 px-6 text-center">
+                               <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                 t.type === 'Deposit' 
+                                 ? 'bg-emerald-50 text-emerald-600' 
+                                 : 'bg-indigo-50 text-indigo-600'
+                               }`}>
+                                 {t.type === 'Deposit' ? 'Mədaxil' : 'Xərc'}
+                               </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Card-List View */}
+                  <div className="md:hidden space-y-4">
+                     {transactions.map((t) => (
+                       <div key={t.id} className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                          <div className="flex items-center justify-between mb-3">
+                             <div className="flex items-center gap-3 pr-2">
+                                <div className={`size-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                   t.type === 'Deposit' ? 'bg-emerald-50 text-emerald-500' : 'bg-indigo-50 text-indigo-500'
+                                }`}>
+                                   <span className="material-symbols-outlined !text-xl font-bold">
+                                       {t.type === 'Deposit' ? 'add_card' : 'payments'}
+                                   </span>
+                                </div>
+                                <div className="overflow-hidden">
+                                   <p className="text-gray-900 font-bold text-sm truncate">{t.title}</p>
+                                   <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">{t.type === 'Deposit' ? 'Mədaxil' : 'Xərc'}</p>
+                                </div>
+                             </div>
+                             <div className="text-right flex-shrink-0">
+                                <p className={`text-base font-bold tabular-nums ${t.type === 'Deposit' ? 'text-emerald-500' : 'text-gray-900'}`}>
+                                   {t.type === 'Deposit' ? '+' : '-'}{t.amount.toFixed(2)}
+                                </p>
+                                <p className="text-gray-400 text-[10px] font-bold uppercase">AZN</p>
+                             </div>
+                          </div>
+                          <div className="pt-3 border-t border-gray-50 flex items-center justify-between text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+                             <div className="flex items-center gap-1.5">
+                                <span className="material-symbols-outlined !text-xs font-bold">event</span>
+                                <span>{new Date(t.date).toLocaleDateString('az-AZ')}</span>
+                             </div>
+                             <div className="flex items-center gap-1.5">
+                                <span className="material-symbols-outlined !text-xs font-bold">schedule</span>
+                                <span>{new Date(t.date).toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' })}</span>
+                             </div>
+                          </div>
+                       </div>
+                     ))}
+                  </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                   <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                      <span className="material-symbols-outlined text-gray-300 text-3xl">receipt_long</span>
+                <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in">
+                   <div className="size-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                      <span className="material-symbols-outlined text-gray-300 text-4xl">receipt_long</span>
                    </div>
                    <h3 className="text-gray-900 text-lg font-bold">Heç bir ödəniş yoxdur</h3>
-                   <p className="text-gray-500 text-sm mt-1">Hələ ki balansınızda hərəkət qeydə alınmayıb.</p>
+                   <p className="text-gray-500 text-sm mt-1">Hələ ki balansınızda əməliyyat qeydə alınmayıb.</p>
                 </div>
               )}
             </div>

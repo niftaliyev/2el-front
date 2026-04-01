@@ -522,11 +522,11 @@ export default function CreateListingPage() {
               {/* Brand/Type - Hidden until child category is selected and has brands */}
               {showBrands && (
                 <Select
-                  label="Marka / Çeşid"
+                  label="Marka / Çeşid / Sahə"
                   options={brands}
                   value={brands.find(option => option.value === formData.brandId)}
                   onChange={(option) => setFormData(prev => ({ ...prev, brandId: option?.value || '' }))}
-                  placeholder={isLoadingBrands ? 'Yüklənir...' : 'Marka / Çeşid seçin'}
+                  placeholder={isLoadingBrands ? 'Yüklənir...' : 'Marka / Çeşid / Sahə seçin'}
                   isClearable
                   isLoading={isLoadingBrands}
                 />
@@ -624,27 +624,29 @@ export default function CreateListingPage() {
                 required
               />
 
-              {/* Checkboxes */}
-              <div className="flex flex-col gap-3">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.isNew}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isNew: e.target.checked }))}
-                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
-                  />
-                  <span className="text-gray-900 text-sm font-medium">Yeni məhsul</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.isDeliverable}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isDeliverable: e.target.checked }))}
-                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
-                  />
-                  <span className="text-gray-900 text-sm font-medium">Çatdırılma mümkündür</span>
-                </label>
-              </div>
+              {/* Checkboxes - Hidden for service/job categories */}
+              {!['Xidmətlər və biznes', 'İş elanları', 'Daşınmaz əmlak'].some(cat => parentCategories.find(p => p.value === formData.categoryId)?.label?.toLowerCase() === cat.toLowerCase()) && (
+                <div className="flex flex-col gap-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isNew}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isNew: e.target.checked }))}
+                      className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
+                    />
+                    <span className="text-gray-900 text-sm font-medium">Yeni məhsul</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isDeliverable}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isDeliverable: e.target.checked }))}
+                      className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
+                    />
+                    <span className="text-gray-900 text-sm font-medium">Çatdırılma mümkündür</span>
+                  </label>
+                </div>
+              )}
 
               {/* Dynamic Category Fields */}
               {categoryFields.length > 0 && (

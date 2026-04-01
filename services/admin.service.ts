@@ -132,9 +132,12 @@ class AdminService {
   }
 
   async getAllAds(status?: string): Promise<any[]> {
-    // Delegate to getPendingAds for backwards compat with admin UI
     const data = await this.getPendingAds(1, 100);
     return data.data ?? [];
+  }
+
+  async updatePaymentDetail(content: string): Promise<void> {
+    await axiosInstance.post('/admin/payment-detail', { content });
   }
 }
 

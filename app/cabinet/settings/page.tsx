@@ -77,15 +77,13 @@ export default function SettingsPage() {
 
   if (isPageLoading) {
     return (
-      <main className="bg-gray-50 min-h-screen">
-        <div className="container mx-auto py-5 sm:py-10 px-4">
-          <div className="flex flex-col lg:flex-row gap-6">
+      <main className="bg-gray-50 min-h-screen font-sans">
+        <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             <UserSidebar />
-            <div className="flex-1 flex items-center justify-center p-12">
-              <svg className="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
+            <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-2xl shadow-sm border border-gray-100">
+               <div className="animate-spin h-8 w-8 text-primary border-4 border-primary/20 border-t-primary rounded-full shadow-lg shadow-primary/10" />
+               <p className="text-gray-400 text-sm font-medium">Yüklenir...</p>
             </div>
           </div>
         </div>
@@ -94,116 +92,129 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="bg-gray-50 min-h-screen">
-      <div className="container mx-auto py-5 sm:py-10 px-4">
-        <div className="flex flex-col lg:flex-row gap-6">
+    <main className="bg-gray-50 min-h-screen font-sans">
+      <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <UserSidebar />
 
-          <div className="flex-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex-1 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
               {/* Page Heading */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
-                <h1 className="text-gray-900 text-3xl sm:text-4xl font-black leading-tight tracking-[-0.033em] mb-2">
+              <div className="mb-8 border-b border-gray-50 pb-6">
+                <h1 className="text-gray-900 text-3xl sm:text-4xl font-bold leading-tight tracking-tight mb-2">
                   Profil Parametrləri
                 </h1>
-                <p className="text-gray-500 text-base font-normal leading-normal">
-                  Hesab məlumatlarınızı idarə edin
+                <p className="text-gray-500 text-sm font-medium">
+                  Hesab məlumatlarınızı və fərdi ayarlarınızı idarə edin
                 </p>
               </div>
 
               {/* Success/Error messages */}
               {success && (
-                <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-                  <p className="text-green-700 text-sm font-medium">{success}</p>
+                <div className="mb-6 bg-green-50 border border-green-100 rounded-xl p-4 flex items-center gap-3 animate-in slide-in-from-top">
+                   <div className="size-8 bg-green-500 rounded-lg flex items-center justify-center text-white">
+                      <span className="material-symbols-outlined !text-base font-bold">check_circle</span>
+                   </div>
+                   <p className="text-green-700 text-sm font-bold">{success}</p>
                 </div>
               )}
               {error && (
-                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-600 text-sm font-medium">{error}</p>
+                <div className="mb-6 bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3 animate-in shake">
+                   <div className="size-8 bg-red-500 rounded-lg flex items-center justify-center text-white">
+                      <span className="material-symbols-outlined !text-base font-bold">warning</span>
+                   </div>
+                   <p className="text-red-700 text-sm font-bold">{error}</p>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-8">
+              <form onSubmit={handleSubmit} className="space-y-10">
                 {/* Profile Section */}
-                <div>
-                  <h3 className="text-gray-900 text-xl font-bold mb-4">
-                    Profil Məlumatları
-                  </h3>
-
-                  <div className="space-y-4">
-                    {/* Avatar */}
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="w-20 h-20 rounded-full bg-cover bg-center bg-gray-200 flex items-center justify-center overflow-hidden"
-                        style={profilePhoto ? { backgroundImage: `url("${profilePhoto}")` } : {}}
+                <div className="space-y-8">
+                  {/* Photo Upload Area */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-6 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div
+                      className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-cover bg-center bg-gray-200 flex items-center justify-center overflow-hidden border-4 border-white shadow-lg flex-shrink-0 group relative cursor-pointer"
+                      style={profilePhoto ? { backgroundImage: `url("${profilePhoto}")` } : {}}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {!profilePhoto && (
+                        <span className="material-symbols-outlined text-gray-400 !text-4xl">person</span>
+                      )}
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <span className="material-symbols-outlined text-white font-bold">photo_camera</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h3 className="text-gray-900 text-lg font-bold">Profil Şəkli</h3>
+                      <p className="text-gray-500 text-xs font-medium leading-relaxed max-w-xs">
+                        Şəkil seçərək profilinizi fərdiləşdirin. JPG, PNG və ya GIF (maks. 5MB) yükləyə bilərsiniz.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-primary text-xs font-bold uppercase tracking-wider hover:underline"
                       >
-                        {!profilePhoto && (
-                          <span className="material-symbols-outlined text-gray-400 !text-4xl">person</span>
-                        )}
+                        Şəkli Dəyiş
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Inputs */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">Ad Soyad</label>
+                      <div className="relative group">
+                         <input
+                            value={formData.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
+                            placeholder="Adınızı daxil edin"
+                         />
                       </div>
-                      <div>
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="bg-primary text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-colors"
-                        >
-                          Şəkil yüklə
-                        </button>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handlePhotoChange}
-                          className="hidden"
-                        />
-                        <p className="text-gray-500 text-xs mt-2">
-                          JPG, PNG və ya GIF (maks. 5MB)
-                        </p>
+                    </div>
+
+                    <div className="space-y-2">
+                       <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">E-poçt (Dəyişdirilə bilməz)</label>
+                      <div className="relative">
+                         <input
+                            type="email"
+                            value={formData.email}
+                            disabled
+                            className="w-full h-14 px-5 rounded-xl border border-gray-100 bg-gray-100/50 text-gray-400 font-bold outline-none cursor-not-allowed"
+                            placeholder="email@example.com"
+                         />
                       </div>
                     </div>
 
-                    {/* Name */}
-                    <div>
-                      <label className="block text-gray-900 text-sm font-semibold mb-2">Ad Soyad</label>
-                      <Input
-                        value={formData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
-                        placeholder="Adınızı daxil edin"
-                      />
-                    </div>
-
-                    {/* Email (read-only) */}
-                    <div>
-                      <label className="block text-gray-900 text-sm font-semibold mb-2">E-poçt</label>
-                      <Input
-                        type="email"
-                        value={formData.email}
-                        onChange={() => { }}
-                        placeholder="email@example.com"
-                        disabled
-                      />
-                      <p className="text-gray-400 text-xs mt-1">E-poçt dəyişdirilə bilməz</p>
-                    </div>
-
-                    {/* Phone */}
-                    <div>
-                      <label className="block text-gray-900 text-sm font-semibold mb-2">Telefon</label>
-                      <Input
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        placeholder="+994 XX XXX XX XX"
-                      />
+                    <div className="space-y-2">
+                      <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">Telefon Nömrəsi</label>
+                      <div className="relative group">
+                         <input
+                            type="tel"
+                            value={formData.phone}
+                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                            className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
+                            placeholder="+994 XX XXX XX XX"
+                         />
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Save Button */}
-                <div className="pt-6 border-t border-gray-200 flex gap-4">
+                {/* Submit */}
+                <div className="pt-6 border-t border-gray-100">
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-primary text-white rounded-lg px-6 py-3 font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto min-w-[200px] h-14 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100"
                   >
                     {isLoading ? 'Yadda saxlanılır...' : 'Dəyişiklikləri yadda saxla'}
                   </button>

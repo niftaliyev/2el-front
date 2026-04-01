@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useEffect, use } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Thumbs, FreeMode } from 'swiper/modules';
@@ -41,7 +42,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     const isTrue = strVal === 'true';
     const lowerName = name.toLowerCase();
 
-    // Tap.az style context-aware wording for booleans
     if (lowerName.includes('kredit') || lowerName.includes('barter') || lowerName.includes('çatdırılma') || lowerName.includes('zəmanət')) {
       return isTrue ? 'Var' : 'Yoxdur';
     }
@@ -167,40 +167,40 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex flex-col gap-6 max-w-[1200px] mx-auto">
               {/* Breadcrumb */}
               <div>
-                <div className="flex flex-wrap gap-2">
-                  <a className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/">Ana Səhifə</a>
-                  <span className="text-gray-500 text-sm font-medium leading-normal">/</span>
-                  <a
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  <Link className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/">Ana Səhifə</Link>
+                  <span className="text-gray-400 text-sm font-medium leading-normal">/</span>
+                  <Link
                     className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors"
                     href={`${ROUTES.LISTINGS}?categoryId=${product.categoryId}`}
                   >
                     {product.category || 'Bütün elanlar'}
-                  </a>
+                  </Link>
                   {product.subCategory && (
                     <>
-                      <span className="text-gray-500 text-sm font-medium leading-normal">/</span>
-                      <a
+                      <span className="text-gray-400 text-sm font-medium leading-normal">/</span>
+                      <Link
                         className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors"
                         href={`${ROUTES.LISTINGS}?categoryId=${product.categoryId}&subCategoryId=${product.subCategoryId}`}
                       >
                         {product.subCategory}
-                      </a>
+                      </Link>
                     </>
                   )}
                   {/* Brand and Model from Dynamic Fields */}
                   {product.dynamicFields?.find(f => f.name === 'Marka') && (
                     <>
-                      <span className="text-gray-500 text-sm font-medium leading-normal">/</span>
-                      <a
+                      <span className="text-gray-400 text-sm font-medium leading-normal">/</span>
+                      <Link
                         className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors"
                         href={`${ROUTES.LISTINGS}?categoryId=${product.categoryId}${product.subCategoryId ? `&subCategoryId=${product.subCategoryId}` : ''}&p[${product.dynamicFields.find(f => f.name === 'Marka')!.categoryFieldId}]=${encodeURIComponent(product.dynamicFields.find(f => f.name === 'Marka')!.value as string)}`}
                       >
                         {product.dynamicFields.find(f => f.name === 'Marka')!.value}
-                      </a>
+                      </Link>
                     </>
                   )}
-                  <span className="text-gray-500 text-sm font-medium leading-normal">/</span>
-                  <span className="text-gray-900 text-sm font-medium leading-normal truncate max-w-[200px]">{product.title}</span>
+                  <span className="text-gray-400 text-sm font-medium leading-normal">/</span>
+                  <span className="text-gray-900 text-sm font-semibold leading-normal truncate max-w-[150px] sm:max-w-[250px]">{product.title}</span>
                 </div>
               </div>
 
@@ -333,18 +333,48 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                           <span className="text-[#8D94AD] text-[15px]">Şəhər</span>
                           <span className="text-[#212121] text-[15px] font-medium">{product.city || 'Göstərilməyib'}</span>
                         </div>
-                        <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                          <span className="text-[#8D94AD] text-[15px]">Vəziyyət</span>
-                          <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{product.isNew ? 'Yeni' : 'İşlənmiş'}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                          <span className="text-[#8D94AD] text-[15px]">Çatdırılma</span>
-                          <span className="text-[#212121] text-[15px] font-medium">{product.isDeliverable ? 'Var' : 'Yoxdur'}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                          <span className="text-[#8D94AD] text-[15px]">Malın növü</span>
-                          <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{product.adType || 'Göstərilməyib'}</span>
-                        </div>
+                        {/* Hide product-specific fields for service/job categories */}
+                        {(() => {
+                          const NON_PRODUCT_CATEGORIES = [
+                            // İş elanları and its children
+                            'İş elanları', 'Vakansiyalar', 'İş axtarıram',
+                            // Xidmətlər və biznes and its children
+                            'Xidmətlər və biznes', 'Avadanlığın icarəsi', 'Biznes üçün avadanlıq',
+                            'Avadanlıqların quraşdırılması', 'Avtoservis və diaqnostika', 'Logistika',
+                            'Nəqliyyat vasitələrinin icarəsi', 'Təhlükəsizlik sistemləri',
+                            'Texnika təmiri', 'Təmizlik', 'Dayələr, baxıcılar', 'Foto və video çəkiliş',
+                            'Gözəllik, sağlamlıq', 'Hüquq xidmətləri', 'Həkimlərin qəbulu', 'IT, internet, telekom',
+                            'Mebel yığılması', 'Musiqi və əyləncə', 'Mühasibat xidmətləri',
+                            'Qidalanma, keyterinq', 'Reklam və dizayn', 'Sığorta xidmətləri',
+                            'Təlim, kurslar', 'Tərcümə', 'Tibbi xidmətlər', 'Digər',
+                            // Daşınmaz əmlak and its children
+                            'Daşınmaz əmlak', 'Mənzillər', 'Mənzil', 'Həyət evləri', 'Həyət evi', 'Torpaq sahələri', 'Torpaq',
+                            'Obyektlər və əmlak', 'Ofislər', 'Qarajlar', 'Bağlar', 'Xarici əmlak',
+                            'Obyektlər', 'Obyekt', 'Ofis', 'Dükkan və mağazalar', 'Dükkan', 'Mağaza', 'Villa', 'Bağ evi', 'Qaraj',
+                          ];
+                          const isNonProduct = NON_PRODUCT_CATEGORIES.some(
+                            cat => 
+                              product.category?.toLowerCase().trim() === cat.toLowerCase().trim() ||
+                              product.subCategory?.toLowerCase().trim() === cat.toLowerCase().trim()
+                          );
+                          if (isNonProduct) return null;
+                          return (
+                            <>
+                              <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
+                                <span className="text-[#8D94AD] text-[15px]">Vəziyyət</span>
+                                <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{product.isNew ? 'Yeni' : 'İşlənmiş'}</span>
+                              </div>
+                              <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
+                                <span className="text-[#8D94AD] text-[15px]">Çatdırılma</span>
+                                <span className="text-[#212121] text-[15px] font-medium">{product.isDeliverable ? 'Var' : 'Yoxdur'}</span>
+                              </div>
+                              <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
+                                <span className="text-[#8D94AD] text-[15px]">Malın növü</span>
+                                <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{product.adType || 'Göstərilməyib'}</span>
+                              </div>
+                            </>
+                          );
+                        })()}
 
                         {/* Dynamic Fields */}
                         {product.dynamicFields && product.dynamicFields.map((field, idx) => (
@@ -500,7 +530,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             {/* Similar Ads */}
             {(similarVipProducts.length > 0 || similarNormalProducts.length > 0) && (
               <div className="mt-10 pt-6 border-t border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900 mb-5">Bənzər elanlar</h2>
+                <div className="flex justify-between items-center mb-5">
+                  <h2 className="text-xl font-bold text-gray-900">Bənzər elanlar</h2>
+                  <Link 
+                    href={`${ROUTES.LISTINGS}?categoryId=${product.categoryId}${product.subCategoryId ? `&subCategoryId=${product.subCategoryId}` : ''}`}
+                    className="text-primary text-sm font-bold hover:underline flex items-center gap-1"
+                  >
+                    Hamısını göstər
+                    <span className="material-symbols-outlined !text-[18px]">chevron_right</span>
+                  </Link>
+                </div>
 
                 {similarVipProducts.length > 0 && (
                   <div className="mb-8">
