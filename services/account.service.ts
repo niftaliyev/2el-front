@@ -50,6 +50,11 @@ class AccountService {
     });
     return response.data;
   }
+
+  async getPaymentDetail(): Promise<{ content: string }> {
+    const response = await axiosInstance.get('/balance/payment-detail');
+    return response.data;
+  }
 }
 
 export const accountService = new AccountService();

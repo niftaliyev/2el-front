@@ -125,6 +125,21 @@ export default function AdminDashboard() {
           </div>
         </Link>
 
+        <Link
+          href="/admin/payment-details"
+          className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center size-12 bg-amber-50 rounded-lg group-hover:bg-amber-100 transition-colors">
+              <span className="material-symbols-outlined text-amber-600 text-2xl">account_balance_wallet</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">Ödəniş Məlumatları</h3>
+              <p className="text-sm text-gray-600">Bank hesablarını tənzimlə</p>
+            </div>
+          </div>
+        </Link>
+
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center size-12 bg-green-50 rounded-lg">

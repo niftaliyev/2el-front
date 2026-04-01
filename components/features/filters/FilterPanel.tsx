@@ -125,6 +125,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
   const categoryFields = getCategoryFieldsWithParents(selectedCategory);
 
   const showDeliveryFilter = !(localFilters.subCategoryId || localFilters.categoryId) || (selectedCategoryName && !EXCLUDED_DELIVERY_CATEGORIES.includes(selectedCategoryName));
+  const showConditionFilter = !(localFilters.subCategoryId || localFilters.categoryId) || (selectedCategoryName && !EXCLUDED_DELIVERY_CATEGORIES.includes(selectedCategoryName));
 
   return (
     <div className="w-full">
@@ -197,41 +198,44 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
         <div className="h-px bg-gray-100 my-4" />
 
         {/* Condition */}
-        <div>
-          <div
-            className="flex items-center justify-between mb-3 cursor-pointer select-none"
-            onClick={() => setIsConditionOpen(!isConditionOpen)}
-          >
-            <span className="text-[15px] text-[#212121]">Məhsulun vəziyyəti</span>
-            <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isConditionOpen ? '' : 'rotate-180'}`}>expand_less</span>
-          </div>
-          {isConditionOpen && (
-            <div className="space-y-[10px] pt-1">
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <input
-                  type="radio"
-                  name="condition"
-                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
-                  checked={!localFilters.condition}
-                  onChange={() => handleFilterChange('condition', undefined)}
-                />
-                <span className="text-[14px] text-[#212121] transition-colors leading-none">Bütün vəziyyətlər</span>
-              </label>
-              {PRODUCT_CONDITIONS.map(c => (
-                <label key={c.value} className="flex items-center gap-3 cursor-pointer group">
+        {showConditionFilter && (
+          <div>
+            <div
+              className="flex items-center justify-between mb-3 cursor-pointer select-none"
+              onClick={() => setIsConditionOpen(!isConditionOpen)}
+            >
+              <span className="text-[15px] text-[#212121]">Məhsulun vəziyyəti</span>
+              <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isConditionOpen ? '' : 'rotate-180'}`}>expand_less</span>
+            </div>
+            {isConditionOpen && (
+              <div className="space-y-[10px] pt-1">
+                <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="radio"
                     name="condition"
                     className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
-                    checked={localFilters.condition === c.value}
-                    onChange={() => handleFilterChange('condition', c.value)}
+                    checked={!localFilters.condition}
+                    onChange={() => handleFilterChange('condition', undefined)}
                   />
-                  <span className="text-[14px] text-[#212121] transition-colors leading-none">{c.label}</span>
+                  <span className="text-[14px] text-[#212121] transition-colors leading-none">Bütün vəziyyətlər</span>
                 </label>
-              ))}
-            </div>
-          )}
-        </div>
+                {PRODUCT_CONDITIONS.map(c => (
+                  <label key={c.value} className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="condition"
+                      className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
+                      checked={localFilters.condition === c.value}
+                      onChange={() => handleFilterChange('condition', c.value)}
+                    />
+                    <span className="text-[14px] text-[#212121] transition-colors leading-none">{c.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            <div className="h-px bg-gray-100 my-4" />
+          </div>
+        )}
 
         {/* Dynamic Fields */}
         {categoryFields.map((field: any) => {
