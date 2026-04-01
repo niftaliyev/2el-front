@@ -1,52 +1,31 @@
-name: Deploy 2el-front
+name: Deploy 2el-front via SSH
 
 on:
   push:
     branches:
-      - main  # Деплой только при пуше в main
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      # Шаг 1: Клонируем репозиторий в runner
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Шаг 2: Устанавливаем Node.js через setup-node
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.7.6
         with:
-          node-version: '20'
-
-      # Шаг 3: Деплой на сервер
-      - name: Deploy to server
-        run: |
-          # Папка на сервере
-          PROJECT_DIR=/var/www/2el-front
-          
-          # Удаляем старое содержимое
-          sudo rm -rf $PROJECT_DIR/*
-          sudo mkdir -p $PROJECT_DIR
-          sudo chown -R $USER:$USER $PROJECT_DIR
-
-          # Клонируем репозиторий через HTTPS с токеном
-          git clone https://$GH_TOKEN@github.com/niftaliyev/2el-front.git $PROJECT_DIR
-          
-          cd $PROJECT_DIR
-
-          # Устанавливаем зависимости и билдим
-          npm install --production
-          npm run build
-
-          # Перезапуск через PM2
-          pm2 describe 2el-front > /dev/null
-          if [ $? -eq 0 ]; then
-            pm2 reload 2el-front
-          else
-            pm2 start npm --name "2el-front" -- start
-          fi
-          pm2 save
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            PROJECT_DIR=/var/www/2el-front
+            sudo rm -rf $PROJECT_DIR/*
+            sudo mkdir -p $PROJECT_DIR
+            sudo chown -R $USER:$USER $PROJECT_DIR
+            git clone git@github.com:niftaliyev/2el-front.git $PROJECT_DIR
+            cd $PROJECT_DIR
+            npm install --production
+            npm run build
+            pm2 describe 2el-front > /dev/null && pm2 reload 2el-front || pm2 start npm --name "2el-front" -- start
+            pm2 save
