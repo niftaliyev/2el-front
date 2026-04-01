@@ -23,19 +23,21 @@ jobs:
           script: |
             cd /var/www/2el-front
 
-            # Добавляем Node и PM2 в PATH
-            export PATH="/home/ilhambehruz/.nvm/versions/node/v20.20.2/bin:$PATH"
+            # Загружаем NVM и используем Node 20
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 20
 
             # Проверка версий
             echo "Node version: $(node -v)"
             echo "NPM version: $(npm -v)"
             echo "PM2 version: $(pm2 -v)"
 
-            # Установка зависимостей и сборка проекта
+            # Установка зависимостей и сборка
             npm install --production
             npm run build
 
-            # Перезапуск через PM2
+            # Перезапуск приложения через PM2
             pm2 describe 2el-front > /dev/null
             if [ $? -eq 0 ]; then
               pm2 reload 2el-front
