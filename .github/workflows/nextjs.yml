@@ -13,10 +13,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up SSH
+      - name: Start SSH agent
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Add GitHub to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.0
@@ -32,7 +37,7 @@ jobs:
             mkdir -p $PROJECT_DIR
             cd $PROJECT_DIR
 
-            # Проверяем права (должен быть доступ)
+            # Проверяем права
             if [ ! -w $PROJECT_DIR ]; then
               echo "Нет прав на запись в $PROJECT_DIR"
               exit 1
