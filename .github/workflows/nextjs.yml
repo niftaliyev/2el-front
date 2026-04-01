@@ -14,17 +14,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Клонируем репо
+      # 1. Клонируем репозиторий
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Node.js локально для Actions (не обязательно, если билдим на сервере)
+      # 2. (Опционально) Node на runner
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # 3. Копируем файлы на сервер
+      # 3. Подготавливаем папку на сервере (ВАЖНО!)
+      - name: Prepare server folder
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            sudo mkdir -p /var/www/2el-front
+            sudo chown -R $USER:$USER /var/www/2el-front
+            sudo chmod -R 755 /var/www/2el-front
+
+      # 4. Копируем файлы на сервер
       - name: Upload to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -32,9 +44,10 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "."
-          target: ${{ env.APP_DIR }}
+          target: "/var/www/2el-front"
+          strip_components: 1
 
-      # 4. Деплой и рестарт на сервере
+      # 5. Деплой и запуск
       - name: Deploy on VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -42,23 +55,31 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd ${{ env.APP_DIR }}
+            cd /var/www/2el-front
 
-            # Абсолютные пути к Node, npm и PM2
-            NODE_BIN="$HOME/.nvm/versions/node/v20.20.2/bin/node"
-            NPM_BIN="$HOME/.nvm/versions/node/v20.20.2/bin/npm"
-            PM2_BIN="$HOME/.nvm/versions/node/v20.20.2/bin/pm2"
+            # Подключаем NVM (КЛЮЧЕВОЕ)
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-            # Устанавливаем зависимости и билдим
-            $NPM_BIN install --production
-            $NPM_BIN run build
+            # Используем Node 20
+            nvm use 20
 
-            # Проверяем PM2 и перезапускаем приложение
-            $PM2_BIN describe ${{ env.APP_NAME }} > /dev/null
+            # Проверка (можешь удалить потом)
+            node -v
+            npm -v
+
+            # Установка зависимостей
+            npm install --production
+
+            # Билд Next.js
+            npm run build
+
+            # Запуск / перезапуск через PM2
+            pm2 describe 2el-front > /dev/null
             if [ $? -eq 0 ]; then
-              $PM2_BIN reload ${{ env.APP_NAME }}
+              pm2 reload 2el-front
             else
-              $PM2_BIN start $NPM_BIN --name "${{ env.APP_NAME }}" -- start
+              pm2 start npm --name "2el-front" -- start
             fi
 
-            $PM2_BIN save
+            pm2 save
