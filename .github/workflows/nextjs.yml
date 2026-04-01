@@ -3,7 +3,7 @@ name: Deploy 2el-Front
 on:
   push:
     branches:
-      - main  # или твоя ветка для деплоя
+      - main  # Ветка для деплоя
 
 jobs:
   deploy:
@@ -21,30 +21,38 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            cd /var/www/2el-front
+            set -e
 
-            # Загружаем NVM
+            PROJECT_DIR=/var/www/2el-front
+            echo "📂 Создаём папку проекта если не существует"
+            mkdir -p $PROJECT_DIR
+            cd $PROJECT_DIR
+
+            echo "🧹 Чистим старые файлы"
+            sudo rm -rf $PROJECT_DIR/*
+
+            echo "📥 Копируем файлы с Actions"
+            # Копируем весь код из workspace Actions на сервер
+            rsync -avz --exclude='.git' /github/workspace/ $PROJECT_DIR/
+
+            echo "🔧 Загружаем NVM"
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install 20
             nvm use 20
-
-            # Добавляем Node и PM2 в PATH
             export PATH="$HOME/.nvm/versions/node/v20.20.2/bin:$PATH"
 
-            # Проверка версий
-            echo "Node version: $(node -v)"
-            echo "NPM version: $(npm -v)"
-            echo "PM2 version: $(pm2 -v)"
-
-            # Установка зависимостей и сборка проекта
+            echo "📦 Установка зависимостей и сборка"
             npm install --production
             npm run build
 
-            # Перезапуск приложения через PM2
-            pm2 describe 2el-front > /dev/null
+            echo "🚀 Перезапуск через PM2"
+            pm2 describe 2el-front > /dev/null 2>&1
             if [ $? -eq 0 ]; then
               pm2 reload 2el-front
             else
               pm2 start npm --name "2el-front" -- start
             fi
             pm2 save
+
+            echo "✅ Деплой завершён"
