@@ -1,0 +1,20 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder # Bizə build mərhələsi kifayətdir ki, dev serveri işlədək
+    image: elanazfront-dev:latest
+    container_name: elanaz-frontend-dev
+    ports:
+      - "3000:3000"
+      - "9229:9229" # Node.js debugger üçün port
+    volumes:
+      - .:/app # Lokal kodu konteynerlə sinxron edir (Hot Reload)
+      - /app/node_modules # Lokal node_modules-u konteynerdəki ilə qarışdırmamaq üçün
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+      - NODE_OPTIONS=--inspect=0.0.0.0:9229 # Debugger-i aktiv edir
+    command: npm run dev
