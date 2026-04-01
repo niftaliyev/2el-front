@@ -88,6 +88,8 @@ export default function Home() {
             createdAt: new Date(ad.createdDate),
             updatedAt: new Date(ad.createdDate),
             isPremium: true,
+            isFeatured: ad.isVip,
+            isBoosted: ad.isBoosted,
             isFavourite: ad.isFavourite,
           } as Product;
         });

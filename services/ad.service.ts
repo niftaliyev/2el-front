@@ -190,6 +190,12 @@ class AdService {
     await axiosInstance.delete(`/ad/${id}`);
   }
 
+  /** Reactivate / Renew expired ad */
+  async reactivateAd(id: string): Promise<any> {
+    const response = await axiosInstance.post(`/ad/${id}/reactivate`);
+    return response.data;
+  }
+
   // ── My Ads (per status) ──────────────────────────────────────────────────
 
   async getMyAds(statusFilter?: string): Promise<AdListItem[]> {

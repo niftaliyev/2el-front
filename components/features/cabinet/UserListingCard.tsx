@@ -19,13 +19,15 @@ interface UserListingCardProps {
   onPromote: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onReactivate?: (id: string) => void;
 }
 
 export default function UserListingCard({
   listing,
   onPromote,
   onEdit,
-  onDelete
+  onDelete,
+  onReactivate
 }: UserListingCardProps) {
   const imageUrl = listing.imageUrl || '/placeholder-product.jpg';
 
@@ -104,6 +106,16 @@ export default function UserListingCard({
             >
               <span className="material-symbols-outlined !text-base group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">rocket_launch</span>
               <span className="truncate">Önə Çıxar</span>
+            </button>
+          )}
+
+          {listing.status === 'inactive' && onReactivate && (
+            <button
+              onClick={() => onReactivate(listing.id)}
+              className="flex-1 h-10 rounded-xl bg-emerald-600 text-white font-bold uppercase tracking-tight text-[11px] hover:bg-emerald-700 transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 group/refresh"
+            >
+              <span className="material-symbols-outlined !text-base group-hover:rotate-180 transition-transform duration-500">refresh</span>
+              <span className="truncate">Yenilə</span>
             </button>
           )}
 
