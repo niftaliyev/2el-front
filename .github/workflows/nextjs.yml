@@ -9,28 +9,27 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
+          port: ${{ secrets.PORT }} # обычно 22
           script: |
             PROJECT_DIR=/var/www/2el-front
+
+            # Создаем папку, если нет
             mkdir -p $PROJECT_DIR
             cd $PROJECT_DIR
 
-            # Проверка прав
-            if [ ! -w $PROJECT_DIR ]; then
-              echo "Нет прав на запись в $PROJECT_DIR"
-              exit 1
-            fi
+            # Устанавливаем права на пользователя
+            chown -R $USER:$USER $PROJECT_DIR
 
-            # Если пустая папка, клонируем через HTTPS с токеном
+            # Если папка пустая, клонируем, иначе обновляем
             if [ -z "$(ls -A $PROJECT_DIR)" ]; then
               git clone https://$GH_TOKEN@github.com/niftaliyev/2el-front.git .
             else
@@ -50,9 +49,11 @@ jobs:
             nvm install 20
             nvm use 20
 
+            # Установка зависимостей и сборка
             npm install --production
             npm run build
 
+            # Перезапуск через PM2
             pm2 describe 2el-front > /dev/null
             if [ $? -eq 0 ]; then
               pm2 reload 2el-front
