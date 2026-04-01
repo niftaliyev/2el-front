@@ -82,7 +82,7 @@ export default function AdminPaymentDetailsPage() {
                 />
                 <div className="flex items-center gap-2 text-gray-400 text-[10px] font-black uppercase tracking-widest px-4">
                   <span className="material-symbols-outlined !text-sm">code</span>
-                  <span>HTML teqlərdən (<b>, <br />) istifadə edə bilərsiniz.</span>
+                  <span>HTML teqlərdən (&lt;b&gt;, &lt;br /&gt;) istifadə edə bilərsiniz.</span>
                 </div>
               </div>
 
@@ -148,7 +148,7 @@ export default function AdminPaymentDetailsPage() {
                 <div className="size-8 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 flex-shrink-0">
                   <span className="material-symbols-outlined !text-lg">format_bold</span>
                 </div>
-                <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">Başlıqları qara (bold) etmək üçün <b>B</b> istifadə edin.</p>
+                <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">Başlıqları qara (bold) etmək üçün &lt;b&gt;B&lt;/b&gt; istifadə edin.</p>
               </div>
               <div className="flex gap-5">
                 <div className="size-8 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 flex-shrink-0">
