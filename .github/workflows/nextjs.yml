@@ -14,25 +14,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Клонируем репо
+      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      # 3. Установка зависимостей
-      - name: Install dependencies
-        run: npm ci
-
-      # 4. Билд Next.js
-      - name: Build Next.js app
-        run: npm run build
-
-      # 5. Копируем на сервер
+      # 2. Upload code to VPS
       - name: Upload to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -42,8 +28,8 @@ jobs:
           source: "."
           target: ${{ env.APP_DIR }}
 
-      # 6. Запуск на сервере
-      - name: Restart app on VPS
+      # 3. Install, build и запуск через PM2 на VPS
+      - name: Deploy on VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -52,13 +38,19 @@ jobs:
           script: |
             cd ${{ env.APP_DIR }}
 
+            # Загружаем nvm
             export NVM_DIR="$HOME/.nvm"
             source $NVM_DIR/nvm.sh
-            nvm use 18
 
+            # Используем Node.js 20
+            nvm install 20
+            nvm use 20
+
+            # Устанавливаем зависимости и билдим
             npm install --production
             npm run build
 
+            # Запуск через PM2
             pm2 describe ${{ env.APP_NAME }} > /dev/null
             if [ $? -eq 0 ]; then
               pm2 reload ${{ env.APP_NAME }}
@@ -67,5 +59,3 @@ jobs:
             fi
 
             pm2 save
-
-            #test
