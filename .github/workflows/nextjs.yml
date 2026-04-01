@@ -3,7 +3,7 @@ name: Deploy 2el-front
 on:
   push:
     branches:
-      - main  # или ваша ветка
+      - main
 
 jobs:
   deploy:
@@ -18,7 +18,7 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: Deploy via SSH
+      - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -26,24 +26,33 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            # Переходим в нужную папку на сервере
-            cd /var/www/2el-front
+            PROJECT_DIR=/var/www/2el-front
 
-            # Загружаем NVM
+            # Удаляем старый проект и создаем чистую папку
+            rm -rf $PROJECT_DIR
+            mkdir -p $PROJECT_DIR
+            cd $PROJECT_DIR
+
+            # Клонируем репозиторий
+            git clone https://github.com/${{ github.repository }} . || exit 1
+
+            # Проверка наличия package.json
+            if [ ! -f package.json ]; then
+              echo "package.json не найден! Деплой прерван."
+              exit 1
+            fi
+
+            # Загружаем NVM и используем Node 20
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install 20
             nvm use 20
 
-            # Проверка версий
-            echo "Node version: $(node -v)"
-            echo "NPM version: $(npm -v)"
-            echo "PM2 version: $(pm2 -v)"
-
-            # Установка зависимостей и сборка
+            # Установка зависимостей и билд
             npm install --production
             npm run build
 
-            # Перезапуск приложения через PM2
+            # Перезапуск через PM2
             pm2 describe 2el-front > /dev/null
             if [ $? -eq 0 ]; then
               pm2 reload 2el-front
