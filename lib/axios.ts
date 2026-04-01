@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 // Base URL for all API requests
-// Production: 'https://ikinci.musahesenli.com/api/'
+// Production: 'http://34.118.33.240/api/'
 // Local: 'http://localhost:5156/api/'
 const BASE_URL = 'http://34.118.33.240/api/';
 
