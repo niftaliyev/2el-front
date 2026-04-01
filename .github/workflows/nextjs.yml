@@ -8,7 +8,6 @@ on:
 env:
   APP_NAME: 2el-front
   APP_DIR: /var/www/2el-front
-  NODE_PATH: /home/ilhambehruz/.nvm/versions/node/v20.20.2/bin
 
 jobs:
   deploy:
@@ -19,8 +18,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Создаём папку на сервере
-      - name: Prepare server folder
+      # 2. Подготовка папки на сервере
+      - name: Prepare server
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -31,8 +30,8 @@ jobs:
             sudo chown -R $USER:$USER /var/www/2el-front
             sudo chmod -R 755 /var/www/2el-front
 
-      # 3. Копируем файлы
-      - name: Upload to VPS
+      # 3. Копируем файлы на сервер
+      - name: Upload files
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -42,8 +41,8 @@ jobs:
           target: "/var/www/2el-front"
           strip_components: 1
 
-      # 4. Деплой
-      - name: Deploy on VPS
+      # 4. Установка и запуск приложения
+      - name: Deploy app
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -52,14 +51,19 @@ jobs:
           script: |
             cd /var/www/2el-front
 
-            export PATH=/home/ilhambehruz/.nvm/versions/node/v20.20.2/bin:$PATH
+            echo "Node version:"
+            node -v || echo "Node not found"
 
-            node -v
-            npm -v
+            echo "NPM version:"
+            npm -v || echo "NPM not found"
 
+            # Установка зависимостей
             npm install --production
+
+            # Билд Next.js
             npm run build
 
+            # Запуск через PM2
             pm2 describe 2el-front > /dev/null
             if [ $? -eq 0 ]; then
               pm2 reload 2el-front
