@@ -1,4 +1,4 @@
-name: Deploy 2el-front via SSH
+name: Deploy 2el-front
 
 on:
   push:
@@ -8,24 +8,51 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.7.6
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v0.1.9
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             PROJECT_DIR=/var/www/2el-front
-            sudo rm -rf $PROJECT_DIR/*
-            sudo mkdir -p $PROJECT_DIR
-            sudo chown -R $USER:$USER $PROJECT_DIR
-            git clone git@github.com:niftaliyev/2el-front.git $PROJECT_DIR
+
+            # Подготовка папки
+            mkdir -p $PROJECT_DIR
             cd $PROJECT_DIR
+
+            # Удаляем старые файлы
+            sudo rm -rf $PROJECT_DIR/*
+
+            # Обновляем клонирование через SSH (нужен Deploy key)
+            git clone git@github.com:niftaliyev/2el-front.git .
+
+            # Проверяем что package.json есть
+            if [ ! -f package.json ]; then
+              echo "📌 package.json не найден — деплой прерван"
+              exit 1
+            fi
+
+            # Загружаем NVM
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install 20
+            nvm use 20
+
+            # Установка зависимостей и билд
             npm install --production
             npm run build
-            pm2 describe 2el-front > /dev/null && pm2 reload 2el-front || pm2 start npm --name "2el-front" -- start
+
+            # Перезапуск через PM2
+            pm2 describe 2el-front > /dev/null
+            if [ $? -eq 0 ]; then
+              pm2 reload 2el-front
+            else
+              pm2 start npm --name "2el-front" -- start
+            fi
             pm2 save
