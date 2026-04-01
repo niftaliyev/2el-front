@@ -14,11 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Клонируем репозиторий
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Подготовка папки на сервере
       - name: Prepare server
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -26,11 +24,10 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            sudo mkdir -p /var/www/2el-front
-            sudo chown -R $USER:$USER /var/www/2el-front
-            sudo chmod -R 755 /var/www/2el-front
+            sudo mkdir -p $APP_DIR
+            sudo chown -R $USER:$USER $APP_DIR
+            sudo chmod -R 755 $APP_DIR
 
-      # 3. Копируем файлы на сервер
       - name: Upload files
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -38,10 +35,9 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "."
-          target: "/var/www/2el-front"
+          target: "${{ env.APP_DIR }}"
           strip_components: 1
 
-      # 4. Установка и запуск приложения
       - name: Deploy app
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -49,26 +45,29 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /var/www/2el-front
+            cd $APP_DIR
 
-            echo "Node version:"
-            node -v || echo "Node not found"
+            # Подключаем NVM (ВАЖНО!)
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-            echo "NPM version:"
-            npm -v || echo "NPM not found"
+            # Используем Node 20
+            nvm use 20
 
-            # Установка зависимостей
+            # Проверка версий
+            node -v
+            npm -v
+            pm2 -v || echo "PM2 not installed"
+
+            # Установка зависимостей и билд
             npm install --production
-
-            # Билд Next.js
             npm run build
 
-            # Запуск через PM2
-            pm2 describe 2el-front > /dev/null
+            # Запуск/перезапуск через PM2
+            pm2 describe $APP_NAME > /dev/null
             if [ $? -eq 0 ]; then
-              pm2 reload 2el-front
+              pm2 reload $APP_NAME
             else
-              pm2 start npm --name "2el-front" -- start
+              pm2 start npm --name "$APP_NAME" -- start
             fi
-
             pm2 save
