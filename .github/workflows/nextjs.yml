@@ -3,7 +3,7 @@ name: Deploy 2el-front
 on:
   push:
     branches:
-      - main   # или ваша ветка для деплоя
+      - main
 
 jobs:
   deploy:
@@ -27,19 +27,19 @@ jobs:
             export PATH="/home/ilhambehruz/.nvm/versions/node/v20.20.2/bin:$PATH"
 
             # Проверка версий
-            echo "Node version: $(/home/ilhambehruz/.nvm/versions/node/v20.20.2/bin/node -v)"
-            echo "NPM version: $(/home/ilhambehruz/.nvm/versions/node/v20.20.2/bin/npm -v)"
-            echo "PM2 version: $(/home/ilhambehruz/.nvm/versions/node/v20.20.2/bin/pm2 -v)"
+            echo "Node version: $(node -v)"
+            echo "NPM version: $(npm -v)"
+            echo "PM2 version: $(pm2 -v)"
 
             # Установка зависимостей и сборка проекта
-            /home/ilhambehruz/.nvm/versions/node/v20.20.2/bin/npm install --production
-            /home/ilhambehruz/.nvm/versions/node/v20.20.2/bin/npm run build
+            npm install --production
+            npm run build
 
-            # Перезапуск приложения через PM2
-            /home/ilhambehruz/.nvm/versions/node/v20.20.2/bin/pm2 describe 2el-front > /dev/null
+            # Перезапуск через PM2
+            pm2 describe 2el-front > /dev/null
             if [ $? -eq 0 ]; then
-              /home/ilhambehruz/.nvm/versions/node/v20.20.2/bin/pm2 reload 2el-front
+              pm2 reload 2el-front
             else
-              /home/ilhambehruz/.nvm/versions/node/v20.20.2/bin/pm2 start npm --name "2el-front" -- start
+              pm2 start npm --name "2el-front" -- start
             fi
-            /home/ilhambehruz/.nvm/versions/node/v20.20.2/bin/pm2 save
+            pm2 save
