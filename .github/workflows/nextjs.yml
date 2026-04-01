@@ -1,74 +1,52 @@
-name: Deploy 2el-front with rollback
+name: Deploy 2el-front
 
 on:
   push:
     branches:
-      - main
+      - main  # Деплой только при пуше в main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
+      # Шаг 1: Клонируем репозиторий в runner
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v1.0.0
+      # Шаг 2: Устанавливаем Node.js через setup-node
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.PORT }}
-          script: |
-            PROJECT_DIR=/var/www/2el-front
-            BACKUP_DIR=/var/www/2el-front-backup
+          node-version: '20'
 
-            # Создаем папку, если нет
-            mkdir -p $PROJECT_DIR
-            mkdir -p $BACKUP_DIR
-            cd $PROJECT_DIR
+      # Шаг 3: Деплой на сервер
+      - name: Deploy to server
+        run: |
+          # Папка на сервере
+          PROJECT_DIR=/var/www/2el-front
+          
+          # Удаляем старое содержимое
+          sudo rm -rf $PROJECT_DIR/*
+          sudo mkdir -p $PROJECT_DIR
+          sudo chown -R $USER:$USER $PROJECT_DIR
 
-            # Устанавливаем права
-            chown -R $USER:$USER $PROJECT_DIR
+          # Клонируем репозиторий через HTTPS с токеном
+          git clone https://$GH_TOKEN@github.com/niftaliyev/2el-front.git $PROJECT_DIR
+          
+          cd $PROJECT_DIR
 
-            # Делаем резервную копию текущей версии
-            if [ -f package.json ]; then
-              rm -rf $BACKUP_DIR/*
-              cp -r $PROJECT_DIR/* $BACKUP_DIR/
-              echo "Резервная копия создана в $BACKUP_DIR"
-            fi
+          # Устанавливаем зависимости и билдим
+          npm install --production
+          npm run build
 
-            # Клонируем или обновляем репозиторий
-            if [ -z "$(ls -A $PROJECT_DIR)" ]; then
-              git clone https://$GH_TOKEN@github.com/niftaliyev/2el-front.git .
-            else
-              git reset --hard
-              git pull origin main
-            fi
-
-            # Проверка package.json
-            if [ ! -f package.json ]; then
-              echo "package.json не найден! Откат..."
-              cp -r $BACKUP_DIR/* $PROJECT_DIR/
-              pm2 reload 2el-front || pm2 start npm --name "2el-front" -- start
-              exit 1
-            fi
-
-            # Node через NVM
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install 20
-            nvm use 20
-
-            # Установка зависимостей и сборка
-            npm install --production || { echo "npm install failed, откат"; cp -r $BACKUP_DIR/* $PROJECT_DIR/; exit 1; }
-            npm run build || { echo "build failed, откат"; cp -r $BACKUP_DIR/* $PROJECT_DIR/; exit 1; }
-
-            # Перезапуск через PM2
-            pm2 describe 2el-front > /dev/null
-            if [ $? -eq 0 ]; then
-              pm2 reload 2el-front
-            else
-              pm2 start npm --name "2el-front" -- start
-            fi
-            pm2 save
+          # Перезапуск через PM2
+          pm2 describe 2el-front > /dev/null
+          if [ $? -eq 0 ]; then
+            pm2 reload 2el-front
+          else
+            pm2 start npm --name "2el-front" -- start
+          fi
+          pm2 save
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
