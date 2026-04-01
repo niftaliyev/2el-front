@@ -1,9 +1,9 @@
-name: Deploy 2el-front
+name: Deploy 2el-Front
 
 on:
   push:
     branches:
-      - main  # или ваша ветка для деплоя
+      - main  # или твоя ветка для деплоя
 
 jobs:
   deploy:
@@ -11,15 +11,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: SSH Deploy
+      - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.SERVER_HOST }}        # 34.118.4.211
-          username: ${{ secrets.SERVER_USER }}    # ilhambehruz
-          key: ${{ secrets.SERVER_SSH_KEY }}      # приватный ключ
-          port: ${{ secrets.SERVER_SSH_PORT }}    # 22
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
           script: |
             cd /var/www/2el-front
 
@@ -28,17 +28,21 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use 20
 
+            # Добавляем Node и PM2 в PATH
+            export PATH="$HOME/.nvm/versions/node/v20.20.2/bin:$PATH"
+
             # Проверка версий
             echo "Node version: $(node -v)"
             echo "NPM version: $(npm -v)"
             echo "PM2 version: $(pm2 -v)"
 
-            # Установка зависимостей и сборка
+            # Установка зависимостей и сборка проекта
             npm install --production
             npm run build
 
-            # Перезапуск через PM2
-            if pm2 describe 2el-front > /dev/null; then
+            # Перезапуск приложения через PM2
+            pm2 describe 2el-front > /dev/null
+            if [ $? -eq 0 ]; then
               pm2 reload 2el-front
             else
               pm2 start npm --name "2el-front" -- start
