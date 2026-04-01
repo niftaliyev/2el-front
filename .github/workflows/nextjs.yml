@@ -1,54 +1,46 @@
-name: Deploy 2el-front
+name: Deploy 2el-Front
 
 on:
   push:
     branches:
-      - main
+      - main  # или твоя ветка для деплоя
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v0.1.9
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
+          port: 22
           script: |
-            PROJECT_DIR=/var/www/2el-front
-
-            # Подготовка папки
-            mkdir -p $PROJECT_DIR
-            cd $PROJECT_DIR
-
-            # Удаляем старые файлы
-            sudo rm -rf $PROJECT_DIR/*
-
-            # Обновляем клонирование через SSH (нужен Deploy key)
-            git clone git@github.com:niftaliyev/2el-front.git .
-
-            # Проверяем что package.json есть
-            if [ ! -f package.json ]; then
-              echo "📌 package.json не найден — деплой прерван"
-              exit 1
-            fi
+            cd /var/www/2el-front
 
             # Загружаем NVM
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install 20
             nvm use 20
 
-            # Установка зависимостей и билд
+            # Добавляем Node и PM2 в PATH
+            export PATH="$HOME/.nvm/versions/node/v20.20.2/bin:$PATH"
+
+            # Проверка версий
+            echo "Node version: $(node -v)"
+            echo "NPM version: $(npm -v)"
+            echo "PM2 version: $(pm2 -v)"
+
+            # Установка зависимостей и сборка проекта
             npm install --production
             npm run build
 
-            # Перезапуск через PM2
+            # Перезапуск приложения через PM2
             pm2 describe 2el-front > /dev/null
             if [ $? -eq 0 ]; then
               pm2 reload 2el-front
