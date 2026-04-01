@@ -28,27 +28,37 @@ jobs:
           script: |
             PROJECT_DIR=/var/www/2el-front
 
-            # Удаляем старый проект и создаем чистую папку
-            rm -rf $PROJECT_DIR
+            # Создаем папку, если нет
             mkdir -p $PROJECT_DIR
             cd $PROJECT_DIR
 
-            # Клонируем репозиторий
-            git clone https://github.com/${{ github.repository }} . || exit 1
+            # Проверяем права (должен быть доступ)
+            if [ ! -w $PROJECT_DIR ]; then
+              echo "Нет прав на запись в $PROJECT_DIR"
+              exit 1
+            fi
 
-            # Проверка наличия package.json
+            # Если папка пустая, клонируем, иначе обновляем
+            if [ -z "$(ls -A $PROJECT_DIR)" ]; then
+              git clone git@github.com:niftaliyev/2el-front.git . || exit 1
+            else
+              git reset --hard
+              git pull origin main
+            fi
+
+            # Проверка package.json
             if [ ! -f package.json ]; then
               echo "package.json не найден! Деплой прерван."
               exit 1
             fi
 
-            # Загружаем NVM и используем Node 20
+            # Node через NVM
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm install 20
             nvm use 20
 
-            # Установка зависимостей и билд
+            # Установка зависимостей и сборка
             npm install --production
             npm run build
 
