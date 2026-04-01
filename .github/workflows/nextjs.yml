@@ -1,46 +1,62 @@
-name: Deploy 2el-Front
+name: Deploy 2el-front
 
 on:
   push:
     branches:
-      - main  # или твоя ветка для деплоя
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.7.7
         with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          port: 22
+          port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /var/www/2el-front
+            PROJECT_DIR=/var/www/2el-front
 
-            # Загружаем NVM
+            # Создаем папку, если нет
+            mkdir -p $PROJECT_DIR
+            cd $PROJECT_DIR
+
+            # Проверка прав
+            if [ ! -w $PROJECT_DIR ]; then
+              echo "Нет прав на запись в $PROJECT_DIR"
+              exit 1
+            fi
+
+            # Клонируем через HTTPS с токеном
+            if [ -z "$(ls -A $PROJECT_DIR)" ]; then
+              git clone https://github.com/niftaliyev/2el-front.git . || exit 1
+            else
+              git reset --hard
+              git pull origin main
+            fi
+
+            # Проверка package.json
+            if [ ! -f package.json ]; then
+              echo "package.json не найден! Деплой прерван."
+              exit 1
+            fi
+
+            # Node через NVM
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install 20
             nvm use 20
 
-            # Добавляем Node и PM2 в PATH
-            export PATH="$HOME/.nvm/versions/node/v20.20.2/bin:$PATH"
-
-            # Проверка версий
-            echo "Node version: $(node -v)"
-            echo "NPM version: $(npm -v)"
-            echo "PM2 version: $(pm2 -v)"
-
-            # Установка зависимостей и сборка проекта
+            # Установка зависимостей и билд
             npm install --production
             npm run build
 
-            # Перезапуск приложения через PM2
+            # Перезапуск через PM2
             pm2 describe 2el-front > /dev/null
             if [ $? -eq 0 ]; then
               pm2 reload 2el-front
