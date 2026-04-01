@@ -8,32 +8,25 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Deploy via SSH
+      - name: SSH Deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_SSH_PORT }}
+          host: ${{ secrets.SERVER_HOST }}        # 34.118.4.211
+          username: ${{ secrets.SERVER_USER }}    # ilhambehruz
+          key: ${{ secrets.SERVER_SSH_KEY }}      # приватный ключ
+          port: ${{ secrets.SERVER_SSH_PORT }}    # 22
           script: |
             cd /var/www/2el-front
-
-            # Если папка пуста, клонируем репозиторий
-            if [ ! -f package.json ]; then
-              git clone -b main git@github.com:your-org/2el-front.git . || exit 1
-            else
-              git reset --hard
-              git pull origin main
-            fi
 
             # Загружаем NVM
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm use 20 || nvm install 20
+            nvm use 20
 
             # Проверка версий
             echo "Node version: $(node -v)"
@@ -44,9 +37,8 @@ jobs:
             npm install --production
             npm run build
 
-            # Перезапуск приложения через PM2
-            pm2 describe 2el-front > /dev/null
-            if [ $? -eq 0 ]; then
+            # Перезапуск через PM2
+            if pm2 describe 2el-front > /dev/null; then
               pm2 reload 2el-front
             else
               pm2 start npm --name "2el-front" -- start
