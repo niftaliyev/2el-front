@@ -1,18 +1,15 @@
-name: Deploy 2el-Front
+name: Deploy 2el-front
 
 on:
   push:
     branches:
-      - main  # Ветка для деплоя
+      - main  # ветка для деплоя
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -24,29 +21,35 @@ jobs:
             set -e
 
             PROJECT_DIR=/var/www/2el-front
-            echo "📂 Создаём папку проекта если не существует"
-            mkdir -p $PROJECT_DIR
+            REPO_URL=https://github.com/niftaliyev/2el-front.git
+
+            echo "📂 Создаём папку проекта"
+            sudo mkdir -p $PROJECT_DIR
+            sudo chown -R $USER:$USER $PROJECT_DIR
             cd $PROJECT_DIR
 
             echo "🧹 Чистим старые файлы"
             sudo rm -rf $PROJECT_DIR/*
 
-            echo "📥 Копируем файлы с Actions"
-            # Копируем весь код из workspace Actions на сервер
-            rsync -avz --exclude='.git' /github/workspace/ $PROJECT_DIR/
+            echo "📥 Клонируем репозиторий $REPO_URL"
+            git clone $REPO_URL .
 
-            echo "🔧 Загружаем NVM"
+            echo "🔍 Содержимое папки после клонирования:"
+            ls -la $PROJECT_DIR
+
+            echo "🔧 Загружаем NVM и Node.js"
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm install 20
             nvm use 20
-            export PATH="$HOME/.nvm/versions/node/v20.20.2/bin:$PATH"
 
-            echo "📦 Установка зависимостей и сборка"
+            echo "📦 Установка зависимостей"
             npm install --production
+
+            echo "🛠️ Билд проекта"
             npm run build
 
-            echo "🚀 Перезапуск через PM2"
+            echo "🚀 Перезапуск приложения через PM2"
             pm2 describe 2el-front > /dev/null 2>&1
             if [ $? -eq 0 ]; then
               pm2 reload 2el-front
