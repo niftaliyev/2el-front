@@ -18,13 +18,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. (Опционально) Node на runner
+      # 2. Node.js (опционально)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # 3. Подготавливаем папку на сервере (ВАЖНО!)
+      # 3. Подготовка папки на сервере (решает проблему прав)
       - name: Prepare server folder
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -36,7 +36,7 @@ jobs:
             sudo chown -R $USER:$USER /var/www/2el-front
             sudo chmod -R 755 /var/www/2el-front
 
-      # 4. Копируем файлы на сервер
+      # 4. Копирование файлов
       - name: Upload to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -47,7 +47,7 @@ jobs:
           target: "/var/www/2el-front"
           strip_components: 1
 
-      # 5. Деплой и запуск
+      # 5. Деплой (КЛЮЧЕВОЙ фикс через bash -l)
       - name: Deploy on VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -57,29 +57,19 @@ jobs:
           script: |
             cd /var/www/2el-front
 
-            # Подключаем NVM (КЛЮЧЕВОЕ)
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            bash -l -c "
+              node -v
+              npm -v
 
-            # Используем Node 20
-            nvm use 20
+              npm install --production
+              npm run build
 
-            # Проверка (можешь удалить потом)
-            node -v
-            npm -v
+              pm2 describe 2el-front > /dev/null
+              if [ $? -eq 0 ]; then
+                pm2 reload 2el-front
+              else
+                pm2 start npm --name '2el-front' -- start
+              fi
 
-            # Установка зависимостей
-            npm install --production
-
-            # Билд Next.js
-            npm run build
-
-            # Запуск / перезапуск через PM2
-            pm2 describe 2el-front > /dev/null
-            if [ $? -eq 0 ]; then
-              pm2 reload 2el-front
-            else
-              pm2 start npm --name "2el-front" -- start
-            fi
-
-            pm2 save
+              pm2 save
+            "
