@@ -146,6 +146,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="flex items-center gap-1.5">
             <span>{mounted ? formatRelativeTime(product.createdAt) : '\u00A0'}</span>
             <div className="flex items-center gap-1">
+              {product.isBoosted && (
+                <div className="text-green-600 flex items-center" title="Boosted">
+                  <span className="material-symbols-outlined !text-[16px]">rocket_launch</span>
+                </div>
+              )}
               {product.isFeatured && (
                 <div className="text-blue-600 flex items-center" title="VIP">
                   <span className="material-symbols-outlined !text-[16px]">stars</span>
@@ -157,6 +162,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </div>
               )}
             </div>
+
           </div>
         </div>
       </div>

@@ -195,6 +195,7 @@ function ListingsContent() {
           updatedAt: new Date(item.createdDate),
           isPremium: item.isPremium,
           isFeatured: item.isVip,
+          isBoosted: item.isBoosted,
           isFavourite: item.isFavourite,
         }));
         setVipProducts(mappedProducts);
@@ -249,6 +250,7 @@ function ListingsContent() {
           updatedAt: new Date(item.createdDate),
           isPremium: item.isPremium,
           isFeatured: item.isVip,
+          isBoosted: item.isBoosted,
           isFavourite: item.isFavourite,
         }));
 

@@ -56,6 +56,7 @@ export interface Product {
   isFeatured?: boolean;
   isPromoted?: boolean;
   isPremium?: boolean;
+  isBoosted?: boolean;
   isFavourite?: boolean;
   store?: Store;
 }

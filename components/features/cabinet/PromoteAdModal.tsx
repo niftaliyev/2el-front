@@ -155,6 +155,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
                           <h4 className="text-sm font-bold text-gray-900 leading-none mb-1">
                             {activeTab === 'vip' ? 'VIP' : activeTab === 'premium' ? 'Premium' : 'İrəli Çək'}
                             {pkg.intervalDay ? ` • ${pkg.intervalDay} Gün` : ''}
+                            {activeTab === 'boost' && pkg.boostCount ? ` • ${pkg.boostCount} dəfə` : ''}
                           </h4>
                           <p className="text-xs text-gray-500 mt-1">{pkg.description}</p>
                         </div>

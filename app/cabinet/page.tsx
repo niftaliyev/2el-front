@@ -138,6 +138,24 @@ export default function CabinetPage() {
     }
   };
 
+  const handleReactivate = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const result = await adService.reactivateAd(id);
+      if (result.isSuccess) {
+        alert('Elan yeniləndi və baxışa göndərildi');
+        setActiveTab('pending');
+        fetchCounts();
+      } else {
+        alert(result.message || 'Xəta baş verdi');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || 'Xəta baş verdi');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <main className="bg-gray-50 min-h-screen font-sans">
       <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
@@ -205,6 +223,7 @@ export default function CabinetPage() {
                         onPromote={handlePromote}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
+                        onReactivate={handleReactivate}
                       />
                     ))}
                   </div>
