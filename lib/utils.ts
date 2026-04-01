@@ -98,6 +98,7 @@ export function getImageUrl(imagePath: string | undefined | null): string {
   }
   
   // Local Development: 'http://localhost:5156'
+  // Prod Development: 'http://34.118.33.240'
   const baseUrl = 'http://34.118.33.240';
   
   // Build normalized path (ensuring it starts with / and doesn't overlap)
