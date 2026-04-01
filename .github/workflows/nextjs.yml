@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Клонируем репо
+      # 1. Клонируем репозиторий
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -33,8 +33,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: "."
           target: ${{ env.APP_DIR }}
+          strip_components: 1  # чтобы не копировалась лишняя структура папок
 
-      # 4. Деплой и рестарт на сервере
+      # 4. Деплой и перезапуск на сервере
       - name: Deploy on VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -47,11 +48,11 @@ jobs:
             # Добавляем Node и PM2 в PATH
             export PATH=$HOME/.nvm/versions/node/v20.20.2/bin:$PATH
 
-            # Устанавливаем зависимости и билдим
+            # Устанавливаем зависимости и билдим Next.js
             npm install --production
             npm run build
 
-            # Проверяем PM2 и перезапускаем приложение
+            # Проверяем процесс PM2 и перезапускаем
             pm2 describe ${{ env.APP_NAME }} > /dev/null
             if [ $? -eq 0 ]; then
               pm2 reload ${{ env.APP_NAME }}
