@@ -1,36 +1,60 @@
-name: Deploy Frontend
+name: Deploy 2el-Front
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Забираем код
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # 2. Подключаемся к VPS по SSH и билдим/перезапускаем контейнер
-      - name: Deploy to VPS
+      - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
+          port: 22
           script: |
-            cd /home/${{ secrets.SERVER_USER }}/2el-front || mkdir -p /home/${{ secrets.SERVER_USER }}/2el-front && cd /home/${{ secrets.SERVER_USER }}/2el-front
+            # Переходим в папку проекта
+            mkdir -p /var/www/2el-front
+            cd /var/www/2el-front
 
-            # Если есть старый контейнер — удалить
-            docker stop 2el-front || true
-            docker rm 2el-front || true
+            # Загружаем NVM и используем Node 20
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 20
 
-            # Скачиваем свежий код
-            git reset --hard
-            git pull origin main
+            # Проверка версий
+            echo "Node version: $(node -v)"
+            echo "NPM version: $(npm -v)"
+            echo "PM2 version: $(pm2 -v || echo 'PM2 not installed')"
 
-            # Собираем образ и запускаем контейнер
-            docker build -t 2el-front:latest .
-            docker run -d -p 3000:3000 --name 2el-front 2el-front:latest
+            # Если PM2 не установлен — ставим
+            command -v pm2 >/dev/null 2>&1 || npm install -g pm2
+
+            # Если репозиторий уже есть — обновляем, иначе клонируем
+            if [ -d ".git" ]; then
+              git reset --hard
+              git pull origin main
+            else
+              git clone git@github.com:niftaliyev/2el-front.git .
+            fi
+
+            # Устанавливаем зависимости и собираем проект
+            npm install --production
+            npm run build
+
+            # Перезапускаем приложение через PM2
+            if pm2 describe 2el-front >/dev/null 2>&1; then
+              pm2 reload 2el-front
+            else
+              pm2 start npm --name "2el-front" -- start
+            fi
+
+            pm2 save
