@@ -2,7 +2,8 @@
 FROM node:20-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+
+RUN npm ci --include=optional
 
 # Stage 2: Build the application
 FROM node:20-bookworm-slim AS builder
@@ -10,16 +11,16 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Fix for the "RangeError: Invalid count value: -5" bug in Next.js 16.x
-# We only target regular files (-type f) to avoid symlink errors
+# фикс бага repeat
 RUN find node_modules/next/dist -type f -name "*.js" -exec sed -i 's/\.repeat(\([^)]*\))/.repeat(Math.max(0, \1))/g' {} + || true
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV CI=true
 ENV NODE_ENV=production
 
-# Run build with extra debug info
-RUN npx next build --debug
+ENV NEXT_DISABLE_TURBOPACK=1
+
+RUN npx next build
 
 # Stage 3: Production runner
 FROM node:20-bookworm-slim AS runner
