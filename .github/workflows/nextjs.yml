@@ -1,61 +1,37 @@
-name: Deploy 2el-front
+name: Deploy Frontend
 
 on:
   push:
-    branches:
-      - main  # ветка для деплоя
+    branches: ["main"]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/2el-front:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/2el-front:latest
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
-          port: 22
           script: |
-            set -e
-
-            PROJECT_DIR=/var/www/2el-front
-            REPO_URL=https://github.com/niftaliyev/2el-front.git
-
-            echo "📂 Создаём папку проекта"
-            sudo mkdir -p $PROJECT_DIR
-            sudo chown -R $USER:$USER $PROJECT_DIR
-            cd $PROJECT_DIR
-
-            echo "🧹 Чистим старые файлы"
-            sudo rm -rf $PROJECT_DIR/*
-
-            echo "📥 Клонируем репозиторий $REPO_URL"
-            git clone $REPO_URL .
-
-            echo "🔍 Содержимое папки после клонирования:"
-            ls -la $PROJECT_DIR
-
-            echo "🔧 Загружаем NVM и Node.js"
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install 20
-            nvm use 20
-
-            echo "📦 Установка зависимостей"
-            npm install --production
-
-            echo "🛠️ Билд проекта"
-            npm run build
-
-            echo "🚀 Перезапуск приложения через PM2"
-            pm2 describe 2el-front > /dev/null 2>&1
-            if [ $? -eq 0 ]; then
-              pm2 reload 2el-front
-            else
-              pm2 start npm --name "2el-front" -- start
-            fi
-            pm2 save
-
-            echo "✅ Деплой завершён"
+            docker pull ${{ secrets.DOCKER_USERNAME }}/2el-front:latest
+            docker stop 2el-front || true
+            docker rm 2el-front || true
+            docker run -d \
+              -p 3000:3000 \
+              --name 2el-front \
+              ${{ secrets.DOCKER_USERNAME }}/2el-front:latest
