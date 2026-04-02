@@ -103,6 +103,7 @@ export interface CreateAdRequest {
   Email: string;
   Description: string;
   DynamicFieldsJson?: string;
+  PackagePriceId?: string;
 }
 
 export interface CategoryFieldDto {

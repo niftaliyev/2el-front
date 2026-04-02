@@ -102,6 +102,7 @@ class AdService {
     formData.append('Email', adData.Email);
     formData.append('Description', adData.Description);
     if (adData.DynamicFieldsJson) formData.append('DynamicFieldsJson', adData.DynamicFieldsJson);
+    if (adData.PackagePriceId) formData.append('PackagePriceId', adData.PackagePriceId);
     adData.Images.forEach((img) => formData.append('Images', img));
     await axiosInstance.post('/ad', formData);
   }
@@ -238,6 +239,11 @@ class AdService {
 
   async getBoostPackages(): Promise<PackageItem[]> {
     const response = await axiosInstance.get<PackageItem[]>('/packages/boosts');
+    return response.data ?? [];
+  }
+
+  async getAllPackages(): Promise<PackageItem[]> {
+    const response = await axiosInstance.get<PackageItem[]>('/packages/all-prices');
     return response.data ?? [];
   }
 

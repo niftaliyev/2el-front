@@ -8,8 +8,9 @@ import Select, { SelectOption } from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import { adService } from '@/services/ad.service';
-import { CategoryDto, CategoryFieldDto, LookupItem } from '@/types/api';
+import { CategoryDto, CategoryFieldDto, LookupItem, PackageItem } from '@/types/api';
 import { parseCurrency } from '@/lib/utils';
+import PromotionPackages from '@/components/listings/PromotionPackages';
 
 // cityOptions removed - now fetched from API
 
@@ -63,6 +64,11 @@ export default function CreateListingPage() {
   const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, string>>({});
   const [selectedCategory, setSelectedCategory] = useState<CategoryDto | null>(null);
   const [categoryUsage, setCategoryUsage] = useState<number | null>(null);
+
+  // Promotion Packages state
+  const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+  const [isLoadingPackages, setIsLoadingPackages] = useState(false);
 
   // Fetch parent categories on mount
   useEffect(() => {
@@ -145,6 +151,23 @@ export default function CreateListingPage() {
     };
 
     fetchCities();
+  }, []);
+
+  // Fetch promotion packages on mount
+  useEffect(() => {
+    const fetchPackages = async () => {
+      setIsLoadingPackages(true);
+      try {
+        const pkgs = await adService.getAllPackages();
+        setPackages(pkgs);
+      } catch (err: any) {
+        console.error('Error fetching packages:', err);
+      } finally {
+        setIsLoadingPackages(false);
+      }
+    };
+
+    fetchPackages();
   }, []);
 
   // Fetch subcategories when parent category is selected
@@ -424,6 +447,7 @@ export default function CreateListingPage() {
         DynamicFieldsJson: Object.keys(dynamicFieldValues).length > 0
           ? JSON.stringify(dynamicFieldValues)
           : undefined,
+        PackagePriceId: selectedPackageId || undefined,
       });
 
       // Redirect to home page on success
@@ -831,7 +855,16 @@ export default function CreateListingPage() {
             )}
           </div>
 
-          {/* Section 3: Contact Information */}
+          {/* Section 4: Promotion Packages */}
+          {packages.length > 0 && (
+            <PromotionPackages 
+              packages={packages} 
+              selectedPackageId={selectedPackageId} 
+              onSelect={setSelectedPackageId} 
+            />
+          )}
+
+          {/* Section 5: Contact Information */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-gray-900 text-xl font-bold mb-6">Əlaqə Məlumatları</h2>
 
