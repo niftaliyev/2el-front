@@ -157,7 +157,13 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
                             {pkg.intervalDay ? ` • ${pkg.intervalDay} Gün` : ''}
                             {activeTab === 'boost' && pkg.boostCount ? ` • ${pkg.boostCount} dəfə` : ''}
                           </h4>
-                          <p className="text-xs text-gray-500 mt-1">{pkg.description}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {pkg.packageType === 'Premium' 
+                              ? "VIP + Gündəlik irəli çəkmə daxil" 
+                              : pkg.packageType === 'Vip' 
+                              ? "Gündəlik irəli çəkmə daxil" 
+                              : pkg.description}
+                          </p>
                         </div>
                         <span className="text-lg font-black text-gray-900 whitespace-nowrap ml-4">
                           {pkg.price} AZN
