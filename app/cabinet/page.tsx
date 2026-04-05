@@ -8,6 +8,8 @@ import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
 import { adService } from '@/services/ad.service';
 import { AdListItem } from '@/types/api';
 import { getImageUrl } from '@/lib/utils';
+import { toast } from 'sonner';
+import { Modal, ConfirmDialog, Button } from '@/components/ui';
 
 interface Listing {
   id: string;
@@ -31,6 +33,8 @@ export default function CabinetPage() {
     inactive: 0,
     rejected: 0,
   });
+  const [deleteAdId, setDeleteAdId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchAds = async () => {
     setIsLoading(true);
@@ -120,21 +124,24 @@ export default function CabinetPage() {
     router.push(`/listings/edit/${id}`);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Bu elanı silmək istədiyinizə əminsiniz?')) {
-      return;
-    }
+  const handleDelete = async () => {
+    if (!deleteAdId) return;
 
+    setIsDeleting(true);
     try {
-      await adService.deleteAd(id);
-      setListings(prev => prev.filter(listing => listing.id !== id));
+      await adService.deleteAd(deleteAdId);
+      setListings(prev => prev.filter(listing => listing.id !== deleteAdId));
       setCounts(prev => ({
         ...prev,
         [activeTab]: prev[activeTab as keyof typeof prev] - 1,
       }));
+      toast.success('Elan uğurla silindi');
     } catch (err: any) {
       console.error('Error deleting ad:', err);
-      alert(err.message || 'Elanı silmək mümkün olmadı');
+      toast.error(err.message || 'Elanı silmək mümkün olmadı');
+    } finally {
+      setIsDeleting(false);
+      setDeleteAdId(null);
     }
   };
 
@@ -143,14 +150,14 @@ export default function CabinetPage() {
       setIsLoading(true);
       const result = await adService.reactivateAd(id);
       if (result.isSuccess) {
-        alert('Elan yeniləndi və baxışa göndərildi');
+        toast.success('Elan yeniləndi və baxışa göndərildi');
         setActiveTab('pending');
         fetchCounts();
       } else {
-        alert(result.message || 'Xəta baş verdi');
+        toast.error(result.message || 'Xəta baş verdi');
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message || 'Xəta baş verdi');
+      toast.error(err.response?.data?.message || err.message || 'Xəta baş verdi');
     } finally {
       setIsLoading(false);
     }
@@ -222,7 +229,7 @@ export default function CabinetPage() {
                         listing={listing}
                         onPromote={handlePromote}
                         onEdit={handleEdit}
-                        onDelete={handleDelete}
+                        onDelete={(id) => setDeleteAdId(id)}
                         onReactivate={handleReactivate}
                       />
                     ))}
@@ -246,6 +253,17 @@ export default function CabinetPage() {
         isOpen={!!promoteAdId}
         onClose={() => setPromoteAdId(null)}
         adId={promoteAdId || ''}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deleteAdId}
+        onClose={() => setDeleteAdId(null)}
+        onConfirm={handleDelete}
+        title="Elanı sil"
+        description="Bu elanı silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz."
+        confirmText="Sil"
+        isDestructive
+        isLoading={isDeleting}
       />
     </main>
   );

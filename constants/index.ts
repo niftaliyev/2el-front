@@ -1,16 +1,44 @@
+import { generateSlug } from '@/lib/utils';
+
 export const ROUTES = {
   HOME: '/',
-  LISTINGS: '/listings',
-  PRODUCT: (id: string) => `/products/${id}`,
-  CATEGORY: (id: string) => `/listings?categoryId=${id}`,
-  SUBCATEGORY: (id: string) => `/listings?subCategoryId=${id}`,
+  LISTINGS: '/elanlar',
+  PRODUCT: (product: any) => {
+    const segments: string[] = [];
+    
+    // 1. Root category (Level 1)
+    const rootSlug = product.parentCategorySlug || (typeof product.category === 'object' ? product.category?.slug : null);
+    if (rootSlug && rootSlug !== 'elanlar' && rootSlug !== 'unknown') {
+      segments.push(rootSlug);
+    }
+    
+    // 2. Child category (Level 2)
+    const childSlug = product.childCategorySlug || (typeof product.subCategory === 'object' ? product.subCategory?.slug : null);
+    if (childSlug && childSlug !== 'unknown' && childSlug !== rootSlug) {
+      segments.push(childSlug);
+    }
+    
+    // 3. Ad Slug + ID
+    const adSlug = product.slug || (product.title ? generateSlug(product.title) : 'elan');
+    segments.push(`${adSlug}-${product.id}`);
+    
+    // Build path, PURGE any 'elanlar' from inside segments
+    const path = segments
+      .filter(s => s && s.toLowerCase() !== 'elanlar' && s.toLowerCase() !== 'unknown')
+      .join('/');
+      
+    // Using a clear test path to verify update
+    return `/elanlar/${path}`;
+  },
+  CATEGORY: (slug: string) => `/elanlar/${slug}`,
+  SUBCATEGORY: (catSlug: string, subCatSlug: string) => `/elanlar/${catSlug}/${subCatSlug}`,
   PROFILE: '/cabinet',
   MY_LISTINGS: '/cabinet/listings',
   FAVORITES: '/cabinet/favorites',
   MESSAGES: '/cabinet/messages',
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
-  CREATE_LISTING: '/listings/create',
+  CREATE_LISTING: '/elanlar/create',
   ADMIN: '/admin',
   ADMIN_DASHBOARD: '/admin',
   ADMIN_ADS: '/admin/ads',

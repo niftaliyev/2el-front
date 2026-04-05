@@ -5,7 +5,7 @@ export interface Transaction {
   title: string;
   amount: number;
   date: string;
-  type: 'Deposit' | 'Purchase';
+  type: 'Deposit' | 'Purchase' | 'Withdrawal' | 'Refund';
   description: string;
 }
 

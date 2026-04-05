@@ -65,8 +65,17 @@ export function truncateText(text: string, maxLength: number): string {
   return text.slice(0, maxLength) + '...';
 }
 
-export function generateSlug(text: string): string {
+export function generateSlug(text: string | null | undefined): string {
+  if (!text) return '';
+  const azMap: Record<string, string> = {
+    'ə': 'e', 'ı': 'i', 'ö': 'o', 'ü': 'u', 'ç': 'c', 'ş': 's', 'ğ': 'g',
+    'Ə': 'e', 'I': 'i', 'Ö': 'o', 'Ü': 'u', 'Ç': 'c', 'Ş': 's', 'Ğ': 'g'
+  };
+  
   return text
+    .split('')
+    .map(char => azMap[char] || char)
+    .join('')
     .toLowerCase()
     .replace(/[^\w\s-]/g, '')
     .replace(/\s+/g, '-')

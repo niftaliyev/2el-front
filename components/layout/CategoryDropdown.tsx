@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { CATEGORIES, ROUTES } from '@/constants';
 import { Category } from '@/types';
 import { adService } from '@/services/ad.service';
+import { generateSlug } from '@/lib/utils';
 
 const ICONS: Record<string, string> = {
   'Elektronika': 'devices',
@@ -40,16 +41,21 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
         const tree = await adService.getCategoryTree();
         if (tree && tree.length > 0) {
           const dynamicTree = tree.map(cat => ({
-            id: cat.id, name: cat.name, slug: cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            icon: ICONS[cat.name] || 'category', description: '',
+            id: cat.id,
+            name: cat.name,
+            slug: generateSlug(cat.name),
+            icon: ICONS[cat.name] || 'category',
+            description: '',
             children: cat.children?.map(c => ({
-              id: c.id, name: c.name, slug: c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+              id: c.id,
+              name: c.name,
+              slug: generateSlug(c.name)
             })) || []
           }));
           setCategories(dynamicTree);
           if (!activeMain) setActiveMain(dynamicTree[0]);
         }
-      } catch(e) {}
+      } catch (e) { }
     };
     fetchTree();
   }, []);
@@ -61,12 +67,14 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
       const data = await adService.getSubCategories(sub.id);
       if (data && data.length > 0) {
         setSubCategoriesForActive(data.map((d: any) => ({
-           id: d.id, name: d.name, slug: d.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+          id: d.id,
+          name: d.name,
+          slug: generateSlug(d.name)
         })));
       } else {
         setSubCategoriesForActive([]);
       }
-    } catch(e) {
+    } catch (e) {
       setSubCategoriesForActive([]);
     } finally {
       setIsLoadingSub(false);
@@ -100,7 +108,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
       <div className="lg:hidden fixed inset-0 z-50 bg-white flex flex-col">
         {/* Mobile Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-          <button 
+          <button
             onClick={onClose}
             className="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 transition-colors"
           >
@@ -115,7 +123,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
           {categories.map((category: any) => (
             <Link
               key={category.id}
-              href={ROUTES.CATEGORY(category.id)}
+              href={ROUTES.CATEGORY(category.slug)}
               className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 hover:bg-gray-50 active:bg-gray-100 transition-colors"
               onClick={onClose}
             >
@@ -149,14 +157,14 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
 
       {/* ==================== DESKTOP VIEW ==================== */}
       {/* Backdrop */}
-      <div 
-        className="hidden lg:block fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] transition-opacity" 
+      <div
+        className="hidden lg:block fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Desktop Dropdown */}
       <div className="hidden lg:flex absolute top-full left-0 mt-3 w-screen max-w-6xl bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-50 overflow-hidden h-[500px]">
-        
+
         {/* Column 1: Main Categories */}
         <div className="w-[280px] border-r border-gray-100 overflow-y-auto bg-gray-50/50">
           <div className="py-2">
@@ -167,18 +175,16 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
                   setActiveMain(category);
                   setActiveSub(null);
                 }}
-                className={`group flex items-center justify-between px-6 py-3 cursor-pointer transition-colors ${
-                  activeMain?.id === category.id ? 'bg-white text-primary' : 'text-gray-700 hover:bg-white hover:text-primary'
-                }`}
+                className={`group flex items-center justify-between px-6 py-3 cursor-pointer transition-colors ${activeMain?.id === category.id ? 'bg-white text-primary' : 'text-gray-700 hover:bg-white hover:text-primary'
+                  }`}
               >
-                <Link 
-                  href={ROUTES.CATEGORY(category.id)}
+                <Link
+                  href={ROUTES.CATEGORY(category.slug)}
                   className="flex items-center gap-4"
                   onClick={onClose}
                 >
-                  <span className={`material-symbols-outlined text-[20px] ${
-                    activeMain?.id === category.id ? 'text-primary' : 'text-gray-400 group-hover:text-primary'
-                  }`}>
+                  <span className={`material-symbols-outlined text-[20px] ${activeMain?.id === category.id ? 'text-primary' : 'text-gray-400 group-hover:text-primary'
+                    }`}>
                     {category.icon}
                   </span>
                   <span className="text-[15px] font-semibold leading-tight">
@@ -201,12 +207,11 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
                 <div
                   key={sub.id}
                   onMouseEnter={() => handleActiveSubChange(sub)}
-                  className={`group flex items-center justify-between px-6 py-3 cursor-pointer transition-colors ${
-                    activeSub?.id === sub.id ? 'bg-gray-50 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-primary'
-                  }`}
+                  className={`group flex items-center justify-between px-6 py-3 cursor-pointer transition-colors ${activeSub?.id === sub.id ? 'bg-gray-50 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-primary'
+                    }`}
                 >
-                  <Link 
-                    href={ROUTES.CATEGORY(sub.id)}
+                  <Link
+                    href={ROUTES.SUBCATEGORY(activeMain?.slug, sub.slug)}
                     className="text-[14px] font-medium"
                     onClick={onClose}
                   >
@@ -226,15 +231,15 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
         {/* Column 3: Detailed Items */}
         <div className="flex-1 overflow-y-auto bg-white p-6">
           {isLoadingSub ? (
-             <div className="h-full flex flex-col justify-center items-center p-8">
-               <span className="material-symbols-outlined text-3xl animate-spin text-primary">progress_activity</span>
-             </div>
+            <div className="h-full flex flex-col justify-center items-center p-8">
+              <span className="material-symbols-outlined text-3xl animate-spin text-primary">progress_activity</span>
+            </div>
           ) : subCategoriesForActive && subCategoriesForActive.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {subCategoriesForActive.map((item: any) => (
                 <Link
                   key={item.id}
-                  href={`/listings?categoryId=${activeSub?.id || ''}&subCategoryId=${item.id}`}
+                  href={`/elanlar/${activeMain?.slug}/${activeSub?.slug}/${item.slug}`}
                   className="px-4 py-2 text-[14px] text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={onClose}
                 >
@@ -243,16 +248,16 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
               ))}
             </div>
           ) : activeMain?.children && !activeSub ? (
-             <div className="h-full flex flex-col justify-center items-center text-center text-gray-400 p-8">
-               <span className="material-symbols-outlined text-5xl mb-4 opacity-20">
-                 category
-               </span>
-               <p className="text-sm font-medium">Alt kateqoriya seçin</p>
-             </div>
+            <div className="h-full flex flex-col justify-center items-center text-center text-gray-400 p-8">
+              <span className="material-symbols-outlined text-5xl mb-4 opacity-20">
+                category
+              </span>
+              <p className="text-sm font-medium">Alt kateqoriya seçin</p>
+            </div>
           ) : activeSub && subCategoriesForActive.length === 0 ? (
             <div className="grid grid-cols-1 gap-4">
               <Link
-                href={ROUTES.CATEGORY(activeSub.id)}
+                href={ROUTES.SUBCATEGORY(activeMain?.slug, activeSub.slug)}
                 className="text-lg font-bold text-gray-900 hover:text-primary transition-colors flex items-center gap-2"
                 onClick={onClose}
               >

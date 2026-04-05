@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { adService } from '@/services/ad.service';
+import { toast } from 'sonner';
 
 interface TopUpBalanceModalProps {
   isOpen: boolean;
@@ -49,7 +50,10 @@ export default function TopUpBalanceModal({ isOpen, onClose, onSuccess }: TopUpB
     try {
       await adService.increaseBalance(parseFloat(amount), file);
       // Success
-      alert('Balans artırma sorğusu göndərildi. Moderator tərəfindən təsdiqləndikdən sonra balansınız yenilənəcək.');
+      toast.success('Balans artırma sorğusu göndərildi', {
+        description: 'Moderator tərəfindən təsdiqləndikdən sonra balansınız yenilənəcək.',
+        duration: 5000,
+      });
       onSuccess?.();
       onClose();
       // Reset state
