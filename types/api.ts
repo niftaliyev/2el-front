@@ -11,12 +11,17 @@ export interface AdImage {
 export interface AdListItem {
   id: string;
   title: string;
+  slug?: string;
+  parentCategoryName?: string;
+  parentCategorySlug?: string;
+  childCategorySlug?: string;
   description: string;
   price: number;
   status: string; // "Active" | "Pending" | "Inactive" | "Rejected"
   image?: string;
   createdDate: string;
   categoryId?: string;
+  subCategoryId?: string;
   isVip: boolean;
   isPremium: boolean;
   isBoosted: boolean;
@@ -39,6 +44,10 @@ export interface AdListItem {
 export interface AdDetail {
   id: string;
   title: string;
+  slug?: string;
+  parentCategoryName?: string;
+  parentCategorySlug?: string;
+  childCategorySlug?: string;
   description: string;
   price: number;
   createdDate: string;
@@ -123,6 +132,7 @@ export interface AdFieldDto {
 export interface SubCategoryDto {
   id: string;
   name: string;
+  slug?: string;
   imageUrl?: string;
   categoryId: string;
 }
@@ -136,6 +146,7 @@ export interface ContactInfo {
 export interface CategoryDto {
   id: string;
   name: string;
+  slug?: string;
   parentId?: string;
   imageUrl?: string;
   children?: CategoryDto[];
@@ -227,6 +238,7 @@ export interface PaginatedResponse<T> {
 // ================================
 
 export interface PendingBalanceRequest {
+  id: string;
   amount: number;
   userId: string;
   image: string;
@@ -236,6 +248,7 @@ export interface PendingBalanceRequest {
 export interface CreditUserRequest {
   userId: string;
   amount: number;
+  increaseBalanceId?: string;
 }
 
 export interface RoleItem {

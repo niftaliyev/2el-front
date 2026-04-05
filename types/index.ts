@@ -38,11 +38,13 @@ export interface Store {
 export interface Product {
   id: string;
   title: string;
+  slug?: string;
   description: string;
   price: number;
   currency: string;
   images: string[];
   category: Category;
+  subCategory?: Category;
   location: Location;
   seller: User;
   condition: 'new' | 'used';

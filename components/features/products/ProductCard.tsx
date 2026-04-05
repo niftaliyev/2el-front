@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from '@/types';
-import { formatPrice, formatRelativeTime, getImageUrl } from '@/lib/utils';
+import { formatPrice, formatRelativeTime, getImageUrl, generateSlug } from '@/lib/utils';
 import { ROUTES } from '@/constants';
 import { adService } from '@/services/ad.service';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,7 +20,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [isChangingFav, setIsChangingFav] = useState(false);
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  
+
   const mainImage = product.images?.[0] || '/placeholder-product.jpg';
 
   const [imageSrc, setImageSrc] = useState(mainImage);
@@ -70,7 +70,10 @@ export default function ProductCard({ product }: ProductCardProps) {
     <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 flex flex-col h-full overflow-hidden">
       {/* Image Container Area */}
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
-        <Link href={ROUTES.PRODUCT(product.id)} className="block w-full h-full">
+        <Link
+          href={ROUTES.PRODUCT(product)}
+          className="block w-full h-full"
+        >
           <Image
             src={imageSrc}
             alt={product.title}
@@ -82,23 +85,22 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Overlay Gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </Link>
-        
+
         {/* Top Overlay Gradient for Heart Contrast */}
         <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/30 to-transparent pointer-events-none z-10 opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-        
+
         {/* Favorite Button - Minimalist Tap.az Style */}
         <button
-          className={`absolute top-3 right-3 z-20 transition-all duration-300 hover:scale-110 focus:outline-none ${
-            isFavorite 
-              ? 'text-[#ff4d4d]' 
-              : 'text-white/90 hover:text-white'
-          }`}
+          className={`absolute top-3 right-3 z-20 transition-all duration-300 hover:scale-110 focus:outline-none ${isFavorite
+            ? 'text-[#ff4d4d]'
+            : 'text-white/90 hover:text-white'
+            }`}
           onClick={handleFavorite}
           disabled={isChangingFav}
         >
-          <span 
+          <span
             className="material-symbols-outlined !text-[28px] block"
-            style={{ 
+            style={{
               fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0",
               filter: !isFavorite ? 'drop-shadow(0 1px 3px rgba(0,0,0,0.4))' : 'none'
             }}
@@ -130,7 +132,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Title */}
-          <Link href={ROUTES.PRODUCT(product.id)}>
+          <Link
+            href={ROUTES.PRODUCT(product)}
+          >
             <h3 className="text-gray-900 font-medium text-sm leading-snug line-clamp-2 mb-2 group-hover:text-primary transition-colors">
               {product.title}
             </h3>
