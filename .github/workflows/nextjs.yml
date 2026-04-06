@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repo
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Step 2: Connect to VPS via SSH and deploy
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -21,15 +23,19 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            # Папка проекта
-            mkdir -p /var/www/2el-front
-            cd /var/www/2el-front
+            # Define project directory
+            PROJECT_DIR=/var/www/2el-front
+            mkdir -p $PROJECT_DIR
+            cd $PROJECT_DIR
 
-            # Если контейнер уже есть — останавливаем и удаляем
+            # Stop and remove old container if exists
             docker stop 2el-front || true
             docker rm 2el-front || true
 
-            # Сбрасываем старый код или клонируем репозиторий
+            # Remove dangling images to free space
+            docker system prune -f || true
+
+            # Pull latest code
             if [ -d ".git" ]; then
               git reset --hard
               git pull origin main
@@ -37,6 +43,11 @@ jobs:
               git clone git@github.com:niftaliyev/2el-front.git .
             fi
 
-            # Собираем Docker образ и запускаем контейнер
+            # Build Docker image
             docker build -t 2el-front:latest .
+
+            # Run the container
             docker run -d -p 3000:3000 --name 2el-front 2el-front:latest
+
+            # Optional: Show running containers
+            docker ps
