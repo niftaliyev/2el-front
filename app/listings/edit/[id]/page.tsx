@@ -11,9 +11,9 @@ import { adService } from '@/services/ad.service';
 import { AdImage, AdFieldDto, CategoryFieldDto, CategoryDto } from '@/types/api';
 import { parseCurrency } from '@/lib/utils';
 
-// const SERVER_URL = 'http://34.118.33.240';
+// const SERVER_URL = 'http://84.247.184.186';
 // const SERVER_URL = 'http://localhost:5156';
-const SERVER_URL = 'http://34.118.33.240';
+const SERVER_URL = 'http://84.247.184.186';
 
 export default function EditListingPage() {
     const router = useRouter();

@@ -1,9 +1,9 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 // Base URL for all API requests
-// Production: 'http://34.118.33.240/api/'
+// Production: 'http://84.247.184.186/api/'
 // Local: 'http://localhost:5156/api/'
-const BASE_URL = 'http://34.118.33.240/api/';
+const BASE_URL = 'http://84.247.184.186/api/';
 
 // Create axios instance with default config
 const axiosInstance: AxiosInstance = axios.create({
