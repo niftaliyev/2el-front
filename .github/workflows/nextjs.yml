@@ -19,14 +19,20 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /root/2el-front
-
-            echo "Pull latest code..."
-            git pull origin main
-
-            echo "Rebuild docker..."
-            docker compose down
-            docker compose build --no-cache
-            docker compose up -d
-
-            echo "Done!"
+              if [ ! -d "/root/2el-front/.git" ]; then
+                echo "Repo not found. Cloning..."
+                cd /root
+                git clone https://github.com/niftaliyev/2el-front.git
+              fi
+            
+              cd /root/2el-front
+            
+              echo "Pull latest code..."
+              git pull origin main
+            
+              echo "Rebuild docker..."
+              docker compose down || true
+              docker compose build --no-cache
+              docker compose up -d
+            
+              echo "Done!"
