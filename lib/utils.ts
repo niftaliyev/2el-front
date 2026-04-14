@@ -107,8 +107,8 @@ export function getImageUrl(imagePath: string | undefined | null): string {
   }
   
   // Local Development: 'http://localhost:5156'
-  // Prod Development: 'http://84.247.184.186'
-  const baseUrl = 'http://84.247.184.186';
+  // Prod Development: 'http://84.247.184.186:5000'
+  const baseUrl = 'http://84.247.184.186:5000';
   
   // Build normalized path (ensuring it starts with / and doesn't overlap)
   const cleanPath = imagePath.trim();
