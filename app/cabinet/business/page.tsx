@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import { adService } from '@/services/ad.service';
 import { accountService, Invoice } from '@/services/account.service';
@@ -31,7 +31,8 @@ const invoiceStatusMap: Record<InvoiceStatusTab, string | undefined> = {
   'İmtina olunub': 'Rejected',
 };
 
-export default function BusinessPage() {
+// ─── Inner component (useSearchParams istifadə edir) ─────────────────────────
+function BusinessPageInner() {
   const { user, isLoading: isAuthLoading, refreshUser } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -97,7 +98,6 @@ export default function BusinessPage() {
     if (days === 60) discount = pkg.discount60Days;
     else if (days === 90) discount = pkg.discount90Days;
     else if (days === 180) discount = pkg.discount180Days;
-
     return baseTotal * (1 - discount / 100);
   };
 
@@ -154,9 +154,7 @@ export default function BusinessPage() {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
         <div className="flex flex-col lg:flex-row gap-8">
           <UserSidebar />
-
           <div className="flex-1 min-w-0">
-            {/* Page Header */}
             <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">Biznes Kabineti</h1>
@@ -178,8 +176,6 @@ export default function BusinessPage() {
             </div>
 
             <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden min-h-[600px] flex flex-col">
-
-              {/* Internal Tabs */}
               <div className="flex border-b border-slate-100 px-8 pt-6">
                 {[
                   { id: 'packages', label: 'Paketlər', icon: Package },
@@ -189,10 +185,7 @@ export default function BusinessPage() {
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id as TabType)}
-                    className={`flex items-center gap-2 px-8 py-4 font-bold text-sm transition-all relative ${activeTab === tab.id
-                      ? 'text-primary'
-                      : 'text-slate-400 hover:text-slate-600'
-                      }`}
+                    className={`flex items-center gap-2 px-8 py-4 font-bold text-sm transition-all relative ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}
                   >
                     <tab.icon size={18} />
                     {tab.label}
@@ -206,7 +199,6 @@ export default function BusinessPage() {
               <div className="p-8 flex-1">
                 {activeTab === 'packages' && (
                   <div className="space-y-12">
-                    {/* Active Packages Section */}
                     {myPackages.filter(p => !p.isExpired).length > 0 && (
                       <section className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -215,7 +207,6 @@ export default function BusinessPage() {
                         <h3 className="text-amber-400 text-xs font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                           <Zap size={14} className="fill-amber-400" /> Aktiv Biznes Paketi
                         </h3>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
                           {myPackages.filter(p => !p.isExpired).map(pkg => (
                             <div key={pkg.id} className="flex flex-col gap-6">
@@ -226,7 +217,6 @@ export default function BusinessPage() {
                                   <span>Bitmə vaxtı: {formatDate(pkg.expireDate)}</span>
                                 </div>
                               </div>
-
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
                                   <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Elan Limiti</p>
@@ -240,8 +230,6 @@ export default function BusinessPage() {
                             </div>
                           ))}
                         </div>
-
-                        {/* Updated Button Position: Below the content, aligned right/center */}
                         <div className="mt-10 flex flex-col md:flex-row items-center justify-between gap-6 pt-10 border-t border-white/5 relative z-10">
                           <div className="flex items-center gap-4">
                             <div className="size-12 rounded-2xl bg-amber-400/10 flex items-center justify-center text-amber-400">
@@ -263,30 +251,22 @@ export default function BusinessPage() {
                       </section>
                     )}
 
-                    {/* New Purchase Section */}
                     <div>
                       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                         <div>
                           <h3 className="text-slate-900 text-2xl font-black tracking-tight">Yeni Paket Seçin</h3>
                           <p className="text-slate-500 font-medium h-6">Ehtiyacınıza uyğun olan paketi seçərək satışlarınızı artırın</p>
                         </div>
-
-                        {/* Duration Tabs */}
                         <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center self-start">
                           {durations.map(days => (
                             <button
                               key={days}
                               onClick={() => setSelectedDuration(days)}
-                              className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all relative ${selectedDuration === days
-                                ? 'bg-white text-primary shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700'
-                                }`}
+                              className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all relative ${selectedDuration === days ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                               {days} gün
                               {days > 30 && (
-                                <div className="absolute -top-3 -right-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black scale-90">
-                                  -%
-                                </div>
+                                <div className="absolute -top-3 -right-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black scale-90">-%</div>
                               )}
                             </button>
                           ))}
@@ -297,7 +277,7 @@ export default function BusinessPage() {
                         <div className="flex justify-center items-center py-32">
                           <div className="relative">
                             <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                            <div className="absolute inset-x-0 -bottom-8 text-center text-xs font-bold text-slate-400 animate-pulse">YÜKLƏNİR...</div>
+                            <div className="absolute inset-x-0 -bottom-8 text-center text-xs font-bold text-slate-400 animate-pulse">YÜKLƏNIR...</div>
                           </div>
                         </div>
                       ) : (
@@ -307,21 +287,16 @@ export default function BusinessPage() {
                             const originalPrice = pkg.basePrice * (selectedDuration / 30);
                             const discount = getDiscountPercent(pkg, selectedDuration);
                             const isRecommended = pkg.name.toLowerCase().includes('gold') || pkg.name.toLowerCase().includes('platinum');
-
                             return (
                               <div
                                 key={pkg.id}
-                                className={`group bg-white rounded-[2.5rem] p-8 flex flex-col border-2 transition-all hover:translate-y-[-8px] hover:shadow-2xl ${isRecommended
-                                  ? 'border-primary/20 shadow-lg shadow-primary/5 ring-1 ring-primary/5'
-                                  : 'border-slate-50 hover:border-slate-200'
-                                  }`}
+                                className={`group bg-white rounded-[2.5rem] p-8 flex flex-col border-2 transition-all hover:translate-y-[-8px] hover:shadow-2xl ${isRecommended ? 'border-primary/20 shadow-lg shadow-primary/5 ring-1 ring-primary/5' : 'border-slate-50 hover:border-slate-200'}`}
                               >
                                 {isRecommended && (
                                   <div className="bg-primary text-white text-[10px] font-black uppercase tracking-widest py-1.5 px-4 rounded-full self-start mb-6 -mt-2">
                                     TÖVSİYƏ OLUNAN
                                   </div>
                                 )}
-
                                 <div className="mb-8">
                                   <div className="flex items-center gap-3 mb-2">
                                     <h3 className="text-2xl font-black text-slate-900">{pkg.name}</h3>
@@ -331,7 +306,6 @@ export default function BusinessPage() {
                                     {pkg.description || `${pkg.name} paketi ilə biznesinizi növbəti səviyyəyə daşıyın.`}
                                   </p>
                                 </div>
-
                                 <div className="mb-8 bg-slate-50/50 rounded-3xl p-6 border border-slate-50">
                                   {discount > 0 && (
                                     <div className="flex items-center gap-2 mb-1">
@@ -345,7 +319,6 @@ export default function BusinessPage() {
                                   </div>
                                   <div className="mt-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">{selectedDuration} GÜNLÜK ÖDƏNİŞ</div>
                                 </div>
-
                                 <ul className="flex-1 space-y-4 mb-8">
                                   <li className="flex items-center gap-3 group/item">
                                     <div className="w-6 h-6 rounded-full bg-green-50 text-green-500 flex items-center justify-center shrink-0 group-hover/item:bg-green-500 group-hover/item:text-white transition-colors">
@@ -372,14 +345,10 @@ export default function BusinessPage() {
                                     </span>
                                   </li>
                                 </ul>
-
                                 <button
                                   onClick={() => handleBuy(pkg.id)}
                                   disabled={isProcessing}
-                                  className={`w-full py-4 rounded-2xl font-black text-sm tracking-wide transition-all ${isRecommended
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 hover:scale-[1.02]'
-                                    : 'bg-slate-900 text-white hover:bg-slate-800 hover:scale-[1.02]'
-                                    } disabled:opacity-50 disabled:scale-100`}
+                                  className={`w-full py-4 rounded-2xl font-black text-sm tracking-wide transition-all ${isRecommended ? 'bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 hover:scale-[1.02]' : 'bg-slate-900 text-white hover:bg-slate-800 hover:scale-[1.02]'} disabled:opacity-50 disabled:scale-100`}
                                 >
                                   {isProcessing ? 'GÖZLƏYİN...' : 'İNDİ AKTİVLƏŞDİR'}
                                 </button>
@@ -394,7 +363,6 @@ export default function BusinessPage() {
 
                 {activeTab === 'balance' && (
                   <div className="space-y-12">
-                    {/* Dynamic Balance Progress */}
                     <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white flex flex-col lg:flex-row items-center justify-between gap-10 relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent pointer-events-none"></div>
                       <div className="relative z-10 flex-1">
@@ -415,31 +383,11 @@ export default function BusinessPage() {
                         </button>
                       </div>
                     </div>
-
-                    {/* Balance Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {[
-                        {
-                          title: 'Əsas balans',
-                          desc: 'Yatırılan və geri qaytarılan vəsaitlər.',
-                          value: user?.balance,
-                          icon: Wallet,
-                          color: 'blue'
-                        },
-                        {
-                          title: 'Paketin balansı',
-                          desc: 'Biznes paket xidməti üzrə hədiyyə balans.',
-                          value: user?.packageBalance,
-                          icon: Package,
-                          color: 'green'
-                        },
-                        {
-                          title: 'Bonus balansı',
-                          desc: 'Kampaniya və hədiyyə bonusları.',
-                          value: user?.bonusBalance,
-                          icon: BadgePercent,
-                          color: 'amber'
-                        }
+                        { title: 'Əsas balans', desc: 'Yatırılan və geri qaytarılan vəsaitlər.', value: user?.balance, icon: Wallet, color: 'blue' },
+                        { title: 'Paketin balansı', desc: 'Biznes paket xidməti üzrə hədiyyə balans.', value: user?.packageBalance, icon: Package, color: 'green' },
+                        { title: 'Bonus balansı', desc: 'Kampaniya və hədiyyə bonusları.', value: user?.bonusBalance, icon: BadgePercent, color: 'amber' }
                       ].map((b, i) => (
                         <div key={i} className="bg-slate-50/50 rounded-[2rem] p-8 border border-slate-100 flex flex-col gap-6">
                           <div className={`w-12 h-12 rounded-2xl bg-${b.color}-500/10 text-${b.color}-500 flex items-center justify-center`}>
@@ -453,11 +401,9 @@ export default function BusinessPage() {
                         </div>
                       ))}
                     </div>
-
-                    {/* Ad Limit info */}
                     <div className="bg-white border-2 border-slate-100 rounded-[2rem] p-8 flex flex-col md:flex-row items-center gap-8">
                       <div className="w-20 h-20 rounded-3xl bg-slate-900 flex flex-col items-center justify-center text-white shrink-0">
-                        <p className="text-[10px] font-black opacity-40 uppercase">LIMIT</p>
+                        <p className="text-[10px] font-black opacity-40 uppercase">LİMİT</p>
                         <p className="text-3xl font-black tracking-tight">{user?.adLimit || 0}</p>
                       </div>
                       <div>
@@ -473,26 +419,18 @@ export default function BusinessPage() {
 
                 {activeTab === 'invoices' && (
                   <div className="space-y-6">
-                    {/* Invoice Tabs */}
                     <div className="flex gap-2 overflow-x-auto scrollbar-hide bg-slate-100 p-1.5 rounded-2xl self-start max-w-fit">
                       {(['Hamısı', 'Ödənilmiş', 'Ödənilməmiş', 'Ləğv olunmuş', 'Müddəti bitmiş', 'İmtina olunub'] as InvoiceStatusTab[]).map((status) => (
                         <button
                           key={status}
-                          onClick={() => {
-                            setInvoiceTab(status);
-                            setInvoicePage(1);
-                          }}
-                          className={`px-5 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all ${invoiceTab === status
-                            ? 'bg-white text-primary shadow-sm'
-                            : 'text-slate-500 hover:text-slate-700'
-                            }`}
+                          onClick={() => { setInvoiceTab(status); setInvoicePage(1); }}
+                          className={`px-5 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all ${invoiceTab === status ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                           {status}
                         </button>
                       ))}
                     </div>
 
-                    {/* Invoice Table Container */}
                     <div className="bg-white border border-slate-100 rounded-[2rem] overflow-hidden shadow-sm">
                       {isLoading ? (
                         <div className="flex justify-center items-center py-40">
@@ -531,18 +469,10 @@ export default function BusinessPage() {
                                     </td>
                                     <td className="px-8 py-5 text-right">
                                       <div className="flex justify-end gap-2">
-                                        <button
-                                          onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')}
-                                          className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center"
-                                          title="PDF Endir"
-                                        >
+                                        <button onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')} className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center" title="PDF Endir">
                                           <FileText size={18} />
                                         </button>
-                                        <button
-                                          onClick={() => window.open(`/cabinet/invoices/${inv.id}/print`, '_blank')}
-                                          className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center"
-                                          title="Çap et"
-                                        >
+                                        <button onClick={() => window.open(`/cabinet/invoices/${inv.id}/print`, '_blank')} className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center" title="Çap et">
                                           <Printer size={18} />
                                         </button>
                                       </div>
@@ -553,7 +483,6 @@ export default function BusinessPage() {
                             </table>
                           </div>
 
-                          {/* Mobile List View */}
                           <div className="md:hidden divide-y divide-slate-50">
                             {(invoiceData?.data || []).map(inv => (
                               <div key={inv.id} className="p-6">
@@ -567,24 +496,14 @@ export default function BusinessPage() {
                                   </span>
                                 </div>
                                 <div className="flex justify-between items-end">
-                                  <div className="text-slate-400 text-xs font-medium">
-                                    {formatDate(inv.createdDate)}
-                                  </div>
-                                  <div className="text-lg font-black text-primary">
-                                    {inv.amount.toFixed(2)} <span className="text-xs uppercase opacity-60">AZN</span>
-                                  </div>
+                                  <div className="text-slate-400 text-xs font-medium">{formatDate(inv.createdDate)}</div>
+                                  <div className="text-lg font-black text-primary">{inv.amount.toFixed(2)} <span className="text-xs uppercase opacity-60">AZN</span></div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 mt-6">
-                                  <button
-                                    onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')}
-                                    className="flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-bold text-xs"
-                                  >
+                                  <button onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')} className="flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-bold text-xs">
                                     <FileText size={16} /> PDF Endir
                                   </button>
-                                  <button
-                                    onClick={() => window.open(`/cabinet/invoices/${inv.id}/print`, '_blank')}
-                                    className="flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-50 text-blue-600 font-bold text-xs"
-                                  >
+                                  <button onClick={() => window.open(`/cabinet/invoices/${inv.id}/print`, '_blank')} className="flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-50 text-blue-600 font-bold text-xs">
                                     <Printer size={16} /> Çap et
                                   </button>
                                 </div>
@@ -603,35 +522,17 @@ export default function BusinessPage() {
                             </div>
                           )}
 
-                          {/* Pagination */}
                           {invoiceData && invoiceData.totalPages > 1 && (
                             <div className="p-8 border-t border-slate-50 flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => setInvoicePage(p => Math.max(1, p - 1))}
-                                disabled={invoicePage === 1}
-                                className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all"
-                              >
+                              <button onClick={() => setInvoicePage(p => Math.max(1, p - 1))} disabled={invoicePage === 1} className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all">
                                 <ChevronDown size={20} className="rotate-90" />
                               </button>
-
                               {[...Array(invoiceData.totalPages)].map((_, i) => (
-                                <button
-                                  key={i}
-                                  onClick={() => setInvoicePage(i + 1)}
-                                  className={`w-10 h-10 rounded-xl text-sm font-black transition-all ${invoicePage === i + 1
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-                                    }`}
-                                >
+                                <button key={i} onClick={() => setInvoicePage(i + 1)} className={`w-10 h-10 rounded-xl text-sm font-black transition-all ${invoicePage === i + 1 ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}>
                                   {i + 1}
                                 </button>
                               ))}
-
-                              <button
-                                onClick={() => setInvoicePage(p => Math.min(invoiceData.totalPages, p + 1))}
-                                disabled={invoicePage === invoiceData.totalPages}
-                                className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all"
-                              >
+                              <button onClick={() => setInvoicePage(p => Math.min(invoiceData.totalPages, p + 1))} disabled={invoicePage === invoiceData.totalPages} className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all">
                                 <ChevronDown size={20} className="-rotate-90" />
                               </button>
                             </div>
@@ -646,6 +547,7 @@ export default function BusinessPage() {
           </div>
         </div>
       </div>
+
       <ConfirmDialog
         isOpen={!!confirmPkgId}
         onClose={() => setConfirmPkgId(null)}
@@ -657,5 +559,20 @@ export default function BusinessPage() {
         isLoading={isProcessing}
       />
     </main>
+  );
+}
+
+// ─── Page export: Suspense wrapper ───────────────────────────────────────────
+// Next.js 15 tələbi: useSearchParams() istifadə edən komponentlər
+// mütləq <Suspense> daxilindəki olmalıdır (standalone build zamanı prerender xətasını aradan qaldırır)
+export default function BusinessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    }>
+      <BusinessPageInner />
+    </Suspense>
   );
 }

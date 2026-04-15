@@ -1,9 +1,25 @@
+# Dependencies
 node_modules
+
+# Next.js build output
 .next
+
+# Git
 .git
 .github
-.idea
 .gitignore
+
+# IDE
+.idea
+.vscode
+
+# Misc
 README.md
 *.tsbuildinfo
 next-env.d.ts
+
+# Docker Compose faylları (Dockerfile-a lazım deyil)
+docker-compose*.yml
+
+# Environment files (runtime-da --env-file ilə veriləcək)
+.env*
