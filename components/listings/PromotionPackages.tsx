@@ -8,9 +8,10 @@ interface PromotionPackagesProps {
   packages: PackageItem[];
   selectedPackageId: string | null;
   onSelect: (id: string | null) => void;
+  businessDiscount?: number;
 }
 
-export default function PromotionPackages({ packages, selectedPackageId, onSelect }: PromotionPackagesProps) {
+export default function PromotionPackages({ packages, selectedPackageId, onSelect, businessDiscount = 0 }: PromotionPackagesProps) {
   // Sort and pick most relevant packages for each type to keep it clean
   const vips = packages.filter(p => p.packageType === 'Vip').sort((a, b) => (a.price || 0) - (b.price || 0));
   const premiums = packages.filter(p => p.packageType === 'Premium').sort((a, b) => (a.price || 0) - (b.price || 0));
@@ -39,30 +40,42 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
       badgeClass = 'bg-emerald-100 text-emerald-700 font-bold';
     }
 
+    const originalPrice = pkg.price || 0;
+    const discountedPrice = businessDiscount > 0 ? originalPrice * (1 - businessDiscount / 100) : originalPrice;
+    const hasDiscount = businessDiscount > 0;
+
     return (
       <div
         key={pkg.id}
         onClick={() => onSelect(isSelected ? null : pkg.id)}
         className={twMerge(
-          "relative flex flex-col p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer group hover:shadow-md",
+          "relative flex flex-col p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer group hover:shadow-md",
           colorClass
         )}
       >
-        <div className="flex justify-between items-start mb-3">
-          <span className={twMerge("text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider", badgeClass)}>
+        <div className="flex justify-between items-start mb-2 sm:mb-3">
+          <span className={twMerge("text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full uppercase tracking-wider font-bold", badgeClass)}>
             {typeLabel}
           </span>
-          <span className={twMerge("material-symbols-outlined !text-2xl transition-transform group-hover:scale-110", iconClass)}>
+          <span className={twMerge("material-symbols-outlined !text-xl sm:!text-2xl transition-transform group-hover:scale-110", iconClass)}>
             {icon}
           </span>
         </div>
 
-        <h3 className="text-gray-900 font-black text-xl mb-1">{pkg.price} AZN</h3>
-        <div className="flex flex-col gap-1 mb-4 h-12">
-          <p className="text-gray-900 text-[12px] font-bold">
+        <div className="flex flex-col mb-0.5 sm:mb-1">
+            {hasDiscount && (
+                <div className="flex items-center gap-1">
+                    <span className="text-red-500 line-through text-[10px] font-bold">{originalPrice} AZN</span>
+                    <span className="bg-green-500 text-white text-[8px] px-1 rounded-sm font-black">-{businessDiscount}%</span>
+                </div>
+            )}
+            <h3 className="text-gray-900 font-extrabold text-base sm:text-lg lg:text-xl">{discountedPrice.toFixed(2)} AZN</h3>
+        </div>
+        <div className="flex flex-col gap-0.5 sm:gap-1 mb-3 sm:mb-4 h-10 sm:h-12">
+          <p className="text-gray-900 text-[10px] sm:text-[12px] font-bold">
             {pkg.intervalDay} Günlük {typeLabel}
           </p>
-          <p className="text-gray-500 text-[11px] leading-tight line-clamp-2">
+          <p className="text-gray-500 text-[9.5px] sm:text-[11px] leading-tight line-clamp-2">
             {pkg.packageType === 'Premium'
               ? "VIP + Gündəlik irəli çəkmə daxil"
               : pkg.packageType === 'Vip'
@@ -71,14 +84,14 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
           </p>
         </div>
 
-        <div className="mt-auto flex items-center gap-2">
+        <div className="mt-auto flex items-center gap-1.5 sm:gap-2">
           <div className={twMerge(
-            "w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-all",
+            "w-4 h-4 sm:w-5 sm:h-5 rounded-sm border-2 flex items-center justify-center transition-all",
             isSelected ? "border-current bg-current" : "border-gray-300 bg-white"
           )} style={{ color: pkg.packageType === 'Premium' ? '#9333ea' : pkg.packageType === 'Boost' ? '#059669' : '#607afb' }}>
-            {isSelected && <span className="material-symbols-outlined !text-[14px] text-white font-bold">check</span>}
+            {isSelected && <span className="material-symbols-outlined !text-[12px] sm:!text-[14px] text-white font-bold">check</span>}
           </div>
-          <span className={twMerge("text-xs font-bold", isSelected ? "opacity-100" : "opacity-40")}>
+          <span className={twMerge("text-[10px] sm:text-xs font-bold", isSelected ? "opacity-100" : "opacity-40")}>
             {isSelected ? "Seçildi" : "Seç"}
           </span>
         </div>
@@ -93,18 +106,18 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border-2 border-primary/10 p-6 overflow-hidden relative">
+    <div className="bg-white rounded-xl shadow-lg border-2 border-primary/10 p-4 sm:p-6 overflow-hidden relative">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-            <span className="material-symbols-outlined !text-3xl fill">rocket_launch</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <span className="material-symbols-outlined !text-2xl sm:!text-3xl fill">rocket_launch</span>
           </div>
           <div>
-            <h2 className="text-gray-900 text-xl font-black tracking-tight leading-tight">Daha çox baxış qazanın</h2>
-            <p className="text-gray-500 text-sm font-medium">Elanınızı sürətlə satın və ya fərqləndirin</p>
+            <h2 className="text-gray-900 text-lg sm:text-xl font-black tracking-tight leading-tight">Daha çox baxış qazanın</h2>
+            <p className="text-gray-500 text-[11px] sm:text-sm font-medium">Elanınızı sürətlə satın və ya fərqləndirin</p>
           </div>
         </div>
 
@@ -118,37 +131,37 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 relative z-10">
         {/* Standard option */}
         <div
           onClick={() => onSelect(null)}
           className={twMerge(
-            "relative flex flex-col p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer group hover:shadow-md",
+            "relative flex flex-col p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer group hover:shadow-md",
             !selectedPackageId ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300'
           )}
         >
-          <div className="flex justify-between items-start mb-3">
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wider font-bold">
+          <div className="flex justify-between items-start mb-2 sm:mb-3">
+            <span className="text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wider font-bold">
               STANDART
             </span>
-            <span className={twMerge("material-symbols-outlined !text-2xl transition-all", !selectedPackageId ? "text-primary scale-110" : "text-gray-400 opacity-40")}>
+            <span className={twMerge("material-symbols-outlined !text-xl sm:!text-2xl transition-all", !selectedPackageId ? "text-primary scale-110" : "text-gray-400 opacity-40")}>
               check_circle
             </span>
           </div>
 
-          <h3 className="text-gray-900 font-black text-xl mb-1">Pulsuz</h3>
-          <p className="text-gray-500 text-[11px] leading-tight mb-4 h-8 uppercase tracking-tighter font-medium">
+          <h3 className="text-gray-900 font-extrabold text-base sm:text-lg lg:text-xl mb-0.5 sm:mb-1">Pulsuz</h3>
+          <p className="text-gray-500 text-[9.5px] sm:text-[11px] leading-tight mb-3 sm:mb-4 h-7 sm:h-8 uppercase tracking-tighter font-medium">
             Heç bir əlavə xidmət olmadan elan yerləşdirin
           </p>
 
-          <div className="mt-auto flex items-center gap-2">
+          <div className="mt-auto flex items-center gap-1.5 sm:gap-2">
             <div className={twMerge(
-              "w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-all",
+              "w-4 h-4 sm:w-5 sm:h-5 rounded-sm border-2 flex items-center justify-center transition-all",
               !selectedPackageId ? "border-primary bg-primary" : "border-gray-300 bg-white"
             )}>
-              {!selectedPackageId && <span className="material-symbols-outlined !text-[14px] text-white font-bold">check</span>}
+              {!selectedPackageId && <span className="material-symbols-outlined !text-[12px] sm:!text-[14px] text-white font-bold">check</span>}
             </div>
-            <span className={twMerge("text-xs font-bold", !selectedPackageId ? "text-primary opacity-100" : "text-gray-400 opacity-40")}>
+            <span className={twMerge("text-[10px] sm:text-xs font-bold", !selectedPackageId ? "text-primary opacity-100" : "text-gray-400 opacity-40")}>
               {!selectedPackageId ? "Seçildi" : "Seç"}
             </span>
           </div>

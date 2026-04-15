@@ -1,4 +1,5 @@
 import axiosInstance from '@/lib/axios';
+import { PaginatedResponse } from '@/types/api';
 
 export interface Transaction {
   id: string;
@@ -7,19 +8,51 @@ export interface Transaction {
   date: string;
   type: 'Deposit' | 'Purchase' | 'Withdrawal' | 'Refund';
   description: string;
+  adId?: string;
+  adTitle?: string;
 }
 
 export interface AdPlacementLimit {
   categoryId: string;
   categoryName: string;
+  parentCategoryName?: string;
+  categoryImageUrl?: string;
   freeLimit: number;
-  paidPrice: number;
   usedCount: number;
+  usedFreeCount: number;
+  paidCount: number;
+  nextFreeAt?: string;
+  paidPrice: number;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  amount: number;
+  status: string;
+  serviceType: string;
+  createdDate: string;
+  paidDate?: string;
+  pdfUrl?: string;
 }
 
 class AccountService {
-  async getTransactions(): Promise<Transaction[]> {
-    const response = await axiosInstance.get<Transaction[]>('/account/transactions');
+  async getTransactions(page = 1, pageSize = 10, filter?: number): Promise<PaginatedResponse<Transaction[]>> {
+    const response = await axiosInstance.get<PaginatedResponse<Transaction[]>>('/account/transactions', {
+      params: { page, pageSize, filter }
+    });
+    return response.data;
+  }
+
+  async getInvoices(page = 1, pageSize = 10, status?: string): Promise<PaginatedResponse<Invoice[]>> {
+    const response = await axiosInstance.get<PaginatedResponse<Invoice[]>>('/account/invoices', {
+      params: { page, pageSize, status }
+    });
+    return response.data;
+  }
+
+  async getInvoice(id: string): Promise<Invoice> {
+    const response = await axiosInstance.get<Invoice>(`/account/invoices/${id}`);
     return response.data;
   }
 
@@ -53,6 +86,14 @@ class AccountService {
 
   async getPaymentDetail(): Promise<{ content: string }> {
     const response = await axiosInstance.get('/balance/payment-detail');
+    return response.data;
+  }
+  getInvoiceDownloadUrl(id: string): string {
+    return `${axiosInstance.defaults.baseURL}account/invoices/${id}/download-pdf`;
+  }
+
+  async getCompanySettings() {
+    const response = await axiosInstance.get('/account/company-settings');
     return response.data;
   }
 }

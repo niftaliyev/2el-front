@@ -42,18 +42,18 @@ export default function Home() {
             name: cat.name,
             slug: generateSlug(cat.name),
             icon: ICONS[cat.name] || 'category',
-            image: cat.imageUrl,
+            image: getImageUrl(cat.imageUrl),
             description: '',
             children: cat.children?.map((child: any) => ({
               id: child.id,
               name: child.name,
               slug: generateSlug(child.name),
-              image: child.imageUrl,
+              image: getImageUrl(child.imageUrl),
               subCategories: child.subCategories?.map((sc: any) => ({
                  id: sc.id,
                  name: sc.name,
                  slug: generateSlug(sc.name),
-                 image: sc.imageUrl
+                 image: getImageUrl(sc.imageUrl)
               })) || []
             })) || []
           }));
@@ -102,6 +102,12 @@ export default function Home() {
             isFeatured: ad.isVip,
             isBoosted: ad.isBoosted,
             isFavourite: ad.isFavourite,
+            store: ad.isStore ? {
+              id: '',
+              name: ad.storeName || ad.fullName || 'Mağaza',
+              logo: ad.storeLogoUrl ? getImageUrl(ad.storeLogoUrl) : undefined,
+              slug: ad.storeSlug
+            } : undefined,
           } as Product;
         });
         setPremiumProducts(transformedProducts);
@@ -121,12 +127,12 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="bg-gray-50">
+    <main className="bg-gray-50 flex-1">
       <div className="container mx-auto">
         <div className="flex gap-4 lg:gap-6">
-          {/* Left Banner */}
+          {/* Left Banner - only xl+ */}
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
-            <div className="sticky top-4 pt-4">
+            <div className="sticky top-20 pt-4">
               <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-purple-200">
                 <p className="text-sm text-gray-500 text-center">Reklam sahəsi</p>
               </div>
@@ -139,12 +145,11 @@ export default function Home() {
             <CategoryGrid categories={categories} />
 
             {/* Premium Products */}
-            {isLoading ? (
-              <div className="container mx-auto px-4 sm:px-10 py-5 sm:py-10">
+            <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-4 sm:pb-6">
+              {isLoading ? (
                 <div className="flex flex-col gap-6">
-                  <div className="flex flex-col gap-2">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Premium Elanlar</h1>
-                    <p className="text-sm sm:text-base text-gray-600">Ən yaxşı və seçilmiş elanları kəşf edin</p>
+                  <div className="flex items-center justify-between">
+                    <h1 className="text-lg sm:text-xl font-bold text-gray-900">Premium Elanlar</h1>
                   </div>
                   <div className="flex items-center justify-center py-12">
                     <svg
@@ -169,21 +174,21 @@ export default function Home() {
                     </svg>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <ProductGrid
-                products={premiumProducts}
-                title="Premium elanlar"
-                viewAllLink="/listings"
-                viewAllText="Son elanlar"
-                emptyMessage="Premium elan tapılmadı"
-              />
-            )}
+              ) : (
+                <ProductGrid
+                  products={premiumProducts}
+                  title="Premium elanlar"
+                  viewAllLink="/elanlar"
+                  viewAllText="Son elanlar"
+                  emptyMessage="Premium elan tapılmadı"
+                />
+              )}
+            </div>
           </div>
 
-          {/* Right Banner */}
+          {/* Right Banner - only xl+ */}
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
-            <div className="sticky top-4 pt-4">
+            <div className="sticky top-20 pt-4">
               <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-blue-200">
                 <p className="text-sm text-gray-500 text-center">Reklam sahəsi</p>
               </div>
@@ -193,4 +198,5 @@ export default function Home() {
       </div>
     </main>
   );
+
 }

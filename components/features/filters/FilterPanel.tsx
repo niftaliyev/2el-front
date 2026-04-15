@@ -98,6 +98,13 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
   const findCategoryInTree = (cats: any[], id: string): any => {
     for (const cat of cats) {
       if (cat.id === id) return cat;
+
+      // Check subcategories
+      if (cat.subCategories?.some((sc: any) => sc.id === id)) {
+        return cat; // Return the category that owns these subcategories (e.g. "Avtomobillər" for a Brand)
+      }
+
+      // Check children
       if (cat.children?.length) {
         const found = findCategoryInTree(cat.children, id);
         if (found) return found;
@@ -106,7 +113,20 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
     return null;
   };
 
-  const selectedCategory = findCategoryInTree(categories, localFilters.subCategoryId || localFilters.categoryId || '');
+  const findSubCategoryById = (cats: any[], id: string): any => {
+    for (const cat of cats) {
+      const found = cat.subCategories?.find((sc: any) => sc.id === id);
+      if (found) return found;
+      if (cat.children?.length) {
+        const deepFound = findSubCategoryById(cat.children, id);
+        if (deepFound) return deepFound;
+      }
+    }
+    return null;
+  };
+
+  const selectedCategoryId = localFilters.subCategoryId || localFilters.categoryId || '';
+  const selectedCategory = findCategoryInTree(categories, selectedCategoryId);
   const selectedCategoryName = selectedCategory?.name || '';
 
   // Find fields from the selected category or its parents
@@ -239,45 +259,113 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
 
         {/* Dynamic Fields */}
         {categoryFields.map((field: any) => {
+          const fType = (field.fieldType || '').toLowerCase();
+          const isDependent = fType === 'dependent_select' || fType === 'dependentselect';
+          let options: any[] = [];
+
+          try {
+            if (field.optionsJson) {
+              const parsed = JSON.parse(field.optionsJson);
+              if (isDependent) {
+                // ... (existing brand/model logic)
+                const selectedSubCatId = localFilters.subCategoryId;
+                if (selectedSubCatId) {
+                  const selectedSubCat = findSubCategoryById(categories, selectedSubCatId);
+                  if (selectedSubCat) {
+                    const brandName = selectedSubCat.name.trim().toLowerCase();
+                    const keys = Object.keys(parsed);
+                    const matchingKey = keys.find(k => k.trim().toLowerCase() === brandName);
+                    options = matchingKey ? parsed[matchingKey] : [];
+                    if (options.length === 0 && Array.isArray(parsed)) {
+                      const brandEntry = parsed.find((b: any) => b.brand?.trim().toLowerCase() === brandName);
+                      options = brandEntry ? (brandEntry.models || []) : [];
+                    }
+                  }
+                } else {
+                  options = [];
+                }
+              } else {
+                options = Array.isArray(parsed) ? parsed : [];
+              }
+            } else if (fType === 'checkbox') {
+              options = ['Bəli', 'Xeyr'];
+            }
+          } catch (e) {
+            console.error('Error parsing dynamic field options:', e);
+          }
+
+          if (isDependent && options.length === 0 && !localFilters.subCategoryId) {
+            return null;
+          }
+
           const isOpen = openDynamicFields[field.id] ?? true;
-          const options = field.optionsJson ? JSON.parse(field.optionsJson) : [];
+          const selectOptions: SelectOption[] = [
+            { value: '', label: 'Bütün' },
+            ...options.map((opt: string) => ({ 
+              value: fType === 'checkbox' ? (opt === 'Bəli' ? 'true' : 'false') : opt, 
+              label: opt 
+            }))
+          ];
 
           return (
             <div key={field.id}>
-              <div className="h-px bg-gray-100 my-4" />
               <div
                 className="flex items-center justify-between mb-3 cursor-pointer select-none"
                 onClick={() => setOpenDynamicFields(prev => ({ ...prev, [field.id]: !isOpen }))}
               >
-                <span className="text-[15px] text-[#212121]">{field.name}</span>
+                <span className="text-[15px] font-medium text-[#212121]">{field.name}</span>
                 <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isOpen ? '' : 'rotate-180'}`}>expand_less</span>
               </div>
               {isOpen && (
-                <div className="space-y-[10px] pt-1">
-                  <label className="flex items-center gap-3 cursor-pointer group">
+                <div className="pt-1">
+                  {fType === 'number' || fType === 'text' ? (
                     <input
-                      type="radio"
-                      name={`field_${field.id}`}
-                      className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
-                      checked={!localFilters.dynamicProperties?.[field.id]}
-                      onChange={() => handleDynamicPropertyChange(field.id, undefined)}
+                      type="text"
+                      placeholder={field.name}
+                      value={localFilters.dynamicProperties?.[field.id] || ''}
+                      onChange={(e) => handleDynamicPropertyChange(field.id, e.target.value)}
+                      className="w-full h-10 px-3 bg-[#f1f2f4] rounded-[10px] outline-none placeholder:text-gray-400 text-sm focus:ring-1 focus:ring-gray-300"
                     />
-                    <span className="text-[14px] text-[#212121] transition-colors leading-none">Bütün</span>
-                  </label>
-                  {options.map((opt: string) => (
-                    <label key={opt} className="flex items-center gap-3 cursor-pointer group">
-                      <input
-                        type="radio"
-                        name={`field_${field.id}`}
-                        className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
-                        checked={localFilters.dynamicProperties?.[field.id] === opt}
-                        onChange={() => handleDynamicPropertyChange(field.id, opt)}
-                      />
-                      <span className="text-[14px] text-[#212121] transition-colors leading-none">{opt}</span>
-                    </label>
-                  ))}
+                  ) : options.length > 5 || fType === 'select' || isDependent ? (
+                    <Select
+                      value={selectOptions.find(o => o.value === localFilters.dynamicProperties?.[field.id]) || selectOptions[0]}
+                      onChange={(opt) => handleDynamicPropertyChange(field.id, opt?.value || undefined)}
+                      options={selectOptions}
+                      placeholder={`${field.name} seçin`}
+                      className="text-sm bg-[#f1f2f4] border-transparent focus:bg-white w-full rounded-[10px]"
+                    />
+                  ) : (
+                    <div className="space-y-[10px]">
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                          type="radio"
+                          name={`field_${field.id}`}
+                          className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
+                          checked={!localFilters.dynamicProperties?.[field.id]}
+                          onChange={() => handleDynamicPropertyChange(field.id, undefined)}
+                        />
+                        <span className="text-[14px] text-[#212121] transition-colors leading-none">Bütün</span>
+                      </label>
+                      {options.map((opt: string) => {
+                        const val = fType === 'checkbox' ? (opt === 'Bəli' ? 'true' : 'false') : opt;
+                        return (
+                          <label key={opt} className="flex items-center gap-3 cursor-pointer group">
+                            <input
+                              type="radio"
+                              name={`field_${field.id}`}
+                              className="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer mt-0.5"
+                              checked={localFilters.dynamicProperties?.[field.id] === val}
+                              onChange={() => handleDynamicPropertyChange(field.id, val)}
+                            />
+                            <span className="text-[14px] text-[#212121] transition-colors leading-none">{opt}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
+              <div className="h-px bg-gray-100 my-4" />
             </div>
           );
         })}

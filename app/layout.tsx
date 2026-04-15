@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Header, Footer } from "@/components/layout";
+import { Header, MobileBottomNav } from "@/components/layout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from 'sonner';
 
@@ -36,17 +36,22 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap"
         />
+        <link 
+          rel="stylesheet" 
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" 
+        />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen pb-[54px] md:pb-0`}
       >
         <AuthProvider>
           <Toaster richColors position="top-right" closeButton />
           <Header />
           {children}
-          <Footer />
+          <MobileBottomNav />
         </AuthProvider>
       </body>
     </html>
   );
 }
+

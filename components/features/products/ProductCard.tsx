@@ -22,7 +22,6 @@ export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
 
   const mainImage = product.images?.[0] || '/placeholder-product.jpg';
-
   const [imageSrc, setImageSrc] = useState(mainImage);
 
   useEffect(() => {
@@ -67,13 +66,10 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 flex flex-col h-full overflow-hidden">
+    <div className="group relative bg-white rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 flex flex-col h-full overflow-hidden">
       {/* Image Container Area */}
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
-        <Link
-          href={ROUTES.PRODUCT(product)}
-          className="block w-full h-full"
-        >
+        <Link href={ROUTES.PRODUCT(product)} className="block w-full h-full">
           <Image
             src={imageSrc}
             alt={product.title}
@@ -86,23 +82,22 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </Link>
 
-        {/* Top Overlay Gradient for Heart Contrast */}
-        <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/30 to-transparent pointer-events-none z-10 opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+        {/* Top gradient for heart contrast */}
+        <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/30 to-transparent pointer-events-none z-10 opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
 
-        {/* Favorite Button - Minimalist Tap.az Style */}
+        {/* Favorite Button */}
         <button
-          className={`absolute top-3 right-3 z-20 transition-all duration-300 hover:scale-110 focus:outline-none ${isFavorite
-            ? 'text-[#ff4d4d]'
-            : 'text-white/90 hover:text-white'
-            }`}
+          className={`absolute top-2 right-2 z-20 transition-all duration-300 hover:scale-110 focus:outline-none ${
+            isFavorite ? 'text-[#ff4d4d]' : 'text-white/90 hover:text-white'
+          }`}
           onClick={handleFavorite}
           disabled={isChangingFav}
         >
           <span
-            className="material-symbols-outlined !text-[28px] block"
+            className="material-symbols-outlined !text-[22px] sm:!text-[26px] block"
             style={{
               fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0",
-              filter: !isFavorite ? 'drop-shadow(0 1px 3px rgba(0,0,0,0.4))' : 'none'
+              filter: !isFavorite ? 'drop-shadow(0 1px 3px rgba(0,0,0,0.4))' : 'none',
             }}
           >
             favorite
@@ -111,62 +106,76 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Store Badge */}
         {product.store && (
-          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 pointer-events-none">
-            <span className="material-symbols-outlined text-white !text-[16px]">storefront</span>
-            <span className="text-white text-xs font-medium truncate max-w-[100px]">{product.store.name}</span>
+          <div className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-black/40 backdrop-blur-md pl-1 pr-2 py-1 rounded-lg border border-white/10 pointer-events-none z-20">
+            {product.store.logo ? (
+              <div className="relative w-5 h-5 rounded-md overflow-hidden bg-white flex-shrink-0">
+                <Image 
+                  src={product.store.logo} 
+                  alt={product.store.name} 
+                  fill 
+                  className="object-contain p-0.5" 
+                  onError={(e) => {
+                    // Fallback to storefront icon if logo fails
+                    (e.target as any).style.display = 'none';
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="w-5 h-5 flex items-center justify-center bg-white/20 rounded-md">
+                <span className="material-symbols-outlined text-white !text-[14px]">storefront</span>
+              </div>
+            )}
+            <span className="text-white text-[10px] sm:text-[11px] font-bold tracking-tight truncate max-w-[90px]">
+              {product.store.name}
+            </span>
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col flex-grow">
+      <div className="p-2 sm:p-3 flex flex-col flex-grow">
         <div className="flex-grow">
           {/* Price */}
-          <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-lg font-black text-gray-900">
-              {formatPrice(product.price, product.currency).split(' ')[0]}
-            </span>
-            <span className="text-sm font-bold text-gray-500">
-              {product.currency}
-            </span>
+          <div className="flex items-baseline gap-0.5 mb-1 h-6">
+            {product.category?.name === 'Tanışlıq' || product.subCategory?.name === 'Tanışlıq' ? null : (
+              <>
+                <span className="text-base sm:text-lg font-black text-gray-900">
+                  {formatPrice(product.price, product.currency).split(' ')[0]}
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-gray-500 ml-0.5">
+                  {product.currency}
+                </span>
+              </>
+            )}
           </div>
 
           {/* Title */}
-          <Link
-            href={ROUTES.PRODUCT(product)}
-          >
-            <h3 className="text-gray-900 font-medium text-sm leading-snug line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+          <Link href={ROUTES.PRODUCT(product)}>
+            <h3 className="text-gray-800 font-medium text-[12px] sm:text-sm leading-snug line-clamp-2 mb-1 group-hover:text-primary transition-colors">
               {product.title}
             </h3>
           </Link>
         </div>
 
         {/* Footer Info */}
-        <div className="pt-3 mt-1 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center gap-1 truncate max-w-[50%]">
-            <span className="material-symbols-outlined !text-[14px]">location_on</span>
+        <div className="pt-2 mt-auto border-t border-gray-100 flex items-center justify-between text-[11px] sm:text-[13px] text-gray-500 font-medium tracking-tight">
+          <div className="flex items-center gap-1 truncate max-w-[55%]">
+            <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] text-gray-400">location_on</span>
             <span className="truncate">{product.location.city}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span>{mounted ? formatRelativeTime(product.createdAt) : '\u00A0'}</span>
+            <span className="text-gray-400 font-normal">{mounted ? formatRelativeTime(product.createdAt) : '\u00A0'}</span>
             <div className="flex items-center gap-1">
               {product.isBoosted && (
-                <div className="text-green-600 flex items-center" title="Boosted">
-                  <span className="material-symbols-outlined !text-[16px]">rocket_launch</span>
-                </div>
+                <span className="material-symbols-outlined !text-[15px] text-green-600" title="Boosted">rocket_launch</span>
               )}
               {product.isFeatured && (
-                <div className="text-blue-600 flex items-center" title="VIP">
-                  <span className="material-symbols-outlined !text-[16px]">stars</span>
-                </div>
+                <span className="material-symbols-outlined !text-[15px] sm:!text-[16px] text-[#0057e6] font-bold" title="VIP">stars</span>
               )}
               {product.isPremium && (
-                <div className="text-yellow-500 flex items-center" title="Premium">
-                  <span className="material-symbols-outlined !text-[16px]">workspace_premium</span>
-                </div>
+                <span className="material-symbols-outlined !text-[15px] sm:!text-[16px] text-[#ff9900]" title="Premium">workspace_premium</span>
               )}
             </div>
-
           </div>
         </div>
       </div>

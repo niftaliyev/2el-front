@@ -60,3 +60,19 @@ export interface BulkActionPayload {
   ids: string[];
   reason?: string;
 }
+
+export interface AdminReport {
+  id: string;
+  adId?: string;
+  adTitle?: string;
+  adSlug?: string;
+  storeInformationId?: string;
+  storeName?: string;
+  storeSlug?: string;
+  reporterId: string;
+  reporterName: string;
+  note: string;
+  reason: string;
+  status: 'Pending' | 'InReview' | 'Resolved' | 'Rejected';
+  createdDate: string;
+}

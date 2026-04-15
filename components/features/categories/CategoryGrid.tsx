@@ -1,3 +1,6 @@
+'use client';
+
+import { useRef, useState, useEffect } from 'react';
 import { Category } from '@/types';
 import CategoryCard from './CategoryCard';
 
@@ -7,26 +10,15 @@ interface CategoryGridProps {
 
 export default function CategoryGrid({ categories }: CategoryGridProps) {
   return (
-    <div className="bg-gray-50 border-b border-gray-200">
-      <div className="py-4">
-        {/* Mobile: Horizontal scroll */}
-        <div className="md:hidden overflow-x-auto scrollbar-hide px-4">
-          <div className="flex gap-4 pb-2">
-            {categories.map((category) => (
-              <div key={category.id} className="min-w-[70px]">
-                <CategoryCard category={category} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Desktop: Grid */}
-        <div className="hidden md:block">
-          <div className="grid grid-cols-6 gap-4">
-            {categories.map((category) => (
-              <CategoryCard key={category.id} category={category} />
-            ))}
-          </div>
+    <div className="w-full">
+      <div className="py-4 sm:py-6 container mx-auto px-4 md:px-6">
+        {/* Hybrid Container: Scroll on Mobile, Grid on Tablet/PC */}
+        <div className="flex sm:grid overflow-x-auto sm:overflow-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-4 md:gap-6 pb-4 sm:pb-0">
+          {categories.map((category) => (
+            <div key={category.id} className="flex-shrink-0 w-[110px] sm:w-auto">
+              <CategoryCard category={category} />
+            </div>
+          ))}
         </div>
       </div>
     </div>

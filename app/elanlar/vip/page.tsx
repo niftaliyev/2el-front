@@ -58,6 +58,12 @@ function VipListingsContent() {
           isPremium: item.isPremium,
           isFeatured: item.isVip,
           isFavourite: item.isFavourite,
+          store: item.isStore ? {
+            id: '0',
+            name: item.storeName || item.fullName || 'Mağaza',
+            logo: item.storeLogoUrl ? getImageUrl(item.storeLogoUrl) : undefined,
+            slug: item.storeSlug
+          } : undefined
         }));
 
         if (page === 1) {

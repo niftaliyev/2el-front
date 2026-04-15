@@ -11,11 +11,13 @@ import { adService } from '@/services/ad.service';
 import { CategoryDto, CategoryFieldDto, LookupItem, PackageItem } from '@/types/api';
 import { parseCurrency } from '@/lib/utils';
 import PromotionPackages from '@/components/listings/PromotionPackages';
+import { useAuth } from '@/contexts/AuthContext';
 
 // cityOptions removed - now fetched from API
 
 export default function CreateListingPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     categoryId: '',
     subcategoryId: '',
@@ -241,7 +243,23 @@ export default function CreateListingPage() {
       setCategoryFields([]);
     }
     setDynamicFieldValues({});
-  }, [formData.subcategoryId, formData.categoryId]);
+  }, [formData.subcategoryId, formData.categoryId, subCategories]);
+
+  // Special logic for "Tanışlıq" category
+  const isDatingAd = subCategories.find(s => s.value === formData.subcategoryId)?.label === 'Tanışlıq';
+
+  // Force defaults for dating category
+  useEffect(() => {
+    if (isDatingAd) {
+      setFormData(prev => ({
+        ...prev,
+        price: '0',
+        adTypeId: 'e06e5c97-0b88-4b0c-aebf-f1af81b06ace', // Personal ID from AppDbContext
+        isNew: false,
+        isDeliverable: false
+      }));
+    }
+  }, [isDatingAd]);
 
   // Fetch brands/types when subcategory (child category) is selected
   useEffect(() => {
@@ -546,27 +564,29 @@ export default function CreateListingPage() {
               {/* Brand/Type - Hidden until child category is selected and has brands */}
               {showBrands && (
                 <Select
-                  label="Marka / Çeşid / Sahə"
+                  label="Marka / Çeşid / Tip / Sahə"
                   options={brands}
                   value={brands.find(option => option.value === formData.brandId)}
                   onChange={(option) => setFormData(prev => ({ ...prev, brandId: option?.value || '' }))}
-                  placeholder={isLoadingBrands ? 'Yüklənir...' : 'Marka / Çeşid / Sahə seçin'}
+                  placeholder={isLoadingBrands ? 'Yüklənir...' : 'Marka / Çeşid / Tip / Sahə seçin'}
                   isClearable
                   isLoading={isLoadingBrands}
                 />
               )}
 
               {/* Ad Type */}
-              <Select
-                label="Elan növü"
-                options={adTypes}
-                value={adTypes.find(option => option.value === formData.adTypeId)}
-                onChange={(option) => setFormData(prev => ({ ...prev, adTypeId: option?.value || '' }))}
-                placeholder={isLoadingAdTypes ? 'Yüklənir...' : 'Elan növü seçin'}
-                isClearable
-                required
-                isLoading={isLoadingAdTypes}
-              />
+              {!isDatingAd && (
+                <Select
+                  label="Elan növü"
+                  options={adTypes}
+                  value={adTypes.find(option => option.value === formData.adTypeId)}
+                  onChange={(option) => setFormData(prev => ({ ...prev, adTypeId: option?.value || '' }))}
+                  placeholder={isLoadingAdTypes ? 'Yüklənir...' : 'Elan növü seçin'}
+                  isClearable
+                  required
+                  isLoading={isLoadingAdTypes}
+                />
+              )}
 
               {/* Limit Information */}
               {selectedCategory && (
@@ -638,18 +658,20 @@ export default function CreateListingPage() {
               />
 
               {/* Price */}
-              <Input
-                label="Qiymət (₼)"
-                type="text"
-                name="price"
-                value={formData.price}
-                onChange={handleInputChange}
-                placeholder="0"
-                required
-              />
+              {!isDatingAd && (
+                <Input
+                  label="Qiymət (₼)"
+                  type="text"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  placeholder="0"
+                  required
+                />
+              )}
 
-              {/* Checkboxes - Hidden for service/job categories */}
-              {!['Xidmətlər və biznes', 'İş elanları', 'Daşınmaz əmlak'].some(cat => parentCategories.find(p => p.value === formData.categoryId)?.label?.toLowerCase() === cat.toLowerCase()) && (
+              {/* Checkboxes - Hidden for service/job/dating categories */}
+              {!isDatingAd && !['Xidmətlər və biznes', 'İş elanları', 'Daşınmaz əmlak'].some(cat => parentCategories.find(p => p.value === formData.categoryId)?.label?.toLowerCase() === cat.toLowerCase()) && (
                 <div className="flex flex-col gap-3">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
@@ -857,10 +879,11 @@ export default function CreateListingPage() {
 
           {/* Section 4: Promotion Packages */}
           {packages.length > 0 && (
-            <PromotionPackages 
-              packages={packages} 
-              selectedPackageId={selectedPackageId} 
-              onSelect={setSelectedPackageId} 
+            <PromotionPackages
+              packages={packages}
+              selectedPackageId={selectedPackageId}
+              onSelect={setSelectedPackageId}
+              businessDiscount={user?.serviceDiscountPercentage}
             />
           )}
 

@@ -140,6 +140,21 @@ export default function AdminDashboard() {
           </div>
         </Link>
 
+        <Link
+          href="/admin/seed-data"
+          className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center size-12 bg-rose-50 rounded-lg group-hover:bg-rose-100 transition-colors">
+              <span className="material-symbols-outlined text-rose-600 text-2xl">dataset</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">Marka / Model</h3>
+              <p className="text-sm text-gray-600">Marka və modelləri tənzimlə</p>
+            </div>
+          </div>
+        </Link>
+
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center size-12 bg-green-50 rounded-lg">

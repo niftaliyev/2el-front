@@ -37,6 +37,9 @@ export interface AdListItem {
   viewCount: number;
   expiresAt?: string;
   isStore: boolean;
+  storeName?: string;
+  storeSlug?: string;
+  storeLogoUrl?: string;
   isFavourite: boolean;
 }
 
@@ -73,7 +76,31 @@ export interface AdDetail {
   isBoosted: boolean;
   isFavourite: boolean;
   viewCount: number;
+  isStore: boolean;
+  storeId?: string;
+  storeName?: string;
+  storeSlug?: string;
+  storeLogoUrl?: string;
+  storeHeadline?: string;
+  storeDescription?: string;
+  storeAddress?: string;
+  contactNumber2?: string;
+  contactNumber3?: string;
+  storeAdCount?: number;
+  isFollowingStore?: boolean;
+  storeWebsite?: string;
+  storeInstagram?: string;
+  storeTikTok?: string;
+  storeFacebook?: string;
+  storeWorkSchedules?: StoreWorkSchedule[];
   dynamicFields: AdFieldDto[];
+}
+
+export interface StoreWorkSchedule {
+  dayOfWeek: number;
+  openTime?: string;
+  closeTime?: string;
+  isOpen24Hours: boolean;
 }
 
 // Matches AdEditDto
@@ -149,7 +176,9 @@ export interface CategoryDto {
   slug?: string;
   parentId?: string;
   imageUrl?: string;
+  icon?: string;
   children?: CategoryDto[];
+  subCategories?: SubCategoryDto[];
   categoryFields?: CategoryFieldDto[];
   freeLimit: number;
   paidPrice1: number;
@@ -163,6 +192,7 @@ export interface CategoryDto {
   paidPrice80: number;
 }
 
+
 // ================================
 // STORE TYPES (matches DTOs/Store)
 // ================================
@@ -174,13 +204,34 @@ export interface StoreWorkSchedule {
   isOpen24Hours: boolean;
 }
 
+export interface StoreListItem {
+  id: string;
+  storeName: string;
+  description: string;
+  storeLogoUrl?: string;
+  storeCoverUrl?: string;
+  headline?: string;
+  followerCount: number;
+  viewCount: number;
+  adCount: number;
+  slug?: string;
+  cityId?: string;
+  cityName?: string;
+  contactNumber?: string;
+  categories: string[];
+}
+
 export interface StoreAdItem {
   id: string;
   title: string;
+  slug?: string;
   price: number;
   image?: string;
   createdDate: string;
   isStore?: boolean;
+  categoryName?: string;
+  city?: string;
+  isNew: boolean;
 }
 
 export interface StoreDetail {
@@ -188,11 +239,23 @@ export interface StoreDetail {
   storeName: string;
   description: string;
   contactNumber: string;
+  contactNumber2?: string;
+  contactNumber3?: string;
   address: string;
   storeLogoUrl?: string;
   storeCoverUrl?: string;
   website?: string;
+  instagram?: string;
+  tiktok?: string;
+  facebook?: string;
+  headline?: string;
   followerCount: number;
+  viewCount: number;
+  adCount: number;
+  slug?: string;
+  cityId?: string;
+  cityName?: string;
+  isFollowing?: boolean;
   workSchedules: StoreWorkSchedule[];
   photos: string[];
 }
@@ -211,6 +274,19 @@ export interface PackageItem {
   packageType: string;
 }
 
+export interface BusinessPackageDto {
+  id: string;
+  name: string;
+  basePrice: number;
+  serviceBalance: number;
+  adLimit: number;
+  serviceDiscountPercentage: number;
+  discount60Days: number;
+  discount90Days: number;
+  discount180Days: number;
+  description?: string;
+}
+
 // ================================
 // LOOKUP / SYSTEM TYPES
 // ================================
@@ -226,11 +302,12 @@ export interface LookupItem {
 
 export interface PaginatedResponse<T> {
   data: T;
-  currentPage: number;
+  page?: number;        // New format
+  currentPage?: number; // Old format
   totalPages: number;
   pageSize: number;
   totalCount: number;
-  isSuccess: boolean;
+  isSuccess?: boolean;
 }
 
 // ================================
@@ -255,4 +332,35 @@ export interface RoleItem {
   id: string;
   name: string;
   permissions: string[];
+}
+
+// ================================
+// REPORT TYPES
+// ================================
+
+export enum ReportReason {
+  FalseInformation = 1,
+  Fraud = 2,
+  OffensiveContent = 3,
+  Duplicate = 4,
+  WrongCategory = 5,
+  IllegalItem = 6,
+  Other = 99
+}
+
+export interface CreateAdReportRequest {
+  adId: string;
+  reason: ReportReason;
+  note: string;
+}
+
+export interface CreateStoreReportRequest {
+  storeId: string;
+  reason: ReportReason;
+  note: string;
+}
+
+export interface ReportReasonLookup {
+  value: number;
+  name: string;
 }

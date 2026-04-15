@@ -43,7 +43,12 @@ export const ROUTES = {
   ADMIN_DASHBOARD: '/admin',
   ADMIN_ADS: '/admin/ads',
   ADMIN_USERS: '/admin/users',
+  ADMIN_STORE_REQUESTS: '/admin/store-requests',
+  ADMIN_BUSINESS_PACKAGES: '/admin/business-packages',
+  ADMIN_REPORTS: '/admin/reports',
+  STORE_DETAIL: (slug: string) => `/shops/${slug}`,
 } as const;
+
 
 export const PRODUCT_CONDITIONS = [
   { value: 'new', label: 'Yeni' },
@@ -80,7 +85,11 @@ export const ADMIN_NAV_ITEMS = [
   { href: '/admin', icon: 'dashboard', label: 'Dashboard', filled: true },
   { href: '/admin/ads', icon: 'article', label: 'Elan İdarəetməsi', filled: false },
   { href: '/admin/users', icon: 'group', label: 'İstifadəçi İdarəetməsi', filled: false },
+  { href: '/admin/store-requests', icon: 'storefront', label: 'Mağaza Sorğuları', filled: false },
+  { href: '/admin/business-packages', icon: 'inventory_2', label: 'Biznes Paketləri', filled: false },
+  { href: '/admin/reports', icon: 'report', label: 'Şikayətlər', filled: false },
 ] as const;
+
 
 export const AD_STATUSES = [
   { value: 'all', label: 'Hamısı', color: 'default' as const },
@@ -105,15 +114,15 @@ export const CATEGORIES = [
     icon: 'devices',
     description: 'Audio və video, kompüter aksesuarları, telefo...',
     children: [
-      { id: '1-1', name: 'Audio və video', slug: 'audio-video' },
-      { id: '1-2', name: 'Kompüter aksesuarları', slug: 'computer-accessories' },
-      { id: '1-3', name: 'Oyunlar, pultlar və proqramlar', slug: 'games-consoles', children: [
+      { id: '1-1', name: 'Audio və video', slug: 'audio-video', icon: 'movie' },
+      { id: '1-2', name: 'Kompüter aksesuarları', slug: 'computer-accessories', icon: 'mouse' },
+      { id: '1-3', name: 'Oyunlar, pultlar və proqramlar', slug: 'games-consoles', icon: 'sports_esports', children: [
         { id: '1-3-1', name: 'Oyun konsolları', slug: 'consoles' },
         { id: '1-3-2', name: 'Konsollar üçün oyunlar', slug: 'console-games' },
         { id: '1-3-3', name: 'Kompüter oyunları', slug: 'pc-games' },
       ]},
-      { id: '1-4', name: 'Masaüstü kompüterlər', slug: 'desktops' },
-      { id: '1-5', name: 'Komponentlər və monitorlar', slug: 'components-monitors' },
+      { id: '1-4', name: 'Masaüstü kompüterlər', slug: 'desktops', icon: 'desktop_windows' },
+      { id: '1-5', name: 'Komponentlər və monitorlar', slug: 'components-monitors', icon: 'monitor' },
     ]
   },
   { 
@@ -123,9 +132,9 @@ export const CATEGORIES = [
     icon: 'directions_car',
     description: 'Avtomobillər, ehtiyat hissələri, aksesuarlar, av...',
     children: [
-      { id: '2-1', name: 'Avtomobillər', slug: 'cars' },
-      { id: '2-2', name: 'Ehtiyat hissələri', slug: 'parts' },
-      { id: '2-3', name: 'Motosikletlər', slug: 'motorcycles' },
+      { id: '2-1', name: 'Avtomobillər', slug: 'cars', icon: 'directions_car' },
+      { id: '2-2', name: 'Ehtiyat hissələri və aksesuarlar', slug: 'parts', icon: 'settings' },
+      { id: '2-3', name: 'Motosikletlər', slug: 'motorcycles', icon: 'moped' },
     ]
   },
   { 
@@ -135,9 +144,9 @@ export const CATEGORIES = [
     icon: 'chair',
     description: 'Təmir və tikinti, mebel və interyer, məişət texn...',
     children: [
-      { id: '3-1', name: 'Mebel', slug: 'furniture' },
-      { id: '3-2', name: 'Təmir və tikinti', slug: 'repair' },
-      { id: '3-3', name: 'Məişət texnikası', slug: 'appliances' },
+      { id: '3-1', name: 'Mebel', slug: 'furniture', icon: 'chair' },
+      { id: '3-2', name: 'Təmir və tikinti', slug: 'building', icon: 'construction' },
+      { id: '3-3', name: 'Məişət texnikası', slug: 'appliances', icon: 'kitchen' },
     ]
   },
   { 
@@ -147,9 +156,9 @@ export const CATEGORIES = [
     icon: 'home',
     description: 'Mənzillər, həyət və bağ evləri, torpaq sahələri...',
     children: [
-      { id: '4-1', name: 'Mənzillər', slug: 'apartments' },
-      { id: '4-2', name: 'Həyət evləri', slug: 'houses' },
-      { id: '4-3', name: 'Torpaq', slug: 'land' },
+      { id: '4-1', name: 'Mənzillər', slug: 'apartments', icon: 'apartment' },
+      { id: '4-2', name: 'Həyət evləri', slug: 'houses', icon: 'home' },
+      { id: '4-3', name: 'Torpaq', slug: 'land', icon: 'landscape' },
     ]
   },
   { id: '5', name: 'Xidmətlər və biznes', slug: 'services', icon: 'home_repair_service', description: 'Avadanlıqların icarəsi və quraşdırılması, təmir...' },
@@ -157,7 +166,9 @@ export const CATEGORIES = [
   { id: '7', name: 'Telefonlar', slug: 'phones', icon: 'smartphone', description: 'Telefonlar, smartfonlar və aksesuarlar elanları' },
   { id: '8', name: 'Hobbi və asudə', slug: 'hobbies', icon: 'sports_esports', description: 'Biletlər və səyahət, velosipedlər, kolleksiya, id...' },
   { id: '9', name: 'Məişət texnikası', slug: 'appliances', icon: 'kitchen', description: 'Eviniz üçün məişət texnikası' },
-  { id: '10', name: 'Uşaq aləmi', slug: 'kids', icon: 'stroller', description: 'Uşaq geyimləri, oyuncaqlar, uşaq arabaları...' },
+  { id: '10', name: 'Uşaq aləmi', slug: 'kids', icon: 'stroller', description: 'Uşaq geyimləri, oyuncaqlar, uşaq arabaları...', children: [
+    { id: '10-1', name: 'Məktəblilər üçün', slug: 'school', icon: 'school' }
+  ]},
   { id: '11', name: 'Heyvanlar', slug: 'animals', icon: 'pets', description: 'Ev heyvanları, aksesuarlar və yem' },
-  { id: '12', name: 'İş və biznes', slug: 'business', icon: 'work', description: 'İş elanları, biznes təklifləri' },
+  { id: '12', name: 'İş elanları', slug: 'jobs', icon: 'work', description: 'İş elanları, biznes təklifləri' },
 ] as const;

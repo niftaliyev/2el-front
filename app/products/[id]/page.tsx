@@ -13,6 +13,7 @@ import { Product } from '@/types';
 import { ROUTES } from '@/constants';
 import ProductGrid from '@/components/features/products/ProductGrid';
 import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
+import ReportModal from '@/components/features/ReportModal';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -34,6 +35,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const formatBooleanValue = (name: string, value: string | boolean) => {
     const strVal = String(value).toLowerCase();
@@ -351,9 +353,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                             'Daşınmaz əmlak', 'Mənzillər', 'Mənzil', 'Həyət evləri', 'Həyət evi', 'Torpaq sahələri', 'Torpaq',
                             'Obyektlər və əmlak', 'Ofislər', 'Qarajlar', 'Bağlar', 'Xarici əmlak',
                             'Obyektlər', 'Obyekt', 'Ofis', 'Dükkan və mağazalar', 'Dükkan', 'Mağaza', 'Villa', 'Bağ evi', 'Qaraj',
+                            // Tanışlıq category
+                            'Tanışlıq'
                           ];
                           const isNonProduct = NON_PRODUCT_CATEGORIES.some(
-                            cat => 
+                            cat =>
                               product.category?.toLowerCase().trim() === cat.toLowerCase().trim() ||
                               product.subCategory?.toLowerCase().trim() === cat.toLowerCase().trim()
                           );
@@ -429,12 +433,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     {/* Price Box */}
                     <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6 border border-gray-100">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-[#8D94AD] mb-1">Qiymət</p>
-                          <h3 className="text-3xl font-bold text-gray-900 tracking-tight">
-                            {formatPrice(product.price)}
-                          </h3>
-                        </div>
+                        {!(product.subCategory?.toLowerCase().includes('tanışlıq') || product.category?.toLowerCase().includes('tanışlıq')) ? (
+                          <div>
+                            <p className="text-sm text-[#8D94AD] mb-1">Qiymət</p>
+                            <h3 className="text-3xl font-bold text-gray-900 tracking-tight">
+                              {formatPrice(product.price)}
+                            </h3>
+                          </div>
+                        ) : (
+                          <div className="flex-1" />
+                        )}
                         <div className="flex gap-2">
                           <button
                             onClick={handleFavoriteToggle}
@@ -447,7 +455,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                               favorite
                             </span>
                           </button>
-                          <button className="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl size-12 bg-gray-50 text-gray-500 border border-gray-100 hover:bg-gray-100 transition-all shadow-sm">
+                          <button
+                            onClick={() => setIsReportModalOpen(true)}
+                            className="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl size-12 bg-gray-50 text-gray-500 border border-gray-100 hover:bg-gray-100 transition-all shadow-sm"
+                            title="Şikayət et"
+                          >
                             <span className="material-symbols-outlined">flag</span>
                           </button>
                         </div>
@@ -470,6 +482,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                           </div>
                         </div>
                       </div>
+
+                      {product.storeAddress && (
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(product.storeAddress)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-colors group"
+                        >
+                          <span className="material-symbols-outlined !text-[22px] text-primary/70 mt-0.5">location_on</span>
+                          <div className="flex flex-col gap-0.5 min-w-0">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Mağaza adresi</span>
+                            <span className="text-[12px] font-bold text-gray-700 leading-snug truncate group-hover:text-primary transition-colors">
+                              {product.storeAddress}
+                            </span>
+                          </div>
+                        </a>
+                      )}
 
                       {/* Contact Options */}
                       <div className="space-y-3 pt-2">
@@ -513,15 +542,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     {/* Safety Tips */}
-                    <div className="bg-[#FFF9E6] rounded-2xl p-4 border border-[#FFE7A3] space-y-2">
-                      <div className="flex items-center gap-2 text-[#856404]">
-                        <span className="material-symbols-outlined !text-[18px]">warning</span>
-                        <h4 className="font-bold text-[13px]">Təhlükəsizlik:</h4>
+                    {!(product.subCategory?.toLowerCase().includes('tanışlıq') || product.category?.toLowerCase().includes('tanışlıq')) && (
+                      <div className="bg-[#FFF9E6] rounded-2xl p-4 border border-[#FFE7A3] space-y-2">
+                        <div className="flex items-center gap-2 text-[#856404]">
+                          <span className="material-symbols-outlined !text-[18px]">warning</span>
+                          <h4 className="font-bold text-[13px]">Diqqət:</h4>
+                        </div>
+                        <div className="text-[12px] text-[#856404] leading-relaxed">
+                          Qiymət çox aşağıdırsa ehtiyatlı olun və şübhəli elanlar haqqında dərhal elanı report edin.
+                        </div>
                       </div>
-                      <div className="text-[12px] text-[#856404] leading-relaxed">
-                        Diqqət! Beh göndərməmişdən öncə sövdələşmənin təhlükəsiz olduğuna əmin olun! Qiymət şübhəli dərəcədə aşağıdırsa, ehtiyatlı olun və şübhəli elanlar haqqında dərhal bizə xəbər verin.
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -532,7 +563,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <div className="mt-10 pt-6 border-t border-gray-200">
                 <div className="flex justify-between items-center mb-5">
                   <h2 className="text-xl font-bold text-gray-900">Bənzər elanlar</h2>
-                  <Link 
+                  <Link
                     href={`${ROUTES.LISTINGS}?categoryId=${product.categoryId}${product.subCategoryId ? `&subCategoryId=${product.subCategoryId}` : ''}`}
                     className="text-primary text-sm font-bold hover:underline flex items-center gap-1"
                   >
@@ -650,6 +681,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         isOpen={isPromoteModalOpen}
         onClose={() => setIsPromoteModalOpen(false)}
         adId={product.id}
+      />
+
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetId={product.id}
+        type="ad"
       />
     </main>
   );

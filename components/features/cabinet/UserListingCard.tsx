@@ -7,10 +7,14 @@ import { formatPrice } from '@/lib/utils';
 interface Listing {
   id: string;
   title: string;
+  slug?: string;
+  parentCategorySlug?: string;
+  childCategorySlug?: string;
   location: string;
   price: number;
   imageUrl: string;
   postedDate: string;
+  categoryName?: string;
   status: 'active' | 'pending' | 'inactive' | 'rejected';
 }
 
@@ -32,108 +36,122 @@ export default function UserListingCard({
   const imageUrl = listing.imageUrl || '/placeholder-product.jpg';
 
   return (
-    <div className="flex flex-col rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden group hover:shadow-md transition-all duration-300">
-      
-      {/* Top Banner */}
-      <Link href={ROUTES.PRODUCT(listing.id)} className="block relative aspect-video sm:aspect-[16/10] overflow-hidden bg-gray-100">
+    <div className="flex flex-col sm:flex-row rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden group hover:shadow-md transition-all duration-300">
+
+      {/* Product Image Section */}
+      <Link href={ROUTES.PRODUCT(listing)} className="relative w-full sm:w-[180px] aspect-video sm:aspect-square overflow-hidden bg-gray-50 flex-shrink-0">
         <div
           className="w-full h-full bg-center bg-no-repeat bg-cover group-hover:scale-105 transition-transform duration-500"
-          style={{ 
+          style={{
             backgroundImage: imageUrl ? `url("${imageUrl}")` : 'none',
           }}
           role="img"
           aria-label={listing.title}
         />
-        
-        {/* Status Overlay */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
+
+        {/* Status Overlay (smaller on mobile) */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1.5 z-10">
           {listing.status === 'rejected' && (
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-red-600 text-white rounded-full shadow-lg">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-600/90 backdrop-blur-sm text-white rounded-md shadow-sm">
               <span className="material-symbols-outlined !text-[12px] font-bold">cancel</span>
-              <span className="text-[10px] font-bold uppercase tracking-tight">Rədd edilmiş</span>
+              <span className="text-[9px] font-bold uppercase tracking-tight">Rədd edilmiş</span>
             </div>
           )}
           {listing.status === 'pending' && (
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white rounded-full shadow-lg">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/90 backdrop-blur-sm text-white rounded-md shadow-sm">
               <span className="material-symbols-outlined !text-[12px] font-bold">schedule</span>
-              <span className="text-[10px] font-bold uppercase tracking-tight">Gözləmədə</span>
+              <span className="text-[9px] font-bold uppercase tracking-tight">Gözləmədə</span>
             </div>
           )}
         </div>
 
-        {/* Price Overlay */}
-        <div className="absolute bottom-3 right-3 bg-white/95 px-4 py-1.5 rounded-xl shadow-lg border border-white">
-           <span className="text-primary font-bold text-lg tabular-nums">
-              {formatPrice(listing.price)} <span className="text-xs font-medium text-gray-500">AZN</span>
-           </span>
-        </div>
+        {/* Price Tag (mobile absolute) */}
+        {listing.categoryName !== 'Tanışlıq' && (
+          <div className="sm:hidden absolute bottom-2 right-2 bg-white/95 px-2.5 py-1 rounded-lg shadow-sm border border-white">
+            <span className="text-primary font-bold text-sm tabular-nums">
+              {formatPrice(listing.price)} <span className="text-[10px] uppercase font-bold text-gray-400">AZN</span>
+            </span>
+          </div>
+        )}
       </Link>
 
       {/* Content Section */}
-      <div className="flex flex-col p-5 flex-1">
-        <div className="flex-1">
-          <Link href={ROUTES.PRODUCT(listing.id)}>
-            <h3 className="text-gray-900 text-base font-bold leading-tight line-clamp-2 hover:text-primary transition-colors mb-2">
-              {listing.title}
-            </h3>
-          </Link>
-          <div className="flex items-center gap-1.5 text-gray-500 mb-4">
-            <span className="material-symbols-outlined !text-xs font-bold">location_on</span>
-            <span className="text-xs font-medium truncate">{listing.location}</span>
+      <div className="flex flex-col p-4 sm:p-5 flex-1 min-w-0">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-3">
+          <div className="flex-1 min-w-0">
+            <Link href={ROUTES.PRODUCT(listing)}>
+              <h3 className="text-gray-900 text-sm sm:text-base font-bold leading-tight line-clamp-1 sm:line-clamp-2 hover:text-primary transition-colors mb-1.5">
+                {listing.title}
+              </h3>
+            </Link>
+            <div className="flex items-center gap-1 text-gray-500">
+              <span className="material-symbols-outlined !text-[14px]">location_on</span>
+              <span className="text-[11px] sm:text-xs font-semibold truncate">{listing.location}</span>
+            </div>
           </div>
+
+          {listing.categoryName !== 'Tanışlıq' && (
+            <div className="hidden sm:block text-right flex-shrink-0">
+              <p className="text-primary font-black text-lg tabular-nums leading-none">
+                {formatPrice(listing.price)}
+                <span className="text-[10px] text-gray-400 ml-1 font-bold uppercase">AZN</span>
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Footer Info */}
-        <div className="flex items-center justify-between mb-5 pt-3 border-t border-gray-50 text-[11px] text-gray-400">
-           <div className="flex flex-col">
-              <span className="font-medium text-gray-400 uppercase tracking-wider text-[9px]">Tarix</span>
-              <span className="font-bold text-gray-600 uppercase">{listing.postedDate}</span>
-           </div>
-           {listing.status === 'active' && (
-              <div className="flex flex-col text-right">
-                 <span className="font-medium text-gray-400 uppercase tracking-wider text-[9px]">Status</span>
-                 <span className="font-bold text-emerald-600 uppercase">Aktiv</span>
-              </div>
-           )}
-        </div>
-
-        {/* Actions Bar */}
-        <div className="flex items-center justify-between gap-2 pt-4 border-t border-gray-100">
+        <div className="mt-auto pt-3 border-t border-gray-50 flex flex-wrap items-center gap-4 text-[10px] sm:text-[11px] text-gray-500 font-bold uppercase tracking-tight">
+          <div className="flex flex-col">
+            <span className="text-[8px] text-gray-400 font-medium">Tarix</span>
+            <span>{listing.postedDate}</span>
+          </div>
           {listing.status === 'active' && (
-            <button
-              onClick={() => onPromote(listing.id)}
-              className="flex-1 h-10 rounded-xl bg-primary text-white font-bold uppercase tracking-tight text-[11px] hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 group/rocket"
-            >
-              <span className="material-symbols-outlined !text-base group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">rocket_launch</span>
-              <span className="truncate">Önə Çıxar</span>
-            </button>
+            <div className="flex flex-col">
+              <span className="text-[8px] text-gray-400 font-medium">Status</span>
+              <span className="text-emerald-600">Aktiv</span>
+            </div>
           )}
+        </div>
 
-          {listing.status === 'inactive' && onReactivate && (
-            <button
-              onClick={() => onReactivate(listing.id)}
-              className="flex-1 h-10 rounded-xl bg-emerald-600 text-white font-bold uppercase tracking-tight text-[11px] hover:bg-emerald-700 transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 group/refresh"
-            >
-              <span className="material-symbols-outlined !text-base group-hover:rotate-180 transition-transform duration-500">refresh</span>
-              <span className="truncate">Yenilə</span>
-            </button>
-          )}
+        {/* Actions Bar (Compact) */}
+        <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-100">
+          <div className="flex-1">
+            {listing.status === 'active' && (
+              <button
+                onClick={() => onPromote(listing.id)}
+                className="w-full h-9 rounded-xl bg-primary text-white font-bold uppercase tracking-tight text-[10px] sm:text-[11px] hover:bg-primary/90 transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 group/rocket"
+              >
+                <span className="material-symbols-outlined !text-[16px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">rocket_launch</span>
+                <span className="truncate">Önə Çıxar</span>
+              </button>
+            )}
+
+            {listing.status === 'inactive' && onReactivate && (
+              <button
+                onClick={() => onReactivate(listing.id)}
+                className="w-full h-9 rounded-xl bg-emerald-600 text-white font-bold uppercase tracking-tight text-[10px] sm:text-[11px] hover:bg-emerald-700 transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 group/refresh"
+              >
+                <span className="material-symbols-outlined !text-[16px] group-hover:rotate-180 transition-transform duration-500">refresh</span>
+                <span className="truncate">Yenilə</span>
+              </button>
+            )}
+          </div>
 
           <div className="flex gap-2">
             <button
               onClick={() => onEdit(listing.id)}
-              className="size-10 rounded-xl bg-gray-50 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border border-gray-100 transition-all flex items-center justify-center"
+              className="size-9 rounded-xl bg-gray-50 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border border-gray-100 transition-all flex items-center justify-center active:scale-90"
               title="Redaktə et"
             >
-              <span className="material-symbols-outlined text-lg">edit</span>
+              <span className="material-symbols-outlined text-[18px]">edit</span>
             </button>
 
             <button
               onClick={() => onDelete(listing.id)}
-              className="size-10 rounded-xl bg-gray-50 text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-100 transition-all flex items-center justify-center"
+              className="size-9 rounded-xl bg-gray-50 text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-100 transition-all flex items-center justify-center active:scale-90"
               title="Sil"
             >
-              <span className="material-symbols-outlined text-lg">delete</span>
+              <span className="material-symbols-outlined text-[18px]">delete</span>
             </button>
           </div>
         </div>
