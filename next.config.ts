@@ -27,6 +27,12 @@ const nextConfig: NextConfig = {
         pathname: "/uploads/**",
       },
       {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+        pathname: "/uploads/**",
+      },
+      {
         protocol: "https",
         hostname: "ikinci.musahesenli.com",
         pathname: "/uploads/**",

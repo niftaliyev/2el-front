@@ -107,6 +107,7 @@ export function getImageUrl(imagePath: string | undefined | null): string {
   }
   
   // Local Development: 'http://localhost:5156'
+  // Local  Docker: 'http://localhost:5000'
   // Prod Development: 'http://84.247.184.186:5000'
   const baseUrl = 'http://84.247.184.186:5000';
   

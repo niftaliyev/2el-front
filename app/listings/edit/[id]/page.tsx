@@ -13,6 +13,7 @@ import { parseCurrency } from '@/lib/utils';
 
 // const SERVER_URL = 'http://84.247.184.186:5000';
 // const SERVER_URL = 'http://localhost:5156';
+// Local  Docker: 'http://localhost:5000'
 const SERVER_URL = 'http://84.247.184.186:5000';
 
 export default function EditListingPage() {

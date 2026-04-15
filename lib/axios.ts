@@ -3,6 +3,7 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 // Base URL for all API requests
 // Production: 'http://84.247.184.186:5000/api/'
 // Local: 'http://localhost:5156/api/'
+// Local  Docker: 'http://localhost:5000/api/'
 const BASE_URL = 'http://84.247.184.186:5000/api/';
 
 // Create axios instance with default config
