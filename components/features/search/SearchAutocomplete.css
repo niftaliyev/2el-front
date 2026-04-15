@@ -1,0 +1,403 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SearchAutocomplete.css
+   Tap.az / Milyon.az / Avito ilham aldığı premium axtarış komponenti stilləri
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Konteyner (position: relative — dropdown-u bağlamaq üçün) ────────────── */
+.search-autocomplete-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* ─── Axtarış sahəsi (input + icon + button) ────────────────────────────────── */
+.search-input-row {
+  display: flex;
+  align-items: stretch;
+  height: 44px;
+  border-radius: 12px;
+  border: 1.5px solid #e5e7eb;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.search-autocomplete-wrapper:focus-within .search-input-row {
+  border-color: rgba(var(--primary-rgb, 99, 102, 241), 0.4);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 99, 102, 241), 0.08);
+}
+
+/* Sol axtarış ikonu */
+.search-icon-left {
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 12px;
+  color: #9ca3af;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.search-icon-left .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Input */
+.search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  padding: 0 8px;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+/* Loading spinner (input içidə) */
+.search-spinner {
+  display: flex;
+  align-items: center;
+  padding-right: 10px;
+  flex-shrink: 0;
+}
+
+.search-spinner-circle {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top-color: var(--primary, #6366f1);
+  border-radius: 50%;
+  animation: search-spin 0.7s linear infinite;
+}
+
+@keyframes search-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Axtarış düyməsi */
+.search-btn {
+  flex-shrink: 0;
+  background: var(--primary, #6366f1);
+  color: #ffffff;
+  border: none;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.search-btn:hover {
+  filter: brightness(1.1);
+}
+
+.search-btn:active {
+  transform: scale(0.97);
+}
+
+/* X — inputu silen düymə */
+.search-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: color 0.15s;
+}
+
+.search-clear-btn:hover {
+  color: #6b7280;
+}
+
+.search-clear-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* ─── Dropdown ──────────────────────────────────────────────────────────────── */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1.5px solid #e5e7eb;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.07),
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  z-index: 9999;
+  animation: search-dropdown-in 0.15s ease-out;
+}
+
+@keyframes search-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Loading skeletons ─────────────────────────────────────────────────────── */
+.search-dropdown-loading {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-skeleton {
+  height: 16px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e9ebee 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: search-shimmer 1.2s infinite;
+  width: 85%;
+}
+
+.search-skeleton--short {
+  width: 55%;
+}
+
+@keyframes search-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ─── Nəticə tapılmadı ─────────────────────────────────────────────────────── */
+.search-no-results {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 18px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.search-no-results-icon {
+  font-size: 20px;
+  color: #d1d5db;
+}
+
+/* ─── Suggestion siyahısı ───────────────────────────────────────────────────── */
+.search-suggestion-list {
+  list-style: none;
+  padding: 6px 0;
+  margin: 0;
+  max-height: 420px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Scrollbar stilləri (webkit) */
+.search-suggestion-list::-webkit-scrollbar {
+  width: 4px;
+}
+.search-suggestion-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.search-suggestion-list::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 4px;
+}
+
+/* ─── Hər suggestion elementi ────────────────────────────────────────────────── */
+.search-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background-color 0.1s;
+}
+
+.search-suggestion-item:hover,
+.search-suggestion-item--active {
+  background-color: #f5f6ff;
+}
+
+/* Aktiv (klaviatura) hali üçün sol akcent xətti */
+.search-suggestion-item--active {
+  position: relative;
+}
+
+.search-suggestion-item--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--primary, #6366f1);
+}
+
+/* Sol axtarış ikonu */
+.search-suggestion-icon {
+  font-size: 18px;
+  color: #9ca3af;
+  flex-shrink: 0;
+  transition: color 0.1s;
+}
+
+.search-suggestion-item:hover .search-suggestion-icon,
+.search-suggestion-item--active .search-suggestion-icon {
+  color: var(--primary, #6366f1);
+}
+
+/* Mərkəz: mətn + meta */
+.search-suggestion-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* Əsas mətn */
+.search-suggestion-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+/* ✅ Milyon.az kimi text highlighting — vurğulanan hissə */
+.search-highlight {
+  background: transparent;
+  color: var(--primary, #6366f1);
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* Meta məlumatlar (kateqoriya + count) */
+.search-suggestion-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.search-suggestion-category {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* Alt kateqoriya */
+.search-suggestion-subcategory {
+  color: #9ca3af;
+}
+
+/* Elan sayı badge */
+.search-suggestion-count {
+  font-size: 11px;
+  color: #9ca3af;
+  background: #f3f4f6;
+  padding: 1px 6px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* Sağ ox ikonu (qısayol üçün) */
+.search-suggestion-arrow {
+  font-size: 14px;
+  color: #d1d5db;
+  flex-shrink: 0;
+  transform: rotate(0deg);
+  transition: color 0.1s, transform 0.1s;
+  opacity: 0;
+}
+
+.search-suggestion-item:hover .search-suggestion-arrow,
+.search-suggestion-item--active .search-suggestion-arrow {
+  opacity: 1;
+  color: var(--primary, #6366f1);
+}
+
+/* ─── Axtarış Tarixi (History) ──────────────────────────────────────────────── */
+.search-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.search-history-clear-all {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--primary, #6366f1);
+  font-weight: 600;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.1s;
+}
+
+.search-history-clear-all:hover {
+  background-color: rgba(99, 102, 241, 0.08);
+}
+
+.search-history-remove {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.15s, background-color 0.1s;
+}
+
+.search-suggestion-item:hover .search-history-remove {
+  opacity: 1;
+}
+
+.search-history-remove:hover {
+  background-color: #f3f4f6;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .search-btn {
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  .search-suggestion-item {
+    padding: 10px 14px;
+  }
+
+  .search-dropdown {
+    border-radius: 10px;
+  }
+}

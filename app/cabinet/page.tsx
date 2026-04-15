@@ -14,10 +14,14 @@ import { Modal, ConfirmDialog, Button } from '@/components/ui';
 interface Listing {
   id: string;
   title: string;
+  slug?: string;
+  parentCategorySlug?: string;
+  childCategorySlug?: string;
   location: string;
   price: number;
   imageUrl: string;
   postedDate: string;
+  categoryName?: string;
   status: 'active' | 'pending' | 'inactive' | 'rejected';
 }
 
@@ -33,6 +37,10 @@ export default function CabinetPage() {
     inactive: 0,
     rejected: 0,
   });
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [deleteAdId, setDeleteAdId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -40,21 +48,25 @@ export default function CabinetPage() {
     setIsLoading(true);
     setError(null);
     try {
-      let ads: AdListItem[] = [];
+      let response;
       switch (activeTab) {
         case 'active':
-          ads = await adService.getActiveAds();
+          response = await adService.getActiveAds(page, pageSize);
           break;
         case 'pending':
-          ads = await adService.getPendingAds();
+          response = await adService.getPendingAds(page, pageSize);
           break;
         case 'inactive':
-          ads = await adService.getInactiveAds();
+          response = await adService.getInactiveAds(page, pageSize);
           break;
         case 'rejected':
-          ads = await adService.getRejectedAds();
+          response = await adService.getRejectedAds(page, pageSize);
           break;
       }
+
+      const ads = response?.data || [];
+      setTotalPages(response?.totalPages || 0);
+      setTotalCount(response?.totalCount || 0);
 
       const transformedListings: Listing[] = ads.map(ad => {
         const formattedDate = ad.createdDate
@@ -65,10 +77,14 @@ export default function CabinetPage() {
         return {
           id: ad.id.toString(),
           title: ad.title,
+          slug: ad.slug,
+          parentCategorySlug: ad.parentCategorySlug,
+          childCategorySlug: ad.childCategorySlug,
           location: ad.city || 'Şəhər göstərilməyib',
           price: ad.price,
           imageUrl,
           postedDate: formattedDate,
+          categoryName: ad.category,
           status: normalizedStatus,
         };
       });
@@ -92,10 +108,10 @@ export default function CabinetPage() {
       ]);
 
       setCounts({
-        active: active.length,
-        pending: pending.length,
-        inactive: inactive.length,
-        rejected: rejected.length,
+        active: active.totalCount,
+        pending: pending.totalCount,
+        inactive: inactive.totalCount,
+        rejected: rejected.totalCount,
       });
     } catch (err) {
       console.error('Error fetching counts:', err);
@@ -104,7 +120,7 @@ export default function CabinetPage() {
 
   useEffect(() => {
     fetchAds();
-  }, [activeTab]);
+  }, [activeTab, page]);
 
   useEffect(() => {
     fetchCounts();
@@ -187,7 +203,10 @@ export default function CabinetPage() {
                   {(['active', 'pending', 'inactive', 'rejected'] as const).map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => setActiveTab(tab)}
+                      onClick={() => {
+                        setActiveTab(tab);
+                        setPage(1);
+                      }}
                       className={`flex items-center gap-2 pb-4 pt-1 border-b-2 transition-all whitespace-nowrap group ${activeTab === tab ? 'border-primary' : 'border-transparent text-gray-400 hover:text-gray-600'
                         }`}
                     >
@@ -221,28 +240,62 @@ export default function CabinetPage() {
                   <p className="text-gray-400 text-sm font-medium">Yüklenir...</p>
                 </div>
               ) : (
-                listings.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                    {listings.map(listing => (
-                      <UserListingCard
-                        key={listing.id}
-                        listing={listing}
-                        onPromote={handlePromote}
-                        onEdit={handleEdit}
-                        onDelete={(id) => setDeleteAdId(id)}
-                        onReactivate={handleReactivate}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in">
-                    <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                      <span className="material-symbols-outlined text-gray-300 text-4xl">layers_clear</span>
+                <>
+                  {listings.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      {listings.map(listing => (
+                        <UserListingCard
+                          key={listing.id}
+                          listing={listing}
+                          onPromote={handlePromote}
+                          onEdit={handleEdit}
+                          onDelete={(id) => setDeleteAdId(id)}
+                          onReactivate={handleReactivate}
+                        />
+                      ))}
                     </div>
-                    <h3 className="text-gray-900 text-lg font-bold">Elan tapılmadı</h3>
-                    <p className="text-gray-500 text-sm mt-1">Bu bölmədə göstəriləcək elanınız yoxdur.</p>
-                  </div>
-                )
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in">
+                      <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                        <span className="material-symbols-outlined text-gray-300 text-4xl">layers_clear</span>
+                      </div>
+                      <h3 className="text-gray-900 text-lg font-bold">Elan tapılmadı</h3>
+                      <p className="text-gray-500 text-sm mt-1">Bu bölmədə göstəriləcək elanınız yoxdur.</p>
+                    </div>
+                  )}
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="mt-10 flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="material-symbols-outlined">chevron_left</span>
+                      </button>
+                      {[...Array(totalPages)].map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setPage(i + 1)}
+                          className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${page === i + 1
+                            ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
+                            : 'text-gray-500 hover:bg-gray-100'
+                            }`}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                        className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="material-symbols-outlined">chevron_right</span>
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

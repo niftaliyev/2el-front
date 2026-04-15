@@ -24,7 +24,7 @@ export default function LimitsByCategory() {
     fetchCategories();
   }, []);
 
-  const filteredCategories = categories.filter(cat => 
+  const filteredCategories = categories.filter(cat =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cat.children?.some(child => child.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -131,11 +131,10 @@ export default function LimitsByCategory() {
                               {child.name}
                             </td>
                             <td className="px-4 py-4.5 text-center border-l border-gray-50">
-                              <span className={`inline-flex items-center justify-center min-w-[28px] h-7 px-2.5 rounded-lg text-xs font-black ${
-                                child.freeLimit > 0 
-                                  ? 'bg-emerald-100/60 text-emerald-800 border boder-emerald-200' 
-                                  : 'bg-rose-50 text-rose-500 border border-rose-100'
-                              }`}>
+                              <span className={`inline-flex items-center justify-center min-w-[28px] h-7 px-2.5 rounded-lg text-xs font-black ${child.freeLimit > 0
+                                ? 'bg-emerald-100/60 text-emerald-800 border boder-emerald-200'
+                                : 'bg-rose-50 text-rose-500 border border-rose-100'
+                                }`}>
                                 {child.freeLimit}
                               </span>
                             </td>

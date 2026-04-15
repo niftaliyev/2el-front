@@ -39,6 +39,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "i.pravatar.cc",
       },
+      {
+        protocol: "https",
+        hostname: "pub-86382220849d470f82fb89f5becb1993.r2.dev",
+      },
     ],
   },
 };

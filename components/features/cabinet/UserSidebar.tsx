@@ -17,8 +17,10 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: '/cabinet', icon: 'list_alt', label: 'Elanlarım', filled: true },
-  { href: '/cabinet/transactions', icon: 'receipt_long', label: 'Ödənişlər' },
+  { href: '/cabinet/transactions', icon: 'history', label: 'Əməliyyatlar' },
+  { href: '/cabinet/invoices', icon: 'receipt_long', label: 'Ödənişlər' },
   { href: '/cabinet/payments', icon: 'account_balance_wallet', label: 'Balans artır' },
+  { href: '/cabinet/business', icon: 'storefront', label: 'Biznes' },
   { href: '/cabinet/ad-placement-limits', icon: 'bar_chart_4_bars', label: 'Limitlər' },
   { href: '/cabinet/favorites', icon: 'favorite', label: 'Seçilmiş Elanlar' },
   { href: '/cabinet/messages', icon: 'chat_bubble', label: 'Mesajlar' },
@@ -107,8 +109,18 @@ export default function UserSidebar() {
         {/* Navigation */}
         <div className="lg:border-t lg:border-gray-100 lg:pt-4">
           <nav className="flex lg:flex-col gap-1 lg:gap-1 overflow-x-auto lg:overflow-visible scrollbar-hide pb-1 lg:pb-0 scroll-smooth">
+
             {navItems.map((item) => {
+              // Show "Biznes" only if user is a store owner or has an active store
+              if (item.href === '/cabinet/business') {
+                const isStore = authUser?.userType?.toString().toLowerCase() === 'store' || 
+                              authUser?.userType?.toString() === '1' ||
+                              authUser?.hasStore === true;
+                
+                if (!isStore) return null;
+              }
               const isActive = pathname === item.href;
+
 
               return (
                 <Link

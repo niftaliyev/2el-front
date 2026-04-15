@@ -8,6 +8,8 @@ export default function AdPlacementLimitsPage() {
   const [limits, setLimits] = useState<AdPlacementLimit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'mine'>('mine');
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchLimits = async () => {
@@ -25,6 +27,25 @@ export default function AdPlacementLimitsPage() {
     fetchLimits();
   }, []);
 
+  const toggleExpand = (id: string) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(id)) newExpanded.delete(id);
+    else newExpanded.add(id);
+    setExpandedItems(newExpanded);
+  };
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('az-AZ', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  const myLimits = limits.filter(l => l.usedCount > 0);
+
   return (
     <main className="bg-gray-50 min-h-screen font-sans">
       <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
@@ -34,13 +55,35 @@ export default function AdPlacementLimitsPage() {
           <div className="flex-1 overflow-hidden">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
               {/* Page Heading */}
-              <div className="mb-8 border-b border-gray-50 pb-6">
-                <h1 className="text-gray-900 text-3xl sm:text-4xl font-bold leading-tight tracking-tight mb-2">
+              <div className="mb-6">
+                <h1 className="text-gray-900 text-2xl sm:text-4xl font-bold leading-tight tracking-tight mb-2">
                   Yerləşdirmə limitləri
                 </h1>
-                <p className="text-gray-500 text-sm font-medium">
-                  Hər bir bölmə üçün pulsuz elan yerləşdirmə limitləri
+                <p className="text-gray-500 text-[11px] sm:text-sm font-medium">
+                  Hər bir bölmə üzrə pulsuz elan yerləşdirmə və ödənişli xidmət şərtləri
                 </p>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-xl mb-8 w-fit">
+                <button
+                  onClick={() => setActiveTab('mine')}
+                  className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'mine'
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  Mənim limitlərim
+                </button>
+                <button
+                  onClick={() => setActiveTab('all')}
+                  className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'all'
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  Bütün limitlər
+                </button>
               </div>
 
               {isLoading ? (
@@ -49,57 +92,183 @@ export default function AdPlacementLimitsPage() {
                 </div>
               ) : error ? (
                 <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-center font-bold text-sm">
-                   <span className="material-symbols-outlined block text-3xl mb-2">error</span>
-                    {error}
+                  <span className="material-symbols-outlined block text-3xl mb-2">error</span>
+                  {error}
                 </div>
-              ) : limits.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                   {limits.map((limit) => (
-                     <div 
-                        key={limit.categoryId} 
-                        className="p-5 border border-gray-100 rounded-2xl bg-gray-50/20 hover:bg-white hover:border-primary/30 transition-all duration-300 group"
-                     >
-                        <div className="flex items-center justify-between mb-6 border-b border-gray-100/50 pb-3">
-                           <h3 className="text-gray-900 font-bold text-sm lg:text-base group-hover:text-primary transition-colors">
-                              {limit.categoryName}
-                           </h3>
-                           <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight border ${
-                             limit.usedCount >= limit.freeLimit 
-                             ? 'bg-red-50 border-red-100 text-red-600' 
-                             : 'bg-green-50 border-green-100 text-green-600'
-                           }`}>
-                             Limit: {limit.freeLimit}
-                           </span>
-                        </div>
-                        
-                        <div className="space-y-4">
-                           <div>
-                              <div className="flex items-center justify-between mb-2">
-                                 <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">İstifadə edilib</span>
-                                 <span className={`text-sm font-bold ${limit.usedCount >= limit.freeLimit ? 'text-red-600' : 'text-gray-900'}`}>
-                                   {limit.usedCount} <span className="text-[10px] text-gray-400">/ {limit.freeLimit}</span>
-                                 </span>
-                              </div>
-                              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                                 <div 
-                                    className={`h-full transition-all duration-1000 ${
-                                       limit.usedCount >= limit.freeLimit ? 'bg-red-500' : 'bg-primary'
-                                    }`} 
-                                    style={{ width: `${Math.min(100, (limit.usedCount / limit.freeLimit) * 100)}%` }} 
-                                 />
-                              </div>
-                           </div>
+              ) : activeTab === 'all' ? (
+                limits.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {limits.map((limit) => {
+                      const isExpired = limit.usedFreeCount >= limit.freeLimit;
+                      const percentage = Math.min(100, (limit.usedFreeCount / limit.freeLimit) * 100);
 
-                           <div className="flex items-center justify-between pt-3 border-t border-gray-100/50">
-                              <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider pr-2">Ödənişli qiymət</span>
-                              <span className="text-sm font-bold text-gray-900 tabular-nums">{limit.paidPrice.toFixed(2)} AZN</span>
-                           </div>
+                      return (
+                        <div
+                          key={limit.categoryId}
+                          className="relative p-5 rounded-2xl border border-gray-100 bg-white hover:shadow-xl hover:border-primary/20 transition-all duration-300 group flex flex-col"
+                        >
+                          {/* Card Header */}
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-gray-900 font-bold text-[14px] sm:text-base group-hover:text-primary transition-colors truncate">
+                                {limit.categoryName}
+                              </h3>
+                              <p className="text-gray-400 text-[10px] sm:text-[11px] font-medium uppercase tracking-wider mt-0.5">KONTİNGENT</p>
+                            </div>
+                            <div className={`size-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isExpired ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                              <span className="material-symbols-outlined !text-xl">{isExpired ? 'block' : 'task_alt'}</span>
+                            </div>
+                          </div>
+
+                          {/* Progress Info */}
+                          <div className="mt-auto pt-2">
+                            <div className="flex items-end justify-between mb-2">
+                              <div className="flex flex-col">
+                                <span className="text-gray-400 text-[9px] font-black uppercase tracking-widest mb-0.5">İstifadə (Pulsuz)</span>
+                                <div className="flex items-baseline gap-1">
+                                  <span className={`text-xl font-black tabular-nums transition-colors ${isExpired ? 'text-red-600' : 'text-gray-900'}`}>
+                                    {limit.usedFreeCount}
+                                  </span>
+                                  <span className="text-xs text-gray-400 font-bold">/ {limit.freeLimit}</span>
+                                </div>
+                              </div>
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${isExpired ? 'bg-red-50 border-red-100 text-red-600' : 'bg-green-50 border-green-100 text-green-600'
+                                }`}>
+                                {Math.round(percentage)}%
+                              </span>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden mb-5">
+                              <div
+                                className={`h-full transition-all duration-1000 ease-out relative ${isExpired ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-primary to-primary-dark'
+                                  }`}
+                                style={{ width: `${percentage}%` }}
+                              >
+                                {!isExpired && percentage > 0 && (
+                                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Price Info Row */}
+                            <div className="flex items-center justify-between p-3 bg-gray-50/80 rounded-xl border border-gray-100/50">
+                              <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">Limit aşarsa</span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm font-black text-gray-900 tabular-nums">{limit.paidPrice.toFixed(2)}</span>
+                                <span className="text-[10px] text-gray-400 font-bold">AZN</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Accent Color Strip */}
+                          <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl opacity-40 transition-opacity group-hover:opacity-100 ${isExpired ? 'bg-red-500' : 'bg-primary'}`} />
                         </div>
-                     </div>
-                   ))}
-                </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-20 text-gray-400">Limit tapılmadı</div>
+                )
               ) : (
-                <div className="text-center py-20 text-gray-400">Limit tapılmadı</div>
+                /* Mine Tab (Tap.az Style) */
+                <div className="space-y-4">
+                  <div className="mb-6">
+                    <h2 className="text-gray-900 font-bold text-lg mb-4">
+                      Kateqoriyalarınız üzrə qalan yerləşdirmələrin sayı
+                    </h2>
+
+                    {myLimits.length > 0 ? (
+                      <div className="space-y-3">
+                        {myLimits.map((limit) => {
+                          const isExpanded = expandedItems.has(limit.categoryId);
+                          const remainingFree = Math.max(0, limit.freeLimit - limit.usedFreeCount);
+                          const hasLimit = remainingFree > 0 || limit.paidCount > 0;
+
+                          return (
+                            <div
+                              key={limit.categoryId}
+                              className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                            >
+                              <div
+                                onClick={() => toggleExpand(limit.categoryId)}
+                                className="p-4 sm:p-6 flex items-center cursor-pointer select-none"
+                              >
+                                <div className="size-12 rounded-xl bg-gray-50 flex items-center justify-center mr-4 flex-shrink-0">
+                                  {limit.categoryImageUrl ? (
+                                    <img src={limit.categoryImageUrl} alt="" className="size-8 object-contain" />
+                                  ) : (
+                                    <span className="material-symbols-outlined text-gray-400">category</span>
+                                  )}
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-gray-400 text-xs sm:text-sm font-medium mb-0.5">
+                                    {limit.parentCategoryName}
+                                  </div>
+                                  <div className="text-gray-900 font-bold text-sm sm:text-base truncate">
+                                    {limit.categoryName}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                  <div className={`min-w-[40px] h-8 px-3 rounded-xl flex items-center justify-center font-bold text-sm ${hasLimit
+                                    ? 'bg-gray-100 text-gray-700'
+                                    : 'bg-red-50 text-red-500'
+                                    }`}>
+                                    {remainingFree + limit.paidCount}
+                                    {(!hasLimit && limit.nextFreeAt) && (
+                                      <span className="text-[10px] text-gray-400 ml-1 font-normal">/{formatDate(limit.nextFreeAt)}</span>
+                                    )}
+                                  </div>
+
+                                  <span className={`material-symbols-outlined text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                                    expand_more
+                                  </span>
+                                </div>
+                              </div>
+
+                              {isExpanded && (
+                                <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-gray-50 bg-gray-50/30">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <div className={`size-2 rounded-full ${remainingFree > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                      <span className="text-sm font-medium text-gray-600">
+                                        Ödənişsiz elan — <span className={remainingFree > 0 ? 'text-emerald-600' : 'text-red-500'}>{remainingFree} elan</span>
+                                        {limit.nextFreeAt && <span className="text-gray-400 ml-1">{formatDate(limit.nextFreeAt)}-dək</span>}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className={`size-2 rounded-full ${limit.paidCount > 0 ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                                      <span className="text-sm font-medium text-gray-600">
+                                        Ödənişli elan — <span className={limit.paidCount > 0 ? 'text-blue-600' : 'text-gray-500'}>{limit.paidCount} elan</span>
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="mt-4 text-center">
+                                    <a
+                                      href="/pages/limits_by_category"
+                                      className="text-primary text-xs font-bold hover:underline inline-flex items-center gap-1"
+                                    >
+                                      Kateqoriya üzrə limitlər ilə ətraflı tanış olun
+                                      <span className="material-symbols-outlined !text-sm">open_in_new</span>
+                                    </a>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 rounded-2xl p-12 text-center border-2 border-dashed border-gray-100">
+                        <span className="material-symbols-outlined text-gray-200 !text-6xl mb-4">info</span>
+                        <p className="text-gray-400 font-medium font-sans">Hələ ki, heç bir kateqoriya üzrə elanınız yoxdur</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>

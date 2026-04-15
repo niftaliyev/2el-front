@@ -2,6 +2,7 @@
 
 import Modal from './Modal';
 import Button from './Button';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -37,18 +38,15 @@ export default function ConfirmDialog({
           <Button
             variant="outline"
             onClick={onClose}
-            className="flex-1"
+            className="flex-1 rounded-xl h-11"
             disabled={isLoading}
           >
             {cancelText}
           </Button>
           <Button
             variant={isDestructive ? 'danger' : 'primary'}
-            onClick={() => {
-              onConfirm();
-              // Note: onClose should be called by the parent or here if synchronous
-            }}
-            className="flex-1"
+            onClick={onConfirm}
+            className="flex-1 rounded-xl h-11"
             isLoading={isLoading}
           >
             {confirmText}
@@ -56,9 +54,17 @@ export default function ConfirmDialog({
         </div>
       }
     >
-      <p className="text-gray-600 text-sm leading-relaxed">
-        {description}
-      </p>
+      <div className="flex flex-col items-center text-center py-2">
+        <div className={`size-16 rounded-full flex items-center justify-center mb-6 ${
+          isDestructive ? 'bg-red-50 text-red-500' : 'bg-primary/5 text-primary'
+        }`}>
+          {isDestructive ? <AlertCircle size={32} /> : <CheckCircle2 size={32} />}
+        </div>
+        
+        <p className="text-gray-600 text-sm leading-relaxed font-medium">
+          {description}
+        </p>
+      </div>
     </Modal>
   );
 }

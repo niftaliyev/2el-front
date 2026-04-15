@@ -9,6 +9,7 @@ import {
   ContactInfo,
   LookupItem,
   PackageItem,
+  BusinessPackageDto,
   PaginatedResponse,
 } from '@/types/api';
 
@@ -199,30 +200,30 @@ class AdService {
 
   // ── My Ads (per status) ──────────────────────────────────────────────────
 
-  async getMyAds(statusFilter?: string): Promise<AdListItem[]> {
-    const params = statusFilter ? { statusFilter } : {};
-    const response = await axiosInstance.get<AdListItem[]>('/ad/my-ads', { params });
-    return response.data ?? [];
+  async getMyAds(page = 1, pageSize = 10, statusFilter?: string): Promise<PaginatedResponse<AdListItem[]>> {
+    const params = { page, pageSize, ...(statusFilter ? { statusFilter } : {}) };
+    const response = await axiosInstance.get<PaginatedResponse<AdListItem[]>>('/ad/my', { params });
+    return response.data;
   }
 
-  async getActiveAds(): Promise<AdListItem[]> {
-    const response = await axiosInstance.get<AdListItem[]>('/ad/my-active-ads');
-    return response.data ?? [];
+  async getActiveAds(page = 1, pageSize = 10): Promise<PaginatedResponse<AdListItem[]>> {
+    const response = await axiosInstance.get<PaginatedResponse<AdListItem[]>>('/ad/my-active-ads', { params: { page, pageSize } });
+    return response.data;
   }
 
-  async getPendingAds(): Promise<AdListItem[]> {
-    const response = await axiosInstance.get<AdListItem[]>('/ad/my-pending-ads');
-    return response.data ?? [];
+  async getPendingAds(page = 1, pageSize = 10): Promise<PaginatedResponse<AdListItem[]>> {
+    const response = await axiosInstance.get<PaginatedResponse<AdListItem[]>>('/ad/my-pending-ads', { params: { page, pageSize } });
+    return response.data;
   }
 
-  async getInactiveAds(): Promise<AdListItem[]> {
-    const response = await axiosInstance.get<AdListItem[]>('/ad/my-inactive-ads');
-    return response.data ?? [];
+  async getInactiveAds(page = 1, pageSize = 10): Promise<PaginatedResponse<AdListItem[]>> {
+    const response = await axiosInstance.get<PaginatedResponse<AdListItem[]>>('/ad/my-inactive-ads', { params: { page, pageSize } });
+    return response.data;
   }
 
-  async getRejectedAds(): Promise<AdListItem[]> {
-    const response = await axiosInstance.get<AdListItem[]>('/ad/my-rejected-ads');
-    return response.data ?? [];
+  async getRejectedAds(page = 1, pageSize = 10): Promise<PaginatedResponse<AdListItem[]>> {
+    const response = await axiosInstance.get<PaginatedResponse<AdListItem[]>>('/ad/my-rejected-ads', { params: { page, pageSize } });
+    return response.data;
   }
 
   // ── Packages ─────────────────────────────────────────────────────────────
@@ -249,6 +250,33 @@ class AdService {
 
   async buyPackage(adId: string, packageId: string): Promise<void> {
     await axiosInstance.post(`/account/${adId}/buy-service`, { packageId });
+  }
+
+  async getBusinessPackages(): Promise<BusinessPackageDto[]> {
+    const response = await axiosInstance.get<BusinessPackageDto[]>('/packages/business');
+    return response.data ?? [];
+  }
+
+  async getMyBusinessPackages(): Promise<any[]> {
+    const response = await axiosInstance.get<any[]>('/packages/my-business');
+    return response.data ?? [];
+  }
+
+  async getTransactions(page = 1, pageSize = 10): Promise<PaginatedResponse<any[]>> {
+    const response = await axiosInstance.get<PaginatedResponse<any[]>>('/account/transactions', {
+      params: { page, pageSize },
+    });
+    return response.data;
+  }
+
+  async getInvoices(status?: string, page = 1, pageSize = 10): Promise<PaginatedResponse<any[]>> {
+    const params = { status, page, pageSize };
+    const response = await axiosInstance.get<PaginatedResponse<any[]>>('/account/invoices', { params });
+    return response.data;
+  }
+
+  async buyBusinessPackage(packageId: string, durationDays: number): Promise<void> {
+    await axiosInstance.post('/packages/buy-business', { packageId, durationDays });
   }
 
   // ── Favourites ────────────────────────────────────────────────────────────

@@ -80,8 +80,7 @@ class AdminService {
   // These delegate to the approve/reject endpoints or are no-ops until backend adds them.
 
   async deleteAd(id: string): Promise<void> {
-    // No admin-specific delete endpoint - use adService.deleteAd or add the endpoint later
-    console.warn('Admin deleteAd not yet implemented in backend');
+    await axiosInstance.delete(`/admin/ads/${id}`);
   }
 
   async featureAd(id: string): Promise<void> {
@@ -90,6 +89,7 @@ class AdminService {
   }
 
   async unfeatureAd(id: string): Promise<void> {
+    // Unfeature not yet implemented on backend
     console.warn('Admin unfeatureAd not yet implemented in backend');
   }
 
@@ -97,6 +97,7 @@ class AdminService {
     for (const id of payload.ids) {
       if (payload.action === 'approve') await this.approveAd(id);
       else if (payload.action === 'reject') await this.rejectAd(id, payload.reason);
+      else if (payload.action === 'delete') await this.deleteAd(id);
     }
   }
 
@@ -138,6 +139,103 @@ class AdminService {
 
   async updatePaymentDetail(content: string): Promise<void> {
     await axiosInstance.post('/admin/payment-detail', { content });
+  }
+
+  async updateSystemSettings(minStoreBalance: number): Promise<void> {
+    await axiosInstance.post('/admin/system-settings', { minStoreBalance });
+  }
+
+  // ── Business Packages ─────────────────────────────────────────────────────
+
+  async getAdminBusinessPackages(): Promise<any[]> {
+    const response = await axiosInstance.get<any[]>('/admin/business-packages');
+    return response.data ?? [];
+  }
+
+  async upsertBusinessPackage(pkg: any): Promise<void> {
+    await axiosInstance.post('/admin/business-packages', pkg);
+  }
+
+  async deleteBusinessPackage(id: string): Promise<void> {
+    await axiosInstance.delete(`/admin/business-packages/${id}`);
+  }
+
+  async getUserBusinessPackages(): Promise<any[]> {
+    const response = await axiosInstance.get<any[]>('/admin/user-business-packages');
+    return response.data ?? [];
+  }
+
+  async getCompanySettings(): Promise<any> {
+    const response = await axiosInstance.get('/admin/company-settings');
+    return response.data;
+  }
+
+  async updateCompanySettings(data: any): Promise<void> {
+    await axiosInstance.post('/admin/company-settings', data);
+  }
+
+  // ── Reports ────────────────────────────────────────────────────────────────
+
+  async getAdReports(page = 1, pageSize = 10, status?: any): Promise<any> {
+    const response = await axiosInstance.get('/admin/reports/ad', {
+      params: { page, pageSize, status },
+    });
+    return response.data;
+  }
+
+  async getStoreReports(page = 1, pageSize = 10, status?: any): Promise<any> {
+    const response = await axiosInstance.get('/admin/reports/store', {
+      params: { page, pageSize, status },
+    });
+    return response.data;
+  }
+
+  async updateAdReportStatus(id: string, status: number): Promise<void> {
+    await axiosInstance.patch(`/admin/reports/ad/${id}/status`, status, {
+        headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  async updateStoreReportStatus(id: string, status: number): Promise<void> {
+    await axiosInstance.patch(`/admin/reports/store/${id}/status`, status, {
+        headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  async deleteAdReport(id: string): Promise<void> {
+    await axiosInstance.delete(`/admin/reports/ad/${id}`);
+  }
+
+  async deleteStoreReport(id: string): Promise<void> {
+    await axiosInstance.delete(`/admin/reports/store/${id}`);
+  }
+
+  // ── Seed Data ─────────────────────────────────────────────────────────────
+
+  async getSeedDataCars(): Promise<string> {
+    const response = await axiosInstance.get<string>('/admin/seed-data/cars');
+    return response.data;
+  }
+
+  async updateSeedDataCars(json: string): Promise<void> {
+    await axiosInstance.post('/admin/seed-data/cars', json, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  async getSeedDataPhones(): Promise<string> {
+    const response = await axiosInstance.get<string>('/admin/seed-data/phones');
+    return response.data;
+  }
+
+  async updateSeedDataPhones(json: string): Promise<void> {
+    await axiosInstance.post('/admin/seed-data/phones', json, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  async syncSeedData(): Promise<void> {
+    await axiosInstance.post('/admin/seed-data/sync');
   }
 }
 

@@ -69,7 +69,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (userData: RegisterRequest) => {
     try {
       await authService.register(userData);
-      // After register, user must login manually - no auto-login
+      // Auto-login after successful registration
+      await login({
+        email: userData.email,
+        password: userData.password,
+      });
     } catch (error) {
       console.error('Register error:', error);
       throw error;

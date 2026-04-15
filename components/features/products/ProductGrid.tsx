@@ -5,7 +5,6 @@ import Link from 'next/link';
 interface ProductGridProps {
   products: Product[];
   emptyMessage?: string;
-  // Kept for backward compatibility if used elsewhere, but optional
   title?: string;
   description?: string;
   viewAllLink?: string;
@@ -31,24 +30,24 @@ export default function ProductGrid({ products, emptyMessage = 'No products foun
   return (
     <div className="w-full">
       {(title || description || viewAllLink) && (
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
-          <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
+          <div className="flex flex-col gap-1">
             {title && (
-              <h2 className={`${titleLight ? 'text-lg' : 'text-xl'} font-bold text-[#212121]`}>{title}</h2>
+              <h2 className={`${titleLight ? 'text-base' : 'text-lg sm:text-xl'} font-bold text-[#212121]`}>{title}</h2>
             )}
             {description && (
-              <p className="text-gray-500">{description}</p>
+              <p className="text-gray-500 text-sm">{description}</p>
             )}
           </div>
           {viewAllLink && (
-            <Link href={viewAllLink} className="text-[#0057e6] hover:underline text-[15px] pt-2">
+            <Link href={viewAllLink} className="text-primary hover:underline text-[14px] font-medium whitespace-nowrap">
               {viewAllText || 'Hamısına bax'}
             </Link>
           )}
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

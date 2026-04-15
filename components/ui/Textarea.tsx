@@ -14,7 +14,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label className="block text-gray-900 text-sm font-medium mb-2">
             {label}
-            {props.required && <span className="text-error ml-1">*</span>}
+            {props.required && <span className="text-primary ml-1 font-black">*</span>}
           </label>
         )}
         <textarea

@@ -21,8 +21,13 @@ export interface AuthUser {
   phoneNumber?: string;
   profilePhoto?: string;
   balance?: number;
+  packageBalance?: number;
+  bonusBalance?: number;
+  adLimit?: number;
   userType?: string;
+  hasStore?: boolean;
   roles: string[];
+  serviceDiscountPercentage?: number;
 }
 
 export interface AuthResponse {

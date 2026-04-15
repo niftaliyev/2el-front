@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Thumbs, FreeMode } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
@@ -13,6 +13,9 @@ import { Product } from '@/types';
 import { ROUTES } from '@/constants';
 import ProductGrid from '@/components/features/products/ProductGrid';
 import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
+import ReportModal from '@/components/features/ReportModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -21,6 +24,9 @@ import 'swiper/css/thumbs';
 import 'swiper/css/free-mode';
 
 export default function ProductDetailContent({ id }: { id: string }) {
+  const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
+
   const [product, setProduct] = useState<AdDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +35,14 @@ export default function ProductDetailContent({ id }: { id: string }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [similarVipProducts, setSimilarVipProducts] = useState<Product[]>([]);
   const [similarNormalProducts, setSimilarNormalProducts] = useState<Product[]>([]);
+  const [storeAds, setStoreAds] = useState<Product[]>([]);
+  const [isFollowingStore, setIsFollowingStore] = useState(false);
+  const [isWorkHoursExpanded, setIsWorkHoursExpanded] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [lightboxSwiper, setLightboxSwiper] = useState<SwiperType | null>(null);
 
   const formatBooleanValue = (name: string, value: string | boolean) => {
     const strVal = String(value).toLowerCase();
@@ -53,8 +64,39 @@ export default function ProductDetailContent({ id }: { id: string }) {
         const data = await adService.getAdById(id);
         setProduct(data);
         setIsFavorite(data.isFavourite);
+        setIsFollowingStore(data.isFollowingStore || false);
         // Increment view count when viewed
         adService.incrementViewCount(id).catch(err => console.error('Error incrementing view count:', err));
+
+        // Fetch Store ads if it's a store
+        if (data.isStore && data.storeId) {
+          try {
+            const { storeService } = await import('@/services/store.service');
+            const ads = await storeService.getStoreAds(data.storeId);
+            const transformed = (ads || []).filter((ad: any) => ad.id !== id).slice(0, 8).map((ad: any) => {
+              const imageUrl = ad.image ? getImageUrl(ad.image) : null;
+              return {
+                id: ad.id.toString(),
+                title: ad.title,
+                slug: ad.slug,
+                price: ad.price,
+                currency: 'AZN',
+                images: imageUrl ? [imageUrl] : [],
+                category: { name: ad.categoryName || '', slug: '' },
+                location: { city: ad.city || '' },
+                createdAt: new Date(ad.createdDate),
+                isStore: true,
+                store: {
+                  name: data.storeName || '',
+                  logo: data.storeLogoUrl ? getImageUrl(data.storeLogoUrl) : undefined
+                }
+              } as any;
+            });
+            setStoreAds(transformed);
+          } catch (err) {
+            console.error('Error fetching store ads:', err);
+          }
+        }
 
         if (data.categoryId) {
           // Fetch VIP ads for the category
@@ -152,6 +194,95 @@ export default function ProductDetailContent({ id }: { id: string }) {
     }
   };
 
+  const handleFollowStore = async () => {
+    if (!isAuthenticated) {
+      router.push(ROUTES.LOGIN);
+      return;
+    }
+    if (!product.storeId) return;
+    try {
+      const { storeService } = await import('@/services/store.service');
+      await storeService.toggleFollowStore(product.storeId);
+      setIsFollowingStore(!isFollowingStore);
+    } catch (err) {
+      console.error('Follow store error:', err);
+    }
+  };
+
+  const getSchForDay = (d: number) => {
+    if (!product || !product.storeWorkSchedules) return null;
+    return product.storeWorkSchedules.find(ws => {
+      if (typeof ws.dayOfWeek === 'number') return ws.dayOfWeek === d;
+      const dayMap: Record<string, number> = {
+        'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6
+      };
+      if (dayMap[ws.dayOfWeek] !== undefined) return dayMap[ws.dayOfWeek] === d;
+      const sInt = parseInt(ws.dayOfWeek);
+      return !isNaN(sInt) && sInt === d;
+    });
+  };
+
+  const getDayNameAz = (day: number) => {
+    const days = ['Bazar', 'Bazar ertəsi', 'Çərşənbə axşamı', 'Çərşənbə', 'Cümə axşamı', 'Cümə', 'Şənbə'];
+    return days[day];
+  };
+
+  const getStoreStatus = () => {
+    if (!product || !product.storeWorkSchedules || product.storeWorkSchedules.length === 0) return null;
+
+    const now = new Date();
+    const day = now.getDay();
+    const currentSchedule = getSchForDay(day);
+
+    if (!currentSchedule) {
+      for (let i = 1; i <= 7; i++) {
+        const nextDay = (day + i) % 7;
+        const nextSch = getSchForDay(nextDay);
+        if (nextSch && (nextSch.isOpen24Hours || nextSch.openTime)) {
+          const openStr = nextSch.isOpen24Hours ? '24 saat' : `saat ${nextSch.openTime?.slice(0, 5)}-da`;
+          return { isOpen: false, text: `Bağlıdır (${nextDay === (day + 1) % 7 ? 'sabah' : getDayNameAz(nextDay)} ${openStr} açılır)` };
+        }
+      }
+      return { isOpen: false, text: 'Bağlıdır' };
+    }
+
+    if (currentSchedule.isOpen24Hours) return { isOpen: true, text: 'Açıqdır (24 saat)' };
+
+    if (!currentSchedule.openTime || !currentSchedule.closeTime) {
+      return { isOpen: false, text: 'Bağlıdır' };
+    }
+
+    const [nowH, nowM] = [now.getHours(), now.getMinutes()];
+    const nowTotal = nowH * 60 + nowM;
+
+    const [startH, startM] = currentSchedule.openTime.split(':').map(Number);
+    const [endH, endM] = currentSchedule.closeTime.split(':').map(Number);
+    const startTotal = startH * 60 + startM;
+    const endTotal = endH * 60 + endM;
+
+    if (nowTotal >= startTotal && nowTotal < endTotal) {
+      return { isOpen: true, text: `Açıqdır (saat ${currentSchedule.closeTime.slice(0, 5)}-da bağlanır)` };
+    } else if (nowTotal < startTotal) {
+      return { isOpen: false, text: `Bağlıdır (saat ${currentSchedule.openTime.slice(0, 5)}-da açılır)` };
+    } else {
+      for (let i = 1; i <= 7; i++) {
+        const nextDay = (day + i) % 7;
+        const nextSch = getSchForDay(nextDay);
+        if (nextSch && (nextSch.isOpen24Hours || nextSch.openTime)) {
+          const openStr = nextSch.isOpen24Hours ? '24 saat' : `saat ${nextSch.openTime?.slice(0, 5)}-da`;
+          return { isOpen: false, text: `Bağlıdır (${nextDay === (day + 1) % 7 ? 'sabah' : getDayNameAz(nextDay)} ${openStr} açılır)` };
+        }
+      }
+      return { isOpen: false, text: 'Bağlıdır' };
+    }
+  };
+
+  const storeStatus = getStoreStatus();
+
+  const isDatingAd = product?.category?.toLowerCase() === 'tanışlıq' ||
+    product?.parentCategoryName?.toLowerCase() === 'tanışlıq' ||
+    product?.subCategory?.toLowerCase() === 'tanışlıq';
+
   return (
     <main className="w-full bg-gray-50 min-h-screen">
       <div className="container mx-auto">
@@ -165,7 +296,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
             </div>
           </aside>
 
-          {/* Main Content */}
+          {/* Main Content Wrappers */}
           <div className="flex-1 min-w-0 py-5 sm:py-10">
             <div className="flex flex-col gap-6 max-w-[1200px] mx-auto">
               {/* Breadcrumb */}
@@ -201,7 +332,6 @@ export default function ProductDetailContent({ id }: { id: string }) {
                       </Link>
                     </>
                   )}
-                  {/* Brand and Model from Dynamic Fields */}
                   {product.dynamicFields?.find(f => f.name === 'Marka') && (
                     <>
                       <span className="text-gray-400 text-sm font-medium leading-normal">/</span>
@@ -242,9 +372,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                 <div className="lg:col-span-2 space-y-6">
                   {/* Image Gallery */}
                   <div className="space-y-3">
-                    {/* Main Swiper */}
                     <div className="relative w-full aspect-[4/3] max-h-[500px] bg-gray-100 rounded-xl overflow-hidden shadow-sm border border-gray-100 group">
-                      {/* Blurred Background Effect (Letterboxing) */}
                       <div className="absolute inset-0 z-0">
                         <Image
                           src={images[activeImageIndex]}
@@ -285,12 +413,10 @@ export default function ProductDetailContent({ id }: { id: string }) {
                         ))}
                       </Swiper>
 
-                      {/* Image Counter Overlay */}
                       <div className="absolute bottom-4 right-4 z-20 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-md backdrop-blur-sm pointer-events-none">
                         {activeImageIndex + 1} / {images.length}
                       </div>
 
-                      {/* Fullscreen Icon Overlay */}
                       <button
                         onClick={() => setIsLightboxOpen(true)}
                         className="absolute top-4 right-4 z-20 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-lg shadow-md transition-all opacity-0 group-hover:opacity-100"
@@ -298,7 +424,6 @@ export default function ProductDetailContent({ id }: { id: string }) {
                         <span className="material-symbols-outlined !text-[20px]">fullscreen</span>
                       </button>
 
-                      {/* Custom Navigation Arrows */}
                       {images.length > 1 && (
                         <>
                           <button className="swiper-button-prev-custom absolute top-1/2 left-4 -translate-y-1/2 z-20 bg-white/90 text-gray-800 rounded-full size-9 flex items-center justify-center hover:bg-white transition-all shadow-md opacity-0 group-hover:opacity-100">
@@ -311,7 +436,6 @@ export default function ProductDetailContent({ id }: { id: string }) {
                       )}
                     </div>
 
-                    {/* Thumbnail Swiper */}
                     {images.length > 1 && (
                       <Swiper
                         onSwiper={setThumbsSwiper}
@@ -338,35 +462,21 @@ export default function ProductDetailContent({ id }: { id: string }) {
                     )}
                   </div>
 
-                  {/* Product Specifications & Dynamic Fields */}
+                  {/* Specs */}
                   <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
                     <div className="p-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
-                        {/* Static Fields */}
                         <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
                           <span className="text-[#8D94AD] text-[15px]">Şəhər</span>
                           <span className="text-[#212121] text-[15px] font-medium">{product.city || 'Göstərilməyib'}</span>
                         </div>
-                        {/* Hide product-specific fields for service/job categories */}
                         {(() => {
                           const NON_PRODUCT_CATEGORIES = [
-                            'İş elanları', 'Vakansiyalar', 'İş axtarıram',
-                            'Xidmətlər və biznes', 'Avadanlığın icarəsi', 'Biznes üçün avadanlıq',
-                            'Avadanlıqların quraşdırılması', 'Avtoservis və diaqnostika', 'Logistika',
-                            'Nəqliyyat vasitələrinin icarəsi', 'Təhlükəsizlik sistemləri',
-                            'Texnika təmiri', 'Təmizlik', 'Dayələr, baxıcılar', 'Foto və video çəkiliş',
-                            'Gözəllik, sağlamlıq', 'Hüquq xidmətləri', 'Həkimlərin qəbulu', 'IT, internet, telekom',
-                            'Mebel yığılması', 'Musiqi və əyləncə', 'Mühasibat xidmətləri',
-                            'Qidalanma, keyterinq', 'Reklam və dizayn', 'Sığorta xidmətləri',
-                            'Təlim, kurslar', 'Tərcümə', 'Tibbi xidmətlər', 'Digər',
-                            'Daşınmaz əmlak', 'Mənzillər', 'Mənzil', 'Həyət evləri', 'Həyət evi', 'Torpaq sahələri', 'Torpaq',
-                            'Obyektlər və əmlak', 'Ofislər', 'Qarajlar', 'Bağlar', 'Xarici əmlak',
-                            'Obyektlər', 'Obyekt', 'Ofis', 'Dükkan və mağazalar', 'Dükkan', 'Mağaza', 'Villa', 'Bağ evi', 'Qaraj',
+                            'İş elanları', 'Vakansiyalar', 'İş axtarıram', 'Xidmətlər və biznes', 'Daşınmaz əmlak', 'Tanışlıq'
                           ];
-                          const isNonProduct = NON_PRODUCT_CATEGORIES.some(
-                            cat => 
-                              product.category?.toLowerCase().trim() === cat.toLowerCase().trim() ||
-                              product.subCategory?.toLowerCase().trim() === cat.toLowerCase().trim()
+                          const isNonProduct = NON_PRODUCT_CATEGORIES.some(cat =>
+                            product.category?.toLowerCase().trim().includes(cat.toLowerCase()) ||
+                            product.parentCategoryName?.toLowerCase().trim().includes(cat.toLowerCase())
                           );
                           if (isNonProduct) return null;
                           return (
@@ -386,9 +496,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                             </>
                           );
                         })()}
-
-                        {/* Dynamic Fields */}
-                        {product.dynamicFields && product.dynamicFields.map((field, idx) => (
+                        {product.dynamicFields?.map((field, idx) => (
                           <div key={idx} className="flex justify-between items-center py-2.5 border-b border-gray-100">
                             <span className="text-[#8D94AD] text-[15px]">{field.name}</span>
                             <span className="text-[#212121] text-[15px] font-medium min-w-0 max-w-[60%] text-right truncate">
@@ -434,143 +542,242 @@ export default function ProductDetailContent({ id }: { id: string }) {
                   </div>
                 </div>
 
-                {/* Right Column - Price, Seller & Contact */}
+                {/* Right Column - Action Card */}
                 <div className="lg:col-span-1">
-                  <div className="sticky top-24 space-y-6">
-                    {/* Price Box */}
-                    <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6 border border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-[#8D94AD] mb-1">Qiymət</p>
-                          <h3 className="text-3xl font-bold text-gray-900 tracking-tight">
-                            {formatPrice(product.price)}
-                          </h3>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleFavoriteToggle}
-                            className={`flex cursor-pointer items-center justify-center overflow-hidden rounded-xl size-12 transition-all shadow-sm ${isFavorite
-                              ? 'bg-red-50 text-red-500 border border-red-100'
-                              : 'bg-gray-50 text-gray-500 border border-gray-100 hover:bg-gray-100'
-                              }`}
-                          >
-                            <span className="material-symbols-outlined" style={{ fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0" }}>
-                              favorite
-                            </span>
-                          </button>
-                          <button className="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl size-12 bg-gray-50 text-gray-500 border border-gray-100 hover:bg-gray-100 transition-all shadow-sm">
-                            <span className="material-symbols-outlined">flag</span>
-                          </button>
+                  <div className="sticky top-24">
+                    <div className="bg-white rounded-3xl shadow-2xl shadow-gray-200/40 border border-gray-100 overflow-hidden flex flex-col">
+                      <div className="p-6 pb-4">
+                        <div className="flex items-center justify-between gap-4">
+                          {!isDatingAd ? (
+                            <div className="min-w-0">
+                              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Qiymət</p>
+                              <h3 className="text-3xl font-black text-gray-900 tracking-tight flex items-baseline gap-1.5 whitespace-nowrap">
+                                <span>{product.price.toLocaleString('az-AZ')}</span>
+                                <span className="text-2xl">₼</span>
+                              </h3>
+                            </div>
+                          ) : (
+                            <div className="flex-1" /> // Spacer to keep buttons on the right
+                          )}
+                          <div className="flex gap-2 shrink-0">
+                            <button
+                              onClick={handleFavoriteToggle}
+                              className={`flex cursor-pointer items-center justify-center rounded-xl size-11 transition-all border shadow-sm ${isFavorite ? 'bg-red-50 text-red-500 border-red-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`}
+                              title="Seçilmişlərə əlavə et"
+                            >
+                              <span className="material-symbols-outlined !text-2xl" style={{ fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+                            </button>
+                            <button
+                              onClick={() => setIsReportModalOpen(true)}
+                              className="flex cursor-pointer items-center justify-center rounded-xl size-11 bg-gray-50 text-gray-400 border border-gray-100 hover:text-red-500 hover:border-red-100 transition-colors"
+                              title="Şikayət et"
+                            >
+                              <span className="material-symbols-outlined !text-2xl">flag</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="h-px bg-gray-100 w-full"></div>
+                      {!isDatingAd && <div className="h-px bg-gray-50 mx-6" />}
 
                       {/* Seller Info */}
-                      <div className="flex items-center gap-4">
-                        <div className="bg-primary/10 rounded-full size-14 flex items-center justify-center text-primary border border-primary/20 shrink-0">
-                          <span className="text-2xl font-black">
-                            {product.fullName?.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-gray-900 font-bold text-lg truncate">{product.fullName}</p>
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
-                            <span className="material-symbols-outlined text-xs text-green-500">verified_user</span>
-                            <span>Doğrulanmış istifadəçi</span>
+                      <div className={`p-6 ${isDatingAd ? 'pt-6' : 'pt-5'} space-y-6`}>
+                        {product.isStore ? (
+                          <div className="space-y-5">
+                            <Link href={ROUTES.STORE_DETAIL(product.storeSlug || '')} className="flex items-center gap-4 group">
+                              <div className="relative shrink-0">
+                                {product.storeLogoUrl ? (
+                                  <div className="size-16 rounded-2xl overflow-hidden border border-gray-100 bg-white flex items-center justify-center p-1.5">
+                                    <Image src={getImageUrl(product.storeLogoUrl)} alt={product.storeName || ''} width={64} height={64} className="object-contain" />
+                                  </div>
+                                ) : (
+                                  <div className="bg-primary/5 rounded-2xl size-16 flex items-center justify-center text-primary border border-primary/10">
+                                    <span className="material-symbols-outlined !text-3xl font-bold">storefront</span>
+                                  </div>
+                                )}
+                                <div className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white ${storeStatus?.isOpen ? 'bg-green-500' : 'bg-red-500'}`} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-gray-900 font-black text-lg leading-tight truncate group-hover:text-primary transition-colors">{product.storeName}</p>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                  <span className="text-primary font-black text-[9px] uppercase tracking-widest bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10">Mağaza</span>
+                                  <span className="text-[#8D94AD] text-[10px] font-black uppercase tracking-wider">{product.storeAdCount || 0} elan</span>
+                                </div>
+                              </div>
+                            </Link>
+                            <div className="flex items-center gap-2 text-[10px] font-black text-white bg-blue-600 px-4 py-2 rounded-xl w-full shadow-lg shadow-blue-600/20">
+                              <span className="material-symbols-outlined !text-[16px]">verified</span>
+                              <span className="uppercase tracking-wider">{product.storeHeadline || 'Rəsmi Mağaza'}</span>
+                            </div>
                           </div>
-                        </div>
-                      </div>
+                        ) : (
+                          <div className="flex items-center gap-4 py-1">
+                            <div className="bg-primary/5 rounded-full size-16 flex items-center justify-center text-primary border border-primary/10 shrink-0">
+                              <span className="text-2xl font-black">{product.fullName?.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-gray-900 font-black text-lg leading-tight truncate">{product.fullName}</p>
+                              <div className="flex items-center gap-1 mt-1 text-xs text-green-600 font-bold">
+                                <span className="material-symbols-outlined !text-[14px]">verified_user</span>
+                                <span>Doğrulanmış</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
-                      {/* Contact Options */}
-                      <div className="space-y-3 pt-2">
-                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100 group">
-                          <div className="bg-primary/10 p-2 rounded-lg text-primary">
-                            <span className="material-symbols-outlined">call</span>
+                        {/* Contact */}
+                        <div className="space-y-3">
+                          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="bg-white p-2 rounded-xl text-primary shadow-sm border border-gray-100">
+                                  <span className="material-symbols-outlined !text-[20px]">call</span>
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Telefon</span>
+                              </div>
+                              {!showFullPhone && (
+                                <button onClick={() => setShowFullPhone(true)} className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-primary/90 shadow-md">
+                                  Göstər
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex flex-col gap-1.5 min-h-[1.5rem] justify-center">
+                              <span className="text-gray-900 font-black text-xl tracking-tight leading-none overflow-hidden">
+                                {showFullPhone
+                                  ? product.phoneNumber
+                                  : product.phoneNumber.replace(/(\+994|0)(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 *** ** **')}
+                              </span>
+                              {showFullPhone && (product.contactNumber2 || product.contactNumber3) && (
+                                <div className="flex flex-col gap-1.5 mt-1 border-t border-gray-200/50 pt-2 animate-in fade-in duration-300">
+                                  {product.contactNumber2 && <span className="text-gray-900 font-extrabold text-lg tracking-tight leading-none">{product.contactNumber2}</span>}
+                                  {product.contactNumber3 && <span className="text-gray-900 font-extrabold text-lg tracking-tight leading-none">{product.contactNumber3}</span>}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-xs text-gray-400">Telefon nömrəsi</span>
-                            <span className="text-gray-900 font-bold text-lg">
-                              {showFullPhone
-                                ? product.phoneNumber
-                                : product.phoneNumber.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 ** **')}
-                            </span>
-                          </div>
-                          {!showFullPhone && (
-                            <button
-                              onClick={() => setShowFullPhone(true)}
-                              className="ml-auto bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-all shadow-sm"
-                            >
-                              Göstər
+
+                          <div className="flex flex-col gap-2.5">
+                            <button className="w-full flex items-center justify-center rounded-xl h-12 bg-primary text-white text-[13px] font-black uppercase gap-2.5 hover:bg-primary/90 shadow-lg shadow-primary/20">
+                              <span className="material-symbols-outlined !text-[18px]">chat</span>
+                              <span>Mesaj yaz</span>
                             </button>
-                          )}
+                            <a href={`https://wa.me/${product.phoneNumber.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center rounded-xl h-12 bg-[#25D366] text-white text-[13px] font-black uppercase gap-2.5 hover:bg-[#20ba59] shadow-lg shadow-green-500/20">
+                              <i className="fa-brands fa-whatsapp text-xl"></i>
+                              <span>WhatsApp</span>
+                            </a>
+                          </div>
                         </div>
-
-                        <button className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-primary text-white text-[15px] font-bold leading-normal tracking-[0.015em] gap-2 hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/30 active:scale-[0.98]">
-                          <span className="material-symbols-outlined !text-[20px]">chat</span>
-                          <span className="truncate">Mesaj yaz</span>
-                        </button>
-
-                        <a
-                          href={`https://wa.me/${product.phoneNumber.replace(/\D/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-[#25D366] text-white text-[15px] font-bold leading-normal gap-2 hover:bg-[#20ba59] transition-all shadow-lg hover:shadow-green-500/30 active:scale-[0.98]"
-                        >
-                          <i className="fa-brands fa-whatsapp text-2xl"></i>
-                          <span className="truncate">WhatsApp</span>
-                        </a>
                       </div>
-                    </div>
 
-                    {/* Safety Tips */}
-                    <div className="bg-[#FFF9E6] rounded-2xl p-4 border border-[#FFE7A3] space-y-2">
-                      <div className="flex items-center gap-2 text-[#856404]">
-                        <span className="material-symbols-outlined !text-[18px]">warning</span>
-                        <h4 className="font-bold text-[13px]">Təhlükəsizlik:</h4>
-                      </div>
-                      <div className="text-[12px] text-[#856404] leading-relaxed">
-                        Diqqət! Beh göndərməmişdən öncə sövdələşmənin təhlükəsiz olduğuna əmin olun! Qiymət şübhəli dərəcədə aşağıdırsa, ehtiyatlı olun və şübhəli elanlar haqqında dərhal bizə xəbər verin.
+                      {/* Global Safety Section - Outside conditional, at bottom of card */}
+                      <div className="p-6 pt-0 border-t border-gray-50/50">
+                        {product.isStore && (
+                          <div className="py-4 space-y-4">
+                            {(product.storeAddress || (product.storeWorkSchedules && product.storeWorkSchedules.length > 0)) && (
+                              <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden divide-y divide-gray-100">
+                                {product.storeWorkSchedules && product.storeWorkSchedules.length > 0 && (
+                                  <div className="p-4">
+                                    <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsWorkHoursExpanded(!isWorkHoursExpanded)}>
+                                      <div className="flex items-center gap-3">
+                                        <span className={`material-symbols-outlined !text-[20px] ${storeStatus?.isOpen ? 'text-green-500' : 'text-gray-400'}`}>schedule</span>
+                                        <p className={`text-[12px] font-black uppercase ${storeStatus?.isOpen ? 'text-green-600' : 'text-red-500'}`}>{storeStatus?.text}</p>
+                                      </div>
+                                      <span className={`material-symbols-outlined !text-[20px] text-gray-400 transition-transform ${isWorkHoursExpanded ? 'rotate-180' : ''}`}>expand_more</span>
+                                    </div>
+
+                                    {isWorkHoursExpanded && (
+                                      <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-2.5 animate-in slide-in-from-top-1 duration-200">
+                                        {[1, 2, 3, 4, 5, 6, 0].map((dayNum) => {
+                                          const sch = getSchForDay(dayNum);
+                                          return (
+                                            <div key={dayNum} className={`flex justify-between items-center ${new Date().getDay() === dayNum ? 'bg-primary/5 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
+                                              <span className={`text-[11px] font-black uppercase tracking-tight ${new Date().getDay() === dayNum ? 'text-primary' : 'text-gray-400'}`}>
+                                                {getDayNameAz(dayNum)}
+                                              </span>
+                                              <span className={`text-[11px] font-black ${new Date().getDay() === dayNum ? 'text-primary' : 'text-gray-900'}`}>
+                                                {sch ? (sch.isOpen24Hours ? '24 saat' : (sch.openTime && sch.closeTime ? `${sch.openTime.slice(0, 5)} - ${sch.closeTime.slice(0, 5)}` : 'Bağlıdır')) : 'Bağlıdır'}
+                                              </span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {product.storeAddress && (
+                                  <a 
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(product.storeAddress)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-start gap-3 p-4 hover:bg-gray-100 transition-colors group"
+                                  >
+                                    <span className="material-symbols-outlined !text-[22px] text-primary/70 mt-0.5">location_on</span>
+                                    <div className="flex flex-col gap-0.5 min-w-0">
+                                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Mağaza adresi</span>
+                                      <span className="text-[12px] font-bold text-gray-700 leading-snug truncate group-hover:text-primary transition-colors">
+                                        {product.storeAddress}
+                                      </span>
+                                    </div>
+                                  </a>
+                                )}
+                              </div>
+                            )}
+
+                            <Link href={ROUTES.STORE_DETAIL(product.storeSlug || '')} className="w-full h-12 rounded-xl bg-primary text-white text-[12px] font-black uppercase flex items-center justify-center gap-2 shadow-md">
+                              Mağazaya keç <span className="material-symbols-outlined !text-[18px]">arrow_forward</span>
+                            </Link>
+                            <button
+                              onClick={handleFollowStore}
+                              className={`w-full h-11 rounded-xl text-[12px] font-black uppercase tracking-wider transition-all border flex items-center justify-center gap-2.5 ${isFollowingStore
+                                ? 'bg-gray-50 text-gray-400 border-gray-200'
+                                : 'bg-white text-primary border-primary/20 hover:bg-primary/5'
+                                }`}
+                            >
+                              <span className="material-symbols-outlined !text-[20px]">
+                                {isFollowingStore ? 'person_remove' : 'person_add'}
+                              </span>
+                              {isFollowingStore ? 'İzləməyi burax' : 'İzləyici ol'}
+                            </button>
+                          </div>
+                        )}
+                        {!isDatingAd && (
+                          <div className="mt-4 bg-[#FFF9E6]/50 rounded-2xl p-5 border border-[#FFE7A3]/50 space-y-2 shadow-sm">
+                            <div className="flex items-center gap-2 text-[#856404]">
+                              <span className="material-symbols-outlined !text-[18px]">security</span>
+                              <h4 className="font-black text-[12px] uppercase tracking-wider">Diqqət:</h4>
+                            </div>
+                            <p className="text-[11px] text-[#856404] leading-relaxed font-bold">Qiymət çox aşağıdırsa ehtiyatlı olun və şübhəli elanları report edin.</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Related Ads */}
+              <div className="mt-10 space-y-10">
+                {product.isStore && storeAds.length > 0 && (
+                  <div className="space-y-5">
+                    <div className="flex justify-between items-center px-2">
+                      <h2 className="text-xl font-bold text-gray-900">Mağazanın digər elanları</h2>
+                      <Link href={ROUTES.STORE_DETAIL(product.storeSlug || '')} className="text-primary text-sm font-bold hover:underline flex items-center gap-1">Hamısını göstər <span className="material-symbols-outlined !text-[18px]">chevron_right</span></Link>
+                    </div>
+                    <ProductGrid products={storeAds} title="" emptyMessage="" />
+                  </div>
+                )}
+                {(similarVipProducts.length > 0 || similarNormalProducts.length > 0) && (
+                  <div className="space-y-5">
+                    <div className="flex justify-between items-center px-2">
+                      <h2 className="text-xl font-bold text-gray-900">Bənzər elanlar</h2>
+                    </div>
+                    {similarVipProducts.length > 0 && <ProductGrid products={similarVipProducts} title="" emptyMessage="" />}
+                    {similarNormalProducts.length > 0 && <ProductGrid products={similarNormalProducts} title="" emptyMessage="" />}
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Similar Ads */}
-            {(similarVipProducts.length > 0 || similarNormalProducts.length > 0) && (
-              <div className="mt-10 pt-6 border-t border-gray-200">
-                <div className="flex justify-between items-center mb-5">
-                  <h2 className="text-xl font-bold text-gray-900">Bənzər elanlar</h2>
-                  <Link 
-                    href={`/elanlar/${product.parentCategorySlug || (product.category ? generateSlug(product.category) : '')}${product.childCategorySlug ? `/${product.childCategorySlug}` : ''}`}
-                    className="text-primary text-sm font-bold hover:underline flex items-center gap-1"
-                  >
-                    Hamısını göstər
-                    <span className="material-symbols-outlined !text-[18px]">chevron_right</span>
-                  </Link>
-                </div>
-
-                {similarVipProducts.length > 0 && (
-                  <div className="mb-8">
-                    <ProductGrid
-                      products={similarVipProducts}
-                      title=""
-                      emptyMessage=""
-                    />
-                  </div>
-                )}
-
-                {similarNormalProducts.length > 0 && (
-                  <ProductGrid
-                    products={similarNormalProducts}
-                    title=""
-                    emptyMessage=""
-                  />
-                )}
-              </div>
-            )}
           </div>
 
           {/* Right Banner */}
@@ -584,83 +791,48 @@ export default function ProductDetailContent({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Modals */}
       {isLightboxOpen && (
         <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col">
-          {/* Header */}
           <div className="flex items-center justify-between p-4 text-white border-b border-white/10">
             <div className="flex flex-col">
               <h4 className="font-bold text-lg truncate max-w-[300px] md:max-w-xl">{product.title}</h4>
               <p className="text-primary font-bold">{formatPrice(product.price)}</p>
             </div>
-            <button
-              onClick={() => setIsLightboxOpen(false)}
-              className="size-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
-            >
-              <span className="material-symbols-outlined !text-[32px]">close</span>
-            </button>
+            <button onClick={() => setIsLightboxOpen(false)} className="size-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center"><span className="material-symbols-outlined !text-[32px]">close</span></button>
           </div>
-
-          {/* Main Gallery in Modal */}
           <div className="flex-1 relative flex items-center justify-center p-4">
-            <button className="swiper-button-prev-modal absolute left-4 z-10 size-14 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all">
-              <span className="material-symbols-outlined !text-[40px]">chevron_left</span>
-            </button>
-
-            <div className="w-full h-full flex items-center justify-center">
-              <Swiper
-                modules={[Navigation, Pagination, FreeMode]}
-                navigation={{
-                  prevEl: '.swiper-button-prev-modal',
-                  nextEl: '.swiper-button-next-modal',
-                }}
-                initialSlide={activeImageIndex}
-                onSlideChange={(swiper) => setActiveImageIndex(swiper.realIndex)}
-                className="w-full h-full"
-                spaceBetween={30}
-              >
+            <button className="swiper-button-prev-modal absolute left-4 z-10 size-14 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><span className="material-symbols-outlined !text-[40px]">chevron_left</span></button>
+            <div className="w-full h-full">
+              <Swiper onSwiper={setLightboxSwiper} modules={[Navigation, Pagination, FreeMode]} navigation={{ prevEl: '.swiper-button-prev-modal', nextEl: '.swiper-button-next-modal' }} initialSlide={activeImageIndex} onSlideChange={(s) => setActiveImageIndex(s.realIndex)} className="w-full h-full" spaceBetween={30}>
                 {images.map((img, idx) => (
                   <SwiperSlide key={idx} className="flex items-center justify-center">
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={img}
-                        alt={`Full view ${idx + 1}`}
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
+                    <div className="relative w-full h-full"><Image src={img} alt={`Modal view ${idx + 1}`} fill className="object-contain" /></div>
                   </SwiperSlide>
                 ))}
               </Swiper>
             </div>
-
-            <button className="swiper-button-next-modal absolute right-4 z-10 size-14 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all">
-              <span className="material-symbols-outlined !text-[40px]">chevron_right</span>
-            </button>
+            <button className="swiper-button-next-modal absolute right-4 z-10 size-14 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><span className="material-symbols-outlined !text-[40px]">chevron_right</span></button>
           </div>
-
-          {/* Thumbnails in Modal */}
-          <div className="p-6 bg-black/40 backdrop-blur-xl flex justify-center overflow-x-auto text-white">
+          <div className="p-6 bg-black/40 backdrop-blur-xl flex justify-center overflow-x-auto">
             <div className="flex gap-3">
               {images.map((img, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setActiveImageIndex(idx)}
-                  className={`relative size-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${activeImageIndex === idx ? 'border-primary scale-110' : 'border-transparent opacity-50 hover:opacity-100'}`}
-                >
-                  <Image src={img} alt={`Modal thumb ${idx + 1}`} fill className="object-cover" />
+                <div key={idx} onClick={() => { setActiveImageIndex(idx); lightboxSwiper?.slideTo(idx); }} className={`relative size-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${activeImageIndex === idx ? 'border-primary' : 'border-transparent opacity-50'}`}>
+                  <Image src={img} alt={`Thumb ${idx + 1}`} fill className="object-cover" />
                 </div>
               ))}
             </div>
           </div>
         </div>
       )}
-
-      {/* Promote Modal */}
-      <PromoteAdModal
-        isOpen={isPromoteModalOpen}
-        onClose={() => setIsPromoteModalOpen(false)}
-        adId={product.id}
+      {product && (
+        <PromoteAdModal isOpen={isPromoteModalOpen} onClose={() => setIsPromoteModalOpen(false)} adId={product.id} />
+      )}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetId={id}
+        type="ad"
       />
     </main>
   );

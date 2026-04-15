@@ -11,11 +11,13 @@ import { adService } from '@/services/ad.service';
 import { CategoryDto, CategoryFieldDto, LookupItem, PackageItem } from '@/types/api';
 import { parseCurrency } from '@/lib/utils';
 import PromotionPackages from '@/components/listings/PromotionPackages';
+import { useAuth } from '@/contexts/AuthContext';
 
 // cityOptions removed - now fetched from API
 
 export default function CreateListingPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     categoryId: '',
     subcategoryId: '',
@@ -546,11 +548,11 @@ export default function CreateListingPage() {
               {/* Brand/Type - Hidden until child category is selected and has brands */}
               {showBrands && (
                 <Select
-                  label="Marka / Çeşid / Sahə"
+                  label="Marka / Çeşid / Tip / Sahə"
                   options={brands}
                   value={brands.find(option => option.value === formData.brandId)}
                   onChange={(option) => setFormData(prev => ({ ...prev, brandId: option?.value || '' }))}
-                  placeholder={isLoadingBrands ? 'Yüklənir...' : 'Marka / Çeşid / Sahə seçin'}
+                  placeholder={isLoadingBrands ? 'Yüklənir...' : 'Marka / Çeşid / Tip / Sahə seçin'}
                   isClearable
                   isLoading={isLoadingBrands}
                 />
@@ -857,10 +859,11 @@ export default function CreateListingPage() {
 
           {/* Section 4: Promotion Packages */}
           {packages.length > 0 && (
-            <PromotionPackages 
-              packages={packages} 
-              selectedPackageId={selectedPackageId} 
-              onSelect={setSelectedPackageId} 
+            <PromotionPackages
+              packages={packages}
+              selectedPackageId={selectedPackageId}
+              onSelect={setSelectedPackageId}
+              businessDiscount={user?.serviceDiscountPercentage}
             />
           )}
 

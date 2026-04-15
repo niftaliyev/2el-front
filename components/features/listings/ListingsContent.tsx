@@ -12,6 +12,8 @@ import Select, { SelectOption } from '@/components/ui/Select';
 import { adService } from '@/services/ad.service';
 import { AdListItem } from '@/types/api';
 import { getImageUrl, generateSlug } from '@/lib/utils';
+import Modal from '@/components/ui/Modal';
+import { Button } from '@/components/ui';
 
 export default function ListingsContent({ initialFilters }: { initialFilters?: Partial<SearchFilters> }) {
   const router = useRouter();
@@ -165,6 +167,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             name: cat.name,
             icon: ICONS[cat.name] || 'category',
             slug: generateSlug(cat.name),
+            categoryFields: cat.categoryFields || [],
             subCategories: cat.subCategories?.map((sc: any) => ({ ...sc, parentSlug: generateSlug(cat.name) })) || [],
             children: cat.children?.map((child: any) => ({
               id: child.id,
@@ -172,6 +175,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
               slug: generateSlug(child.name),
               parentId: cat.id,
               parentSlug: generateSlug(cat.name),
+              categoryFields: child.categoryFields || [],
               subCategories: child.subCategories?.map((sc: any) => ({ ...sc, parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}` })) || [],
               children: child.children?.map((gc: any) => ({
                 id: gc.id,
@@ -179,6 +183,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                 slug: generateSlug(gc.name),
                 parentId: child.id,
                 parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}`,
+                categoryFields: gc.categoryFields || [],
                 subCategories: gc.subCategories?.map((sc: any) => ({ ...sc, parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}/${generateSlug(gc.name)}` })) || []
               })) || []
             })) || []
@@ -236,6 +241,12 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           isFeatured: item.isVip,
           isBoosted: item.isBoosted,
           isFavourite: item.isFavourite,
+          store: item.isStore ? {
+            id: '',
+            name: item.storeName || item.fullName || 'Mağaza',
+            logo: item.storeLogoUrl ? getImageUrl(item.storeLogoUrl) : undefined,
+            slug: item.storeSlug
+          } : undefined,
         }));
         setVipProducts(mappedProducts);
       } catch (error) {
@@ -300,6 +311,12 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           isFeatured: item.isVip,
           isBoosted: item.isBoosted,
           isFavourite: item.isFavourite,
+          store: item.isStore ? {
+            id: '',
+            name: item.storeName || item.fullName || 'Mağaza',
+            logo: item.storeLogoUrl ? getImageUrl(item.storeLogoUrl) : undefined,
+            slug: item.storeSlug
+          } : undefined,
         }));
 
         if (page === 1) {
@@ -354,13 +371,52 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
     router.push(newPath);
   };
 
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+  const [isCityModalOpen, setIsCityModalOpen] = useState(false);
+  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
+  const [cities, setCities] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const fetched = await adService.getCities();
+        setCities(fetched);
+      } catch (e) {}
+    };
+    fetchCities();
+  }, []);
+
+  const getCityLabel = () => {
+    if (!filters.cityId) return 'Şəhər';
+    const cityIdStr = filters.cityId.toString();
+    return cities.find(c => c.id.toString() === cityIdStr)?.name || 'Şəhər';
+  };
+
+  const getPriceLabel = () => {
+    if (!filters.minPrice && !filters.maxPrice) return 'Qiymət';
+    if (filters.minPrice && filters.maxPrice) return `${filters.minPrice} - ${filters.maxPrice} ₼`;
+    if (filters.minPrice) return `min. ${filters.minPrice} ₼`;
+    return `maks. ${filters.maxPrice} ₼`;
+  };
+
   return (
     <div className="bg-white min-h-screen pb-20">
-      <Container className="pt-6 pb-8">
-        <div className="mb-4">
-          <h1 className="text-[20px] font-bold text-[#212121] mb-6 tracking-tight">
-            Bütün kateqoriyalar <span className="text-[#999] font-normal text-[15px] ml-1">({totalElements})</span>
-          </h1>
+      <Container className="pt-3 sm:pt-6 pb-8 px-3 sm:px-6">
+        <div className="mb-3 sm:mb-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-6">
+            <h1 className="text-[17px] sm:text-[20px] font-bold text-[#212121] tracking-tight">
+              Bütün kateqoriyalar <span className="text-[#999] font-normal text-[13px] sm:text-[15px] ml-1">({totalElements})</span>
+            </h1>
+            {/* Mobile Filter Toggle Button */}
+            <button
+              onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+              className="lg:hidden flex items-center gap-1.5 px-3 py-2 bg-gray-100 rounded-xl text-[13px] font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+            >
+              <span className="material-symbols-outlined !text-[18px]">tune</span>
+              Filtr
+            </button>
+          </div>
 
           <div className="relative group">
             {showLeftScroll && (
@@ -465,7 +521,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                           key={item.id}
                           className="group flex flex-col items-center gap-[10px] flex-shrink-0 w-[88px]"
                         >
-                          <div className={`flex items-center justify-center w-[88px] h-[88px] rounded-2xl transition-colors overflow-hidden ${isActive ? 'bg-[#ff4f08]/10 ring-2 ring-[#ff4f08]/20' : 'bg-[#f1f2f4] group-hover:bg-[#e9e9eb]'}`}>
+                          <div className={`flex items-center justify-center w-[88px] h-[88px] rounded-2xl transition-colors overflow-hidden ${isActive ? 'bg-[#607afb]/10 ring-2 ring-[#607afb]/20' : 'bg-[#f1f2f4] group-hover:bg-[#e9e9eb]'}`}>
                             {item.image ? (
                               <img
                                 src={item.image}
@@ -473,12 +529,12 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                                 className="w-full h-full object-contain p-2"
                               />
                             ) : (
-                              <span className={`material-symbols-outlined !text-[32px] transition-colors ${isActive ? 'text-[#ff4f08]' : 'text-[#212121]'}`}>
+                              <span className={`material-symbols-outlined !text-[32px] transition-colors ${isActive ? 'text-[#607afb]' : 'text-[#212121]'}`}>
                                 {item.icon || 'category'}
                               </span>
                             )}
                           </div>
-                          <span className={`text-[13px] text-center leading-[1.3] px-1 line-clamp-2 ${isActive ? 'text-[#ff4f08] font-bold' : 'text-[#212121]'}`}>
+                          <span className={`text-[13px] text-center leading-[1.3] px-1 line-clamp-2 ${isActive ? 'text-[#607afb] font-bold' : 'text-[#212121]'}`}>
                             {item.name}
                           </span>
                         </Link>
@@ -501,7 +557,23 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-8 gap-y-8 items-start mt-6">
+        {/* Mobile Filter Panel (slide-down) */}
+        {isMobileFilterOpen && (
+          <div className="lg:hidden mb-4 bg-gray-50 rounded-2xl p-4 border border-gray-200 animate-in slide-in-from-top-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-[#212121]">Filtrlər</h3>
+              <button
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="text-gray-500 hover:text-gray-700 p-1"
+              >
+                <span className="material-symbols-outlined !text-[22px]">close</span>
+              </button>
+            </div>
+            <FilterPanel filters={filters} onFilterChange={(f) => { handleFilterChange(f); setIsMobileFilterOpen(false); }} categories={categories} />
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-8 gap-y-8 items-start mt-2 sm:mt-6">
           <aside className="lg:col-span-1 hidden lg:block sticky top-24 w-full pr-2 pb-8 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="mb-6">
               <h3 className="text-[#212121] font-bold text-[15px] mb-3">Bütün kateqoriyalar</h3>
@@ -516,7 +588,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
 
                   return (
                     <li key={c.id}>
-                      <Link href={`/elanlar/${c.slug}`} className={`text-[14px] hover:text-[#ff4f08] transition-colors ${isParentSelected ? 'text-[#ff4f08] font-bold' : 'text-[#4e4e4e]'}`}>
+                      <Link href={`/elanlar/${c.slug}`} className={`text-[14px] hover:text-[#607afb] transition-colors ${isParentSelected ? 'text-[#607afb] font-bold' : 'text-[#4e4e4e]'}`}>
                         {c.name}
                       </Link>
                       {(isParentSelected || hasSelectedChild) && children.length > 0 && (
@@ -530,7 +602,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                               <li key={child.id}>
                                 <Link
                                   href={`/elanlar/${c.slug}/${child.slug}`}
-                                  className={`text-[13px] hover:text-[#ff4f08] transition-colors ${(isChildSelected || hasSelectedSub) ? 'text-[#ff4f08] font-semibold' : 'text-gray-500'}`}
+                                  className={`text-[13px] hover:text-[#607afb] transition-colors ${(isChildSelected || hasSelectedSub) ? 'text-[#607afb] font-semibold' : 'text-gray-500'}`}
                                 >
                                   {child.name}
                                 </Link>
@@ -548,13 +620,47 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           </aside>
 
           <div className="lg:col-span-3">
-            <div className="flex items-center mb-6">
+            {/* Mobile Filter Pills Row */}
+            <div className="lg:hidden flex items-center gap-2 overflow-x-auto scrollbar-hide mb-4 pb-1">
+              <button
+                onClick={() => setIsSortModalOpen(true)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors whitespace-nowrap ${
+                  filters.sortBy !== 'latest' && filters.sortBy !== undefined ? 'bg-primary text-white' : 'bg-[#f1f3f7] text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <span className="material-symbols-outlined !text-[18px]">sort</span>
+                <span>{filters.sortBy === 'cheap' ? 'Öncə ucuz' : filters.sortBy === 'expensive' ? 'Öncə baha' : 'Tarix üzrə'}</span>
+                <span className="material-symbols-outlined !text-[18px]">expand_more</span>
+              </button>
+
+              <button
+                onClick={() => setIsPriceModalOpen(true)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors whitespace-nowrap ${
+                  filters.minPrice || filters.maxPrice ? 'bg-primary text-white' : 'bg-[#f1f3f7] text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <span>{getPriceLabel()}</span>
+                <span className="material-symbols-outlined !text-[18px]">expand_more</span>
+              </button>
+
+              <button
+                onClick={() => setIsCityModalOpen(true)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors whitespace-nowrap ${
+                  filters.cityId ? 'bg-primary text-white' : 'bg-[#f1f3f7] text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <span>{getCityLabel()}</span>
+                <span className="material-symbols-outlined !text-[18px]">expand_more</span>
+              </button>
+            </div>
+
+            <div className="hidden lg:flex items-center mb-3 sm:mb-6">
               <div className="relative" ref={sortRef}>
                 <button
                   onClick={() => setIsSortOpen(!isSortOpen)}
                   className={`flex items-center gap-2 px-[14px] py-[8px] bg-white border rounded-xl hover:bg-gray-50 transition-colors cursor-pointer text-[#212121] select-none text-[14px] ${isSortOpen ? 'border-gray-400 shadow-sm bg-gray-50' : 'border-gray-200'}`}
                 >
-                  <span className={`material-symbols-outlined !text-[18px] transition-colors ${filters.sortBy !== 'latest' && filters.sortBy !== undefined ? 'text-[#ff4f08]' : 'text-gray-500'}`}>
+                  <span className={`material-symbols-outlined !text-[18px] transition-colors ${filters.sortBy !== 'latest' && filters.sortBy !== undefined ? 'text-[#607afb]' : 'text-gray-500'}`}>
                     sort
                   </span>
                   <span className="pt-px">
@@ -569,21 +675,21 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                   <div className="absolute top-full left-0 mt-2 w-[200px] bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] py-1.5 z-50 border border-gray-100 flex flex-col">
                     <button
                       onClick={() => { handleFilterChange({ ...filters, sortBy: 'latest' }); setIsSortOpen(false); }}
-                      className={`w-full text-left px-4 py-2.5 hover:bg-[#f1f2f4] text-[14px] transition-colors flex items-center justify-between ${filters.sortBy === 'latest' || filters.sortBy === undefined ? 'text-[#ff4f08] font-medium' : 'text-[#212121]'}`}
+                      className={`w-full text-left px-4 py-2.5 hover:bg-[#f1f2f4] text-[14px] transition-colors flex items-center justify-between ${filters.sortBy === 'latest' || filters.sortBy === undefined ? 'text-[#607afb] font-medium' : 'text-[#212121]'}`}
                     >
                       Tarix üzrə
                       {(filters.sortBy === 'latest' || filters.sortBy === undefined) && <span className="material-symbols-outlined !text-[18px]">check</span>}
                     </button>
                     <button
                       onClick={() => { handleFilterChange({ ...filters, sortBy: 'cheap' }); setIsSortOpen(false); }}
-                      className={`w-full text-left px-4 py-2.5 hover:bg-[#f1f2f4] text-[14px] transition-colors flex items-center justify-between ${filters.sortBy === 'cheap' ? 'text-[#ff4f08] font-medium' : 'text-[#212121]'}`}
+                      className={`w-full text-left px-4 py-2.5 hover:bg-[#f1f2f4] text-[14px] transition-colors flex items-center justify-between ${filters.sortBy === 'cheap' ? 'text-[#607afb] font-medium' : 'text-[#212121]'}`}
                     >
                       Öncə ucuz
                       {filters.sortBy === 'cheap' && <span className="material-symbols-outlined !text-[18px]">check</span>}
                     </button>
                     <button
                       onClick={() => { handleFilterChange({ ...filters, sortBy: 'expensive' }); setIsSortOpen(false); }}
-                      className={`w-full text-left px-4 py-2.5 hover:bg-[#f1f2f4] text-[14px] transition-colors flex items-center justify-between ${filters.sortBy === 'expensive' ? 'text-[#ff4f08] font-medium' : 'text-[#212121]'}`}
+                      className={`w-full text-left px-4 py-2.5 hover:bg-[#f1f2f4] text-[14px] transition-colors flex items-center justify-between ${filters.sortBy === 'expensive' ? 'text-[#607afb] font-medium' : 'text-[#212121]'}`}
                     >
                       Öncə baha
                       {filters.sortBy === 'expensive' && <span className="material-symbols-outlined !text-[18px]">check</span>}
@@ -610,7 +716,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
 
             {loading && page === 1 ? (
               <div className="flex justify-center items-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff4f08]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#607afb]"></div>
               </div>
             ) : (
               <>
@@ -621,7 +727,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                 <div ref={lastElementRef} className="h-10 mt-8" />
                 {loadingMore && (
                   <div className="flex justify-center items-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff4f08]"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#607afb]"></div>
                   </div>
                 )}
                 {!hasMore && products.length > 0 && (
@@ -632,6 +738,97 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           </div>
         </div>
       </Container>
+
+      {/* Price Filter Modal */}
+      <Modal
+        isOpen={isPriceModalOpen}
+        onClose={() => setIsPriceModalOpen(false)}
+        title="Qiymət"
+      >
+        <div className="p-4 sm:p-0">
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-gray-500 ml-1">Minimum</label>
+              <input
+                type="number"
+                placeholder="min."
+                value={filters.minPrice || ''}
+                onChange={(e) => handleFilterChange({ ...filters, minPrice: e.target.value ? Number(e.target.value) : undefined })}
+                className="w-full h-12 px-4 bg-gray-50 rounded-xl outline-none border border-transparent focus:border-primary/20 focus:bg-white transition-all"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-gray-500 ml-1">Maksimum</label>
+              <input
+                type="number"
+                placeholder="maks."
+                value={filters.maxPrice || ''}
+                onChange={(e) => handleFilterChange({ ...filters, maxPrice: e.target.value ? Number(e.target.value) : undefined })}
+                className="w-full h-12 px-4 bg-gray-50 rounded-xl outline-none border border-transparent focus:border-primary/20 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+          <Button
+            className="w-full h-12 rounded-xl font-bold"
+            onClick={() => setIsPriceModalOpen(false)}
+          >
+            Nəticələri göstər
+          </Button>
+        </div>
+      </Modal>
+
+      {/* City Filter Modal */}
+      <Modal
+        isOpen={isCityModalOpen}
+        onClose={() => setIsCityModalOpen(false)}
+        title="Şəhər"
+      >
+        <div className="flex-1 overflow-y-auto p-4 sm:p-0 space-y-1">
+          <button
+            onClick={() => { handleFilterChange({ ...filters, cityId: undefined }); setIsCityModalOpen(false); }}
+            className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${!filters.cityId ? 'bg-primary/5 text-primary font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
+          >
+            Bütün şəhərlər
+          </button>
+          {cities.map(city => (
+            <button
+              key={city.id}
+              onClick={() => { handleFilterChange({ ...filters, cityId: city.id.toString() }); setIsCityModalOpen(false); }}
+              className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${filters.cityId?.toString() === city.id.toString() ? 'bg-primary/5 text-primary font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
+            >
+              {city.name}
+            </button>
+          ))}
+        </div>
+      </Modal>
+
+      {/* Sort Filter Modal */}
+      <Modal
+        isOpen={isSortModalOpen}
+        onClose={() => setIsSortModalOpen(false)}
+        title="Sort"
+      >
+        <div className="p-4 sm:p-0 space-y-1">
+          <button
+            onClick={() => { handleFilterChange({ ...filters, sortBy: 'latest' }); setIsSortModalOpen(false); }}
+            className={`w-full text-left px-4 py-4 rounded-xl transition-colors ${filters.sortBy === 'latest' || !filters.sortBy ? 'bg-primary/5 text-primary font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
+          >
+            Tarix üzrə
+          </button>
+          <button
+            onClick={() => { handleFilterChange({ ...filters, sortBy: 'cheap' }); setIsSortModalOpen(false); }}
+            className={`w-full text-left px-4 py-4 rounded-xl transition-colors ${filters.sortBy === 'cheap' ? 'bg-primary/5 text-primary font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
+          >
+            Öncə ucuz
+          </button>
+          <button
+            onClick={() => { handleFilterChange({ ...filters, sortBy: 'expensive' }); setIsSortModalOpen(false); }}
+            className={`w-full text-left px-4 py-4 rounded-xl transition-colors ${filters.sortBy === 'expensive' ? 'bg-primary/5 text-primary font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
+          >
+            Öncə baha
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
