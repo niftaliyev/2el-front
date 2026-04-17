@@ -34,7 +34,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
