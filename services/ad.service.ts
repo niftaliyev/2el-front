@@ -326,15 +326,15 @@ class AdService {
     } else {
       const favs = this.getLocalFavourites();
       if (favs.length === 0) {
-        return { data: [], totalPages: 0, totalElements: 0, pageNumber: 1, pageSize: 20 };
+        return { data: [], totalPages: 0, totalCount: 0, page: 1, pageSize: 20 };
       }
       const response = await axiosInstance.post<AdListItem[]>('/ad/by-ids', favs);
       return {
         data: response.data,
-        pageNumber: 1,
+        page: 1,
         pageSize: favs.length,
         totalPages: 1,
-        totalElements: favs.length,
+        totalCount: favs.length,
       };
     }
   }
