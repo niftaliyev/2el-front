@@ -10,6 +10,7 @@ import CategoryDropdown from './CategoryDropdown';
 import BurgerMenu from './BurgerMenu';
 import SearchAutocomplete from '@/components/features/search/SearchAutocomplete';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
+import { toast } from 'sonner';
 
 export default function Header() {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
@@ -34,15 +35,19 @@ export default function Header() {
           title: document.title,
           url: window.location.href,
         });
-      } catch (error) {
-        console.error('Error sharing:', error);
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+          toast.error('Paylaşım zamanı xəta yarandı');
+        }
       }
     } else {
       try {
         await navigator.clipboard.writeText(window.location.href);
-        // We could show a toast here, but for now a simple alert or just silent copy
+        toast.success('Link kopyalandı!');
       } catch (error) {
         console.error('Error copying link:', error);
+        toast.error('Linki kopyalamaq mümkün olmadı');
       }
     }
   };
