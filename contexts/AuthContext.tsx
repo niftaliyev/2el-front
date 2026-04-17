@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '@/services/auth.service';
+import { adService } from '@/services/ad.service';
+import { storeService } from '@/services/store.service';
 import { AuthUser, LoginRequest, RegisterRequest } from '@/types/auth';
 
 type User = AuthUser;
@@ -60,6 +62,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const user = await authService.login(credentials);
       setUser(user);
+      
+      // Sync local favourites and followed stores to the server
+      try {
+        await Promise.all([
+          adService.syncOfflineFavourites(),
+          storeService.syncOfflineFollowedStores()
+        ]);
+      } catch (syncError) {
+        console.error('Error syncing offline data:', syncError);
+      }
     } catch (error) {
       console.error('Login error:', error);
       throw error;

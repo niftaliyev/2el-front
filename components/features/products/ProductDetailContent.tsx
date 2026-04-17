@@ -191,15 +191,13 @@ export default function ProductDetailContent({ id }: { id: string }) {
       setIsFavorite(!isFavorite);
     } catch (err) {
       console.error('Favorite toggle error:', err);
+    } finally {
+      setIsChangingFav(false);
     }
   };
 
   const handleFollowStore = async () => {
-    if (!isAuthenticated) {
-      router.push(ROUTES.LOGIN);
-      return;
-    }
-    if (!product.storeId) return;
+    if (isChangingFav) return;
     try {
       const { storeService } = await import('@/services/store.service');
       await storeService.toggleFollowStore(product.storeId);
@@ -771,6 +769,14 @@ export default function ProductDetailContent({ id }: { id: string }) {
                   <div className="space-y-5">
                     <div className="flex justify-between items-center px-2">
                       <h2 className="text-xl font-bold text-gray-900">Bənzər elanlar</h2>
+                      <Link 
+                        href={product.childCategorySlug && product.childCategorySlug !== product.parentCategorySlug
+                          ? ROUTES.SUBCATEGORY(product.parentCategorySlug || '', product.childCategorySlug)
+                          : ROUTES.CATEGORY(product.parentCategorySlug || '')} 
+                        className="text-primary text-sm font-bold hover:underline flex items-center gap-1"
+                      >
+                        Hamısını göstər <span className="material-symbols-outlined !text-[18px]">chevron_right</span>
+                      </Link>
                     </div>
                     {similarVipProducts.length > 0 && <ProductGrid products={similarVipProducts} title="" emptyMessage="" />}
                     {similarNormalProducts.length > 0 && <ProductGrid products={similarNormalProducts} title="" emptyMessage="" />}

@@ -14,6 +14,7 @@ import { AdListItem } from '@/types/api';
 import { getImageUrl, generateSlug } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
 import { Button } from '@/components/ui';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
 
 export default function ListingsContent({ initialFilters }: { initialFilters?: Partial<SearchFilters> }) {
   const router = useRouter();
@@ -22,6 +23,8 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
   const [vipProducts, setVipProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [totalElements, setTotalElements] = useState(0);
+
+  const isHeaderVisible = useScrollDirection();
 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -382,7 +385,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       try {
         const fetched = await adService.getCities();
         setCities(fetched);
-      } catch (e) {}
+      } catch (e) { }
     };
     fetchCities();
   }, []);
@@ -417,8 +420,14 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
               Filtr
             </button>
           </div>
+        </div>
 
-          <div className="relative group">
+        {/* STICKY MOBILE BAR */}
+        <div className={`z-[91] bg-white/95 backdrop-blur-md sticky lg:relative transition-all duration-300 ease-in-out -mx-3 px-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 pt-2 pb-2 mb-2 top-[112px] sm:top-[116px] lg:top-auto lg:!translate-y-0 lg:!opacity-100 lg:!pointer-events-auto ${isHeaderVisible
+            ? 'translate-y-0 opacity-100 pointer-events-auto'
+            : '-translate-y-[150px] opacity-0 pointer-events-none'
+          }`}>
+          <div className="relative group lg:mb-0 mb-3">
             {showLeftScroll && (
               <button
                 onClick={() => scrollCarousel('left')}
@@ -432,7 +441,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             <div
               ref={carouselRef}
               onScroll={handleCarouselScroll}
-              className="flex overflow-x-auto scrollbar-hide gap-3 pb-2 items-start scroll-smooth"
+              className="flex overflow-x-auto overscroll-x-contain scrollbar-hide gap-3 pb-2 items-start scroll-smooth"
             >
               {(() => {
                 const allCategoriesFlattened: any[] = [];
@@ -555,6 +564,37 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
               </button>
             )}
           </div>
+
+          {/* Mobile Filter Pills Row - Moved here to stick with categories! */}
+          <div className="lg:hidden flex items-center gap-2 overflow-x-auto overscroll-x-contain scrollbar-hide">
+            <button
+              onClick={() => setIsSortModalOpen(true)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors whitespace-nowrap ${filters.sortBy !== 'latest' && filters.sortBy !== undefined ? 'bg-primary text-white' : 'bg-[#f1f3f7] text-gray-700 hover:bg-gray-200'
+                }`}
+            >
+              <span className="material-symbols-outlined !text-[18px]">sort</span>
+              <span>{filters.sortBy === 'cheap' ? 'Öncə ucuz' : filters.sortBy === 'expensive' ? 'Öncə baha' : 'Tarix üzrə'}</span>
+              <span className="material-symbols-outlined !text-[18px]">expand_more</span>
+            </button>
+
+            <button
+              onClick={() => setIsPriceModalOpen(true)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors whitespace-nowrap ${filters.minPrice || filters.maxPrice ? 'bg-primary text-white' : 'bg-[#f1f3f7] text-gray-700 hover:bg-gray-200'
+                }`}
+            >
+              <span>{getPriceLabel()}</span>
+              <span className="material-symbols-outlined !text-[18px]">expand_more</span>
+            </button>
+
+            <button
+              onClick={() => setIsCityModalOpen(true)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors whitespace-nowrap ${filters.cityId ? 'bg-primary text-white' : 'bg-[#f1f3f7] text-gray-700 hover:bg-gray-200'
+                }`}
+            >
+              <span>{getCityLabel()}</span>
+              <span className="material-symbols-outlined !text-[18px]">expand_more</span>
+            </button>
+          </div>
         </div>
 
         {/* Mobile Filter Panel (slide-down) */}
@@ -620,39 +660,6 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           </aside>
 
           <div className="lg:col-span-3">
-            {/* Mobile Filter Pills Row */}
-            <div className="lg:hidden flex items-center gap-2 overflow-x-auto scrollbar-hide mb-4 pb-1">
-              <button
-                onClick={() => setIsSortModalOpen(true)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors whitespace-nowrap ${
-                  filters.sortBy !== 'latest' && filters.sortBy !== undefined ? 'bg-primary text-white' : 'bg-[#f1f3f7] text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <span className="material-symbols-outlined !text-[18px]">sort</span>
-                <span>{filters.sortBy === 'cheap' ? 'Öncə ucuz' : filters.sortBy === 'expensive' ? 'Öncə baha' : 'Tarix üzrə'}</span>
-                <span className="material-symbols-outlined !text-[18px]">expand_more</span>
-              </button>
-
-              <button
-                onClick={() => setIsPriceModalOpen(true)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors whitespace-nowrap ${
-                  filters.minPrice || filters.maxPrice ? 'bg-primary text-white' : 'bg-[#f1f3f7] text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <span>{getPriceLabel()}</span>
-                <span className="material-symbols-outlined !text-[18px]">expand_more</span>
-              </button>
-
-              <button
-                onClick={() => setIsCityModalOpen(true)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors whitespace-nowrap ${
-                  filters.cityId ? 'bg-primary text-white' : 'bg-[#f1f3f7] text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <span>{getCityLabel()}</span>
-                <span className="material-symbols-outlined !text-[18px]">expand_more</span>
-              </button>
-            </div>
 
             <div className="hidden lg:flex items-center mb-3 sm:mb-6">
               <div className="relative" ref={sortRef}>

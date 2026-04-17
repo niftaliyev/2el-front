@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header, MobileBottomNav } from "@/components/layout";
@@ -20,6 +20,15 @@ export const metadata: Metadata = {
   description: "Asan, sürətli və etibarlı alış-verişin ünvanı. Nəqliyyat, daşınmaz əmlak, elektronika və daha çox.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#ffffff",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,20 +45,24 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap"
         />
-        <link 
-          rel="stylesheet" 
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" 
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen pb-[54px] md:pb-0`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen pb-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] md:pb-0`}
       >
-        <AuthProvider>
-          <Toaster richColors position="top-right" closeButton />
-          <Header />
-          {children}
-          <MobileBottomNav />
-        </AuthProvider>
+        <div className="flex flex-col min-h-screen w-full relative">
+          <AuthProvider>
+            <Toaster richColors position="top-right" closeButton />
+            <Header />
+            <main className="flex-1 flex flex-col w-full relative">
+              {children}
+            </main>
+            <MobileBottomNav />
+          </AuthProvider>
+        </div>
       </body>
     </html>
   );

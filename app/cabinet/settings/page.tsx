@@ -5,6 +5,7 @@ import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import Input from '@/components/ui/Input';
 import { adService } from '@/services/ad.service';
 import { storeService } from '@/services/store.service';
+import { authService } from '@/services/auth.service';
 import { getImageUrl } from '@/lib/utils';
 import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
@@ -24,8 +25,13 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Store Settings State
-  const [activeTab, setActiveTab] = useState<'profile' | 'store'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'store' | 'security'>('profile');
   const [hasStore, setHasStore] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: '',
+  });
   const [storeFormData, setStoreFormData] = useState({
     storeName: '',
     description: '',
@@ -80,7 +86,7 @@ export default function SettingsPage() {
 
         if (storeStatus.hasStore) {
           const store = await storeService.getMyStore();
-          
+
           // Initial work schedule for all 7 days if missing
           const defaultSchedules = Array.from({ length: 7 }, (_, i) => ({
             dayOfWeek: i,
@@ -92,38 +98,38 @@ export default function SettingsPage() {
 
           const rawSchedules = store.workSchedules || store.WorkSchedules || [];
           const mergedSchedules = defaultSchedules.map(ds => {
-             const existing = rawSchedules.find((ws: any) => {
-               const dow = ws.dayOfWeek !== undefined ? ws.dayOfWeek : ws.DayOfWeek;
-               if (dow === undefined || dow === null) return false;
-               
-               // Handle both numeric (0-6) and string ('Sunday') formats
-               if (typeof dow === 'number') return dow === ds.dayOfWeek;
-               
-               const dowStr = String(dow).trim();
-               const dayMap: Record<string, number> = {
-                 'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6,
-                 'bazar': 0, 'bazar ertəsi': 1, 'çərşənbə axşamı': 2, 'çərşənbə': 3, 'cümə axşamı': 4, 'cümə': 5, 'şənbə': 6
-               };
-               
-               if (dayMap[dowStr] !== undefined) return dayMap[dowStr] === ds.dayOfWeek;
-               const parsedDow = parseInt(dowStr);
-               return !isNaN(parsedDow) && parsedDow === ds.dayOfWeek;
-             });
+            const existing = rawSchedules.find((ws: any) => {
+              const dow = ws.dayOfWeek !== undefined ? ws.dayOfWeek : ws.DayOfWeek;
+              if (dow === undefined || dow === null) return false;
 
-             if (existing) {
-               const isOpen24 = existing.isOpen24Hours !== undefined ? existing.isOpen24Hours : (existing.IsOpen24Hours !== undefined ? existing.IsOpen24Hours : false);
-               const openTime = existing.openTime || existing.OpenTime;
-               const closeTime = existing.closeTime || existing.CloseTime;
-               
-               return {
-                 dayOfWeek: ds.dayOfWeek,
-                 openTime: openTime || '09:00:00',
-                 closeTime: closeTime || '18:00:00',
-                 isOpen24Hours: !!isOpen24,
-                 isClosed: !isOpen24 && (!openTime || openTime === "" || openTime === "null")
-               };
-             }
-             return ds;
+              // Handle both numeric (0-6) and string ('Sunday') formats
+              if (typeof dow === 'number') return dow === ds.dayOfWeek;
+
+              const dowStr = String(dow).trim();
+              const dayMap: Record<string, number> = {
+                'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6,
+                'bazar': 0, 'bazar ertəsi': 1, 'çərşənbə axşamı': 2, 'çərşənbə': 3, 'cümə axşamı': 4, 'cümə': 5, 'şənbə': 6
+              };
+
+              if (dayMap[dowStr] !== undefined) return dayMap[dowStr] === ds.dayOfWeek;
+              const parsedDow = parseInt(dowStr);
+              return !isNaN(parsedDow) && parsedDow === ds.dayOfWeek;
+            });
+
+            if (existing) {
+              const isOpen24 = existing.isOpen24Hours !== undefined ? existing.isOpen24Hours : (existing.IsOpen24Hours !== undefined ? existing.IsOpen24Hours : false);
+              const openTime = existing.openTime || existing.OpenTime;
+              const closeTime = existing.closeTime || existing.CloseTime;
+
+              return {
+                dayOfWeek: ds.dayOfWeek,
+                openTime: openTime || '09:00:00',
+                closeTime: closeTime || '18:00:00',
+                isOpen24Hours: !!isOpen24,
+                isClosed: !isOpen24 && (!openTime || openTime === "" || openTime === "null")
+              };
+            }
+            return ds;
           });
 
           setStoreFormData({
@@ -187,6 +193,33 @@ export default function SettingsPage() {
     }
   };
 
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
+      setError('Yeni şifrələr uyğun gəlmir');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await authService.changePassword(passwordForm);
+      setSuccess('Şifrə uğurla dəyişdirildi!');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Şifrəni dəyişmək mümkün olmadı');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordChange = (name: string, value: string) => {
+    setPasswordForm(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleStoreSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -207,7 +240,7 @@ export default function SettingsPage() {
       if (storeFormData.tiktok) formData.append('TikTok', storeFormData.tiktok);
       if (storeFormData.facebook) formData.append('Facebook', storeFormData.facebook);
       if (storeFormData.cityId) formData.append('CityId', storeFormData.cityId);
-      
+
       storeFormData.categoryIds.forEach(id => {
         formData.append('categoryIds', id);
       });
@@ -243,7 +276,7 @@ export default function SettingsPage() {
     setStoreFormData(prev => {
       const newSchedules = [...prev.workSchedules];
       newSchedules[index] = { ...newSchedules[index], [field]: value };
-      
+
       // Mutual exclusivity
       if (field === 'isOpen24Hours' && value === true) {
         newSchedules[index].isClosed = false;
@@ -251,7 +284,7 @@ export default function SettingsPage() {
       if (field === 'isClosed' && value === true) {
         newSchedules[index].isOpen24Hours = false;
       }
-      
+
       return { ...prev, workSchedules: newSchedules };
     });
   };
@@ -276,8 +309,8 @@ export default function SettingsPage() {
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             <UserSidebar />
             <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-2xl shadow-sm border border-gray-100">
-               <div className="animate-spin h-8 w-8 text-primary border-4 border-primary/20 border-t-primary rounded-full shadow-lg shadow-primary/10" />
-               <p className="text-gray-400 text-sm font-medium">Yüklenir...</p>
+              <div className="animate-spin h-8 w-8 text-primary border-4 border-primary/20 border-t-primary rounded-full shadow-lg shadow-primary/10" />
+              <p className="text-gray-400 text-sm font-medium">Yüklenir...</p>
             </div>
           </div>
         </div>
@@ -304,44 +337,51 @@ export default function SettingsPage() {
                   </p>
                 </div>
 
-                {hasStore && (
-                  <div className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar -mx-1 px-1">
-                    <button 
-                      onClick={() => setActiveTab('profile')}
-                      className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${activeTab === 'profile' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      Profil Ayarları
-                      {activeTab === 'profile' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />}
-                    </button>
-                    <button 
+                <div className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar -mx-1 px-1">
+                  <button
+                    onClick={() => setActiveTab('profile')}
+                    className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${activeTab === 'profile' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    Profil Ayarları
+                    {activeTab === 'profile' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />}
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('security')}
+                    className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${activeTab === 'security' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    Təhlükəsizlik
+                    {activeTab === 'security' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />}
+                  </button>
+                  {hasStore && (
+                    <button
                       onClick={() => setActiveTab('store')}
                       className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${activeTab === 'store' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       Mağaza Ayarları
                       {activeTab === 'store' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />}
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* Success/Error messages */}
               {success && (
                 <div className="mb-6 bg-green-50 border border-green-100 rounded-xl p-4 flex items-center gap-3 animate-in slide-in-from-top">
-                   <div className="size-8 bg-green-500 rounded-lg flex items-center justify-center text-white">
-                      <span className="material-symbols-outlined !text-base font-bold">check_circle</span>
-                   </div>
-                   <p className="text-green-700 text-sm font-bold">{success}</p>
+                  <div className="size-8 bg-green-500 rounded-lg flex items-center justify-center text-white">
+                    <span className="material-symbols-outlined !text-base font-bold">check_circle</span>
+                  </div>
+                  <p className="text-green-700 text-sm font-bold">{success}</p>
                 </div>
               )}
               {error && (
                 <div className="mb-6 bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3 animate-in shake">
-                   <div className="size-8 bg-red-500 rounded-lg flex items-center justify-center text-white">
-                      <span className="material-symbols-outlined !text-base font-bold">warning</span>
-                   </div>
-                   <p className="text-red-700 text-sm font-bold">{error}</p>
+                  <div className="size-8 bg-red-500 rounded-lg flex items-center justify-center text-white">
+                    <span className="material-symbols-outlined !text-base font-bold">warning</span>
+                  </div>
+                  <p className="text-red-700 text-sm font-bold">{error}</p>
                 </div>
               )}
-               {activeTab === 'profile' ? (
+              {activeTab === 'profile' ? (
                 <form onSubmit={handleSubmit} className="space-y-10">
                   {/* Profile Section */}
                   <div className="space-y-8">
@@ -356,10 +396,10 @@ export default function SettingsPage() {
                           <span className="material-symbols-outlined text-gray-400 !text-4xl">person</span>
                         )}
                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                           <span className="material-symbols-outlined text-white font-bold">photo_camera</span>
+                          <span className="material-symbols-outlined text-white font-bold">photo_camera</span>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <h3 className="text-gray-900 text-lg font-bold">Profil Şəkli</h3>
                         <p className="text-gray-500 text-xs font-medium leading-relaxed max-w-xs">
@@ -387,38 +427,40 @@ export default function SettingsPage() {
                       <div className="space-y-2">
                         <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">Ad Soyad</label>
                         <div className="relative group">
-                           <input
-                              value={formData.name}
-                              onChange={(e) => handleInputChange('name', e.target.value)}
-                              className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
-                              placeholder="Adınızı daxil edin"
-                           />
+                          <input
+                            value={formData.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
+                            placeholder="Adınızı daxil edin"
+                          />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                         <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">E-poçt (Dəyişdirilə bilməz)</label>
+                        <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">E-poçt (Dəyişdirilə bilməz)</label>
                         <div className="relative">
-                           <input
-                              type="email"
-                              value={formData.email}
-                              disabled
-                              className="w-full h-14 px-5 rounded-xl border border-gray-100 bg-gray-100/50 text-gray-400 font-bold outline-none cursor-not-allowed"
-                              placeholder="email@example.com"
-                           />
+                          <input
+                            type="email"
+                            value={formData.email}
+                            disabled
+                            className="w-full h-14 px-5 rounded-xl border border-gray-100 bg-gray-100/50 text-gray-400 font-bold outline-none cursor-not-allowed"
+                            placeholder="email@example.com"
+                          />
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">Telefon Nömrəsi</label>
                         <div className="relative group">
-                           <input
-                              type="tel"
-                              value={formData.phone}
-                              onChange={(e) => handleInputChange('phone', e.target.value)}
-                              className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
-                              placeholder="+994 XX XXX XX XX"
-                           />
+                          <input
+                            type="tel"
+                            value={formData.phone}
+                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                            className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
+                            placeholder="Məsələn: 0501234567"
+                            pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
+                            title="Səhv format. Nümunə: 0501234567 və ya +994501234567"
+                          />
                         </div>
                       </div>
                     </div>
@@ -431,7 +473,48 @@ export default function SettingsPage() {
                       disabled={isLoading}
                       className="w-full sm:w-auto min-w-[200px] h-14 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100"
                     >
-                      {isLoading ? 'Yadda saxlanılır...' : 'Dəyişiklikləri yadda saxla'}
+                      {isLoading ? 'Yadda saxlanılır...' : 'Yadda saxla'}
+                    </button>
+                  </div>
+                </form>
+              ) : activeTab === 'security' ? (
+                <form onSubmit={handlePasswordSubmit} className="space-y-10">
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Input
+                        label="Cari Şifrə"
+                        type="password"
+                        value={passwordForm.currentPassword}
+                        onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                        required
+                        placeholder="••••••••"
+                      />
+                      <div className="hidden md:block"></div>
+                      <Input
+                        label="Yeni Şifrə"
+                        type="password"
+                        value={passwordForm.newPassword}
+                        onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                        required
+                        placeholder="••••••••"
+                      />
+                      <Input
+                        label="Yeni Şifrə (Təkrar)"
+                        type="password"
+                        value={passwordForm.confirmNewPassword}
+                        onChange={(e) => handlePasswordChange('confirmNewPassword', e.target.value)}
+                        required
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+                  <div className="pt-6 border-t border-gray-100">
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full sm:w-auto min-w-[200px] h-14 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                    >
+                      {isLoading ? 'Gözləyin...' : 'Şifrəni Yenilə'}
                     </button>
                   </div>
                 </form>
@@ -440,67 +523,67 @@ export default function SettingsPage() {
                   <div className="space-y-8">
                     {/* Media section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                        <div className="p-4 sm:p-6 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center sm:items-start">
-                            <h3 className="text-gray-900 text-[10px] sm:text-sm font-black uppercase tracking-widest mb-4">Mağaza Loqosu</h3>
-                            <div className="relative group cursor-pointer w-32 sm:w-full max-w-[200px]" onClick={() => storeLogoInputRef.current?.click()}>
-                                <div className="aspect-square rounded-2xl bg-gray-200 overflow-hidden border-4 border-white shadow-md">
-                                    {storeLogo ? (
-                                        <img src={storeLogo} className="size-full object-cover" />
-                                    ) : (
-                                        <div className="size-full flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-gray-300 !text-4xl sm:!text-6xl">storefront</span>
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                        <span className="material-symbols-outlined text-white !text-2xl sm:!text-3xl">photo_camera</span>
-                                    </div>
-                                </div>
+                      <div className="p-4 sm:p-6 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center sm:items-start">
+                        <h3 className="text-gray-900 text-[10px] sm:text-sm font-black uppercase tracking-widest mb-4">Mağaza Loqosu</h3>
+                        <div className="relative group cursor-pointer w-32 sm:w-full max-w-[200px]" onClick={() => storeLogoInputRef.current?.click()}>
+                          <div className="aspect-square rounded-2xl bg-gray-200 overflow-hidden border-4 border-white shadow-md">
+                            {storeLogo ? (
+                              <img src={storeLogo} className="size-full object-cover" />
+                            ) : (
+                              <div className="size-full flex items-center justify-center">
+                                <span className="material-symbols-outlined text-gray-300 !text-4xl sm:!text-6xl">storefront</span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                              <span className="material-symbols-outlined text-white !text-2xl sm:!text-3xl">photo_camera</span>
                             </div>
-                            <input 
-                              type="file" 
-                              ref={storeLogoInputRef} 
-                              className="hidden" 
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  setStoreLogoFile(file);
-                                  setStoreLogo(URL.createObjectURL(file));
-                                }
-                              }}
-                            />
+                          </div>
                         </div>
+                        <input
+                          type="file"
+                          ref={storeLogoInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setStoreLogoFile(file);
+                              setStoreLogo(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
+                      </div>
 
-                        <div className="p-4 sm:p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                            <h3 className="text-gray-900 text-[10px] sm:text-sm font-black uppercase tracking-widest mb-4">Mağaza Coveri</h3>
-                            <div className="relative group cursor-pointer" onClick={() => storeCoverInputRef.current?.click()}>
-                                <div className="aspect-video rounded-2xl bg-gray-200 overflow-hidden border-4 border-white shadow-md">
-                                    {storeCover ? (
-                                        <img src={storeCover} className="size-full object-cover" />
-                                    ) : (
-                                        <div className="size-full flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-gray-300 !text-4xl sm:!text-6xl">image</span>
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                        <span className="material-symbols-outlined text-white !text-2xl sm:!text-3xl">photo_camera</span>
-                                    </div>
-                                </div>
+                      <div className="p-4 sm:p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                        <h3 className="text-gray-900 text-[10px] sm:text-sm font-black uppercase tracking-widest mb-4">Mağaza Coveri</h3>
+                        <div className="relative group cursor-pointer" onClick={() => storeCoverInputRef.current?.click()}>
+                          <div className="aspect-video rounded-2xl bg-gray-200 overflow-hidden border-4 border-white shadow-md">
+                            {storeCover ? (
+                              <img src={storeCover} className="size-full object-cover" />
+                            ) : (
+                              <div className="size-full flex items-center justify-center">
+                                <span className="material-symbols-outlined text-gray-300 !text-4xl sm:!text-6xl">image</span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                              <span className="material-symbols-outlined text-white !text-2xl sm:!text-3xl">photo_camera</span>
                             </div>
-                            <input 
-                              type="file" 
-                              ref={storeCoverInputRef} 
-                              className="hidden" 
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  setStoreCoverFile(file);
-                                  setStoreCover(URL.createObjectURL(file));
-                                }
-                              }}
-                            />
+                          </div>
                         </div>
+                        <input
+                          type="file"
+                          ref={storeCoverInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setStoreCoverFile(file);
+                              setStoreCover(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-6">
@@ -523,27 +606,39 @@ export default function SettingsPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                           label="Əlavə Əlaqə Nömrəsi 1 (Opsional)"
+                          type="tel"
                           value={storeFormData.contactNumber2}
                           onChange={(e) => handleStoreInputChange('contactNumber2', e.target.value)}
+                          placeholder="Nümunə: 0501234567"
+                          pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
+                          title="Səhv format. Nümunə: 0501234567"
                         />
                         <Input
                           label="Əlavə Əlaqə Nömrəsi 2 (Opsional)"
+                          type="tel"
                           value={storeFormData.contactNumber3}
                           onChange={(e) => handleStoreInputChange('contactNumber3', e.target.value)}
+                          placeholder="Nümunə: 0501234567"
+                          pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
+                          title="Səhv format. Nümunə: 0501234567"
                         />
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                           label="Əsas Əlaqə Nömrəsi"
+                          type="tel"
                           value={storeFormData.contactNumber}
                           onChange={(e) => handleStoreInputChange('contactNumber', e.target.value)}
                           required
+                          placeholder="Nümunə: 0501234567"
+                          pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
+                          title="Səhv format. Nümunə: 0501234567"
                         />
                         <Input
-                            label="Vebsayt (Opsional)"
-                            value={storeFormData.website}
-                            onChange={(e) => handleStoreInputChange('website', e.target.value)}
+                          label="Vebsayt (Opsional)"
+                          value={storeFormData.website}
+                          onChange={(e) => handleStoreInputChange('website', e.target.value)}
                         />
                       </div>
 
@@ -584,23 +679,23 @@ export default function SettingsPage() {
                           required
                         />
                         <div className="space-y-2">
-                           <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">Şəhər</label>
-                           <select 
-                             value={storeFormData.cityId} 
-                             onChange={(e) => handleStoreInputChange('cityId', e.target.value)}
-                             className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
-                           >
-                             <option value="">Şəhər seçin</option>
-                             {cities.map(city => (
-                               <option key={city.id} value={city.id}>{city.name}</option>
-                             ))}
-                           </select>
+                          <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">Şəhər</label>
+                          <select
+                            value={storeFormData.cityId}
+                            onChange={(e) => handleStoreInputChange('cityId', e.target.value)}
+                            className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
+                          >
+                            <option value="">Şəhər seçin</option>
+                            {cities.map(city => (
+                              <option key={city.id} value={city.id}>{city.name}</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
 
                       {/* Working Hours - Collapsible */}
                       <div className="space-y-4">
-                        <button 
+                        <button
                           type="button"
                           onClick={() => setShowWorkHours(!showWorkHours)}
                           className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-all group"
@@ -614,18 +709,18 @@ export default function SettingsPage() {
 
                         {showWorkHours && (
                           <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-                             <div className="divide-y divide-gray-100">
-                             {storeFormData.workSchedules.map((ws, idx) => (
-                               <div key={idx} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center gap-4 hover:bg-white transition-colors">
-                                 <div className="sm:w-32 flex-shrink-0">
-                                   <span className="text-gray-900 text-xs sm:text-sm font-black uppercase sm:normal-case tracking-wider sm:tracking-normal">{dayNames[ws.dayOfWeek === 0 ? 6 : ws.dayOfWeek - 1] || dayNames[ws.dayOfWeek]}</span>
-                                 </div>
-                                 
-                                 <div className="flex flex-wrap items-center gap-3 sm:gap-6 flex-1">
+                            <div className="divide-y divide-gray-100">
+                              {storeFormData.workSchedules.map((ws, idx) => (
+                                <div key={idx} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center gap-4 hover:bg-white transition-colors">
+                                  <div className="sm:w-32 flex-shrink-0">
+                                    <span className="text-gray-900 text-xs sm:text-sm font-black uppercase sm:normal-case tracking-wider sm:tracking-normal">{dayNames[ws.dayOfWeek === 0 ? 6 : ws.dayOfWeek - 1] || dayNames[ws.dayOfWeek]}</span>
+                                  </div>
+
+                                  <div className="flex flex-wrap items-center gap-3 sm:gap-6 flex-1">
                                     <label className="flex items-center gap-2 cursor-pointer bg-white sm:bg-transparent px-3 py-2 sm:p-0 rounded-xl border border-gray-100 sm:border-0 shadow-sm sm:shadow-none">
-                                      <input 
-                                        type="checkbox" 
-                                        checked={ws.isClosed} 
+                                      <input
+                                        type="checkbox"
+                                        checked={ws.isClosed}
                                         onChange={(e) => handleWorkScheduleChange(idx, 'isClosed', e.target.checked)}
                                         className="size-4 sm:size-5 rounded border-gray-300 text-primary focus:ring-primary"
                                       />
@@ -633,9 +728,9 @@ export default function SettingsPage() {
                                     </label>
 
                                     <label className="flex items-center gap-2 cursor-pointer bg-white sm:bg-transparent px-3 py-2 sm:p-0 rounded-xl border border-gray-100 sm:border-0 shadow-sm sm:shadow-none">
-                                      <input 
-                                        type="checkbox" 
-                                        checked={ws.isOpen24Hours} 
+                                      <input
+                                        type="checkbox"
+                                        checked={ws.isOpen24Hours}
                                         onChange={(e) => handleWorkScheduleChange(idx, 'isOpen24Hours', e.target.checked)}
                                         className="size-4 sm:size-5 rounded border-gray-300 text-primary focus:ring-primary"
                                       />
@@ -644,32 +739,32 @@ export default function SettingsPage() {
 
                                     {!ws.isClosed && !ws.isOpen24Hours && (
                                       <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 ml-auto sm:ml-0">
-                                        <input 
-                                          type="time" 
-                                          value={ws.openTime?.substring(0,5) || '09:00'} 
+                                        <input
+                                          type="time"
+                                          value={ws.openTime?.substring(0, 5) || '09:00'}
                                           onChange={(e) => handleWorkScheduleChange(idx, 'openTime', e.target.value + ':00')}
                                           className="px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 text-[11px] sm:text-xs font-bold text-gray-900 bg-white outline-none focus:border-primary shadow-sm"
                                         />
                                         <span className="text-gray-400 font-bold">-</span>
-                                        <input 
-                                          type="time" 
-                                          value={ws.closeTime?.substring(0,5) || '18:00'} 
+                                        <input
+                                          type="time"
+                                          value={ws.closeTime?.substring(0, 5) || '18:00'}
                                           onChange={(e) => handleWorkScheduleChange(idx, 'closeTime', e.target.value + ':00')}
                                           className="px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 text-[11px] sm:text-xs font-bold text-gray-900 bg-white outline-none focus:border-primary shadow-sm"
                                         />
                                       </div>
                                     )}
-                                 </div>
-                               </div>
-                             ))}
-                           </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
 
                       {/* Categories section - Improved and Hierarchical - Collapsible */}
                       <div className="space-y-4">
-                        <button 
+                        <button
                           type="button"
                           onClick={() => setShowCategories(!showCategories)}
                           className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-all group"
@@ -687,7 +782,7 @@ export default function SettingsPage() {
                               <div key={parent.id} className="bg-gray-50 rounded-2xl border border-gray-100 p-4 space-y-3">
                                 <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-2">
                                   <h4 className="text-gray-900 text-sm font-black uppercase tracking-tight">{parent.name}</h4>
-                                  <button 
+                                  <button
                                     type="button"
                                     onClick={() => toggleCategory(parent.id)}
                                     className={`size-6 rounded-full flex items-center justify-center transition-all ${storeFormData.categoryIds.includes(parent.id) ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'}`}
@@ -695,18 +790,17 @@ export default function SettingsPage() {
                                     <span className="material-symbols-outlined !text-xs font-bold">{storeFormData.categoryIds.includes(parent.id) ? 'done' : 'add'}</span>
                                   </button>
                                 </div>
-                                
+
                                 <div className="flex flex-wrap gap-1.5">
                                   {parent.children?.map((child: any) => (
                                     <button
                                       key={child.id}
                                       type="button"
                                       onClick={() => toggleCategory(child.id)}
-                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
-                                        storeFormData.categoryIds.includes(child.id)
-                                          ? 'bg-primary/10 border-primary text-primary'
-                                          : 'bg-white border-gray-200 text-gray-500 hover:border-gray-400'
-                                      }`}
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${storeFormData.categoryIds.includes(child.id)
+                                        ? 'bg-primary/10 border-primary text-primary'
+                                        : 'bg-white border-gray-200 text-gray-500 hover:border-gray-400'
+                                        }`}
                                     >
                                       {child.name}
                                     </button>
@@ -716,11 +810,10 @@ export default function SettingsPage() {
                                       key={child.id}
                                       type="button"
                                       onClick={() => toggleCategory(child.id)}
-                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
-                                        storeFormData.categoryIds.includes(child.id)
-                                          ? 'bg-primary/10 border-primary text-primary'
-                                          : 'bg-white border-gray-200 text-gray-500 hover:border-gray-400'
-                                      }`}
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${storeFormData.categoryIds.includes(child.id)
+                                        ? 'bg-primary/10 border-primary text-primary'
+                                        : 'bg-white border-gray-200 text-gray-500 hover:border-gray-400'
+                                        }`}
                                     >
                                       {child.name}
                                     </button>

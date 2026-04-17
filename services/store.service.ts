@@ -1,4 +1,5 @@
 import axiosInstance from '@/lib/axios';
+import { authService } from './auth.service';
 import {
   StoreDetail,
   StoreAdItem,
@@ -41,10 +42,59 @@ class StoreService {
     await axiosInstance.post('/store', dto);
   }
 
-  /** Toggle follow a store */
+  private getLocalFollowedStores(): string[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('offline_following_stores');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private setLocalFollowedStores(ids: string[]): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('offline_following_stores', JSON.stringify(ids));
+  }
+
   async toggleFollowStore(storeId: string): Promise<{ message: string }> {
-    const response = await axiosInstance.post<{ message: string }>(`/store/${storeId}/follow`);
+    if (authService.isAuthenticated()) {
+      const response = await axiosInstance.post<{ message: string }>(`/store/${storeId}/follow`);
+      return response.data;
+    } else {
+      let favs = this.getLocalFollowedStores();
+      if (favs.includes(storeId)) {
+        favs = favs.filter(id => id !== storeId);
+        this.setLocalFollowedStores(favs);
+        return { message: "İzləmə ləğv edildi" };
+      } else {
+        favs.push(storeId);
+        this.setLocalFollowedStores(favs);
+        return { message: "Mağaza izlənilir" };
+      }
+    }
+  }
+
+  async getFollowedStoresByIds(): Promise<StoreListItem[]> {
+    const favs = this.getLocalFollowedStores();
+    if (favs.length === 0) return [];
+    const response = await axiosInstance.post<StoreListItem[]>('/store/by-ids', favs);
     return response.data;
+  }
+
+  async syncOfflineFollowedStores(): Promise<void> {
+    if (!authService.isAuthenticated()) return;
+    const favs = this.getLocalFollowedStores();
+    if (favs.length === 0) return;
+    
+    for (const storeId of favs) {
+      try {
+        await axiosInstance.post(`/store/${storeId}/follow`);
+      } catch (e) {
+        // ignore
+      }
+    }
+    localStorage.removeItem('offline_following_stores');
   }
 
   /** Create store request */

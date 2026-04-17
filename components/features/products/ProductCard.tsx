@@ -42,11 +42,6 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isAuthenticated) {
-      router.push(ROUTES.LOGIN);
-      return;
-    }
-
     if (isChangingFav) return;
 
     setIsChangingFav(true);

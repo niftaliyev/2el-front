@@ -484,7 +484,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       </div>
 
                       {product.storeAddress && (
-                        <a 
+                        <a
                           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(product.storeAddress)}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -564,7 +564,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <div className="flex justify-between items-center mb-5">
                   <h2 className="text-xl font-bold text-gray-900">Bənzər elanlar</h2>
                   <Link
-                    href={`${ROUTES.LISTINGS}?categoryId=${product.categoryId}${product.subCategoryId ? `&subCategoryId=${product.subCategoryId}` : ''}`}
+                    href={product.childCategorySlug && product.childCategorySlug !== product.parentCategorySlug
+                      ? ROUTES.SUBCATEGORY(product.parentCategorySlug || '', product.childCategorySlug)
+                      : ROUTES.CATEGORY(product.parentCategorySlug || '')}
                     className="text-primary text-sm font-bold hover:underline flex items-center gap-1"
                   >
                     Hamısını göstər

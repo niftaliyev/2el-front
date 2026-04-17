@@ -35,6 +35,21 @@ export default function Home() {
 
     const fetchCategories = async () => {
       try {
+        const LOCAL_IMAGES: Record<string, string> = {
+          'Elektronika': '/category-images/elektronika_cat.png',
+          'Nəqliyyat': '/category-images/nəqliyyat_cat.png',
+          'Ev və bağ üçün': '/category-images/ev_və_bağ_üçün_cat.png',
+          'Daşınmaz əmlak': '/category-images/daşınmaz_əmlak_cat.png',
+          'Xidmətlər və biznes': '/category-images/xidmətlər_və_biznes_cat.png',
+          'Şəxsi əşyalar': '/category-images/şəxsi_əşyalar_cat.png',
+          'Hobbi və asudə': '/category-images/hobbi_və_asudə_cat.png',
+          'Uşaq aləmi': '/category-images/uşaq_aləmi_cat.png',
+          'Heyvanlar': '/category-images/heyvanlar_cat.png',
+          'İş elanları': '/category-images/iş_elanları_cat.png',
+          'Ehtiyat hissələri və aksesuarlar (avto)': '/category-images/ehtiyyat_hissələri_və_aksesuarlar_avto_cat.png',
+          'Məktəblilər üçün': '/category-images/məktəblilər_üçün_cat.png'
+        };
+
         const tree = await adService.getCategoryTree();
         if (tree && tree.length > 0) {
           const dynamicCategories: Category[] = tree.map((cat: any) => ({
@@ -42,7 +57,7 @@ export default function Home() {
             name: cat.name,
             slug: generateSlug(cat.name),
             icon: ICONS[cat.name] || 'category',
-            image: getImageUrl(cat.imageUrl),
+            image: LOCAL_IMAGES[cat.name] || getImageUrl(cat.imageUrl),
             description: '',
             children: cat.children?.map((child: any) => ({
               id: child.id,
