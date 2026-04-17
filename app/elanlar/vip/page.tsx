@@ -57,6 +57,7 @@ function VipListingsContent() {
           updatedAt: new Date(item.createdDate),
           isPremium: item.isPremium,
           isFeatured: item.isVip,
+          isBoosted: item.isBoosted,
           isFavourite: item.isFavourite,
           store: item.isStore ? {
             id: '0',

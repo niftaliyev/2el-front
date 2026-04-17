@@ -7,6 +7,7 @@ import { storeService } from '@/services/store.service';
 import { StoreDetail, StoreAdItem } from '@/types/api';
 import { getImageUrl, formatPrice, formatRelativeTime } from '@/lib/utils';
 import ProductGrid from '@/components/features/products/ProductGrid';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { Product } from '@/types';
 import ReportModal from '@/components/features/ReportModal';
 
@@ -26,6 +27,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const isNavVisible = useScrollDirection();
 
   const availableCategories = Array.from(new Set(ads.map(ad => ad.category?.name).filter(Boolean))) as string[];
 
@@ -58,9 +60,12 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
           images: ad.image ? [getImageUrl(ad.image)] : [],
           createdAt: new Date(ad.createdDate),
           category: { name: ad.categoryName || '', slug: '' },
-          location: { city: '' },
+          location: { city: ad.city || '' },
           seller: { name: data.storeName, id: data.id, createdAt: new Date(), email: '', isVerified: true },
           condition: ad.isNew ? 'new' : 'used',
+          isFeatured: ad.isVip,
+          isPremium: ad.isPremium,
+          isBoosted: ad.isBoosted,
           status: 'active',
           viewCount: 0,
           favoriteCount: 0,
@@ -197,7 +202,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
   const storeStatus = getStoreStatus();
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-20">
+    <main className="min-h-screen bg-gray-50 pb-32 sm:pb-20">
       {/* Cover and Profile Header */}
       <div className="relative">
         <div className="h-56 md:h-96 w-full relative bg-gray-200 overflow-hidden">
@@ -297,7 +302,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                 <div className="flex items-center justify-center md:justify-start gap-3 md:pb-2 w-full lg:w-auto">
                   <button
                     onClick={handleToggleFollow}
-                    className={`flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 md:px-10 h-14 md:h-16 rounded-[1.25rem] shadow-xl transition-all active:scale-95 font-black uppercase tracking-[0.1em] text-[11px] md:text-[12px] ${isFollowing
+                    className={`flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 md:px-10 h-14 md:h-16 rounded-[1.25rem] shadow-xl transition-all active:scale-95 font-bold text-sm ${isFollowing
                       ? 'bg-gray-100 text-gray-500 hover:bg-gray-200 shadow-none'
                       : 'bg-primary text-white shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] active:shadow-none'
                       }`}
@@ -412,9 +417,9 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                   <div className="flex-1">
                     <p className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-1">Əlaqə nömrələri</p>
                     <div className="space-y-1.5 mt-1">
-                      <p className="text-base font-black text-gray-900 tracking-tight">{store.contactNumber}</p>
-                      {store.contactNumber2 && <p className="text-base font-black text-gray-900 tracking-tight">{store.contactNumber2}</p>}
-                      {store.contactNumber3 && <p className="text-base font-black text-gray-900 tracking-tight">{store.contactNumber3}</p>}
+                      <a href={`tel:${store.contactNumber.replace(/\s+/g, '')}`} className="block text-base font-black text-gray-900 tracking-tight hover:text-primary transition-colors">{store.contactNumber}</a>
+                      {store.contactNumber2 && <a href={`tel:${store.contactNumber2.replace(/\s+/g, '')}`} className="block text-base font-black text-gray-900 tracking-tight hover:text-primary transition-colors">{store.contactNumber2}</a>}
+                      {store.contactNumber3 && <a href={`tel:${store.contactNumber3.replace(/\s+/g, '')}`} className="block text-base font-black text-gray-900 tracking-tight hover:text-primary transition-colors">{store.contactNumber3}</a>}
                     </div>
                   </div>
                 </div>
@@ -490,9 +495,9 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                       onClick={() => {
                         setIsSortDropdownOpen(!isSortDropdownOpen);
                       }}
-                      className="h-12 pl-5 pr-12 rounded-2xl border border-gray-200 bg-white text-[11px] font-black text-gray-700 outline-none hover:border-primary transition-all shadow-sm flex items-center justify-between min-w-[180px]"
+                      className="h-12 pl-5 pr-12 rounded-2xl border border-gray-200 bg-white text-sm font-bold text-gray-700 outline-none hover:border-primary transition-all shadow-sm flex items-center justify-between min-w-[200px]"
                     >
-                      <span className="uppercase tracking-widest">
+                      <span className="truncate">
                         {adSortOrder === 'newest' && 'Ən yeni'}
                         {adSortOrder === 'oldest' && 'Ən köhnə'}
                         {adSortOrder === 'price-asc' && 'Ucuzdan bahaya'}
@@ -511,7 +516,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                         ].map(opt => (
                           <div 
                             key={opt.id}
-                            className={`px-5 py-3 text-[11px] font-black uppercase tracking-widest cursor-pointer transition-all ${adSortOrder === opt.id ? 'text-primary bg-primary/5' : 'text-gray-500 hover:bg-gray-50 hover:pl-6'}`}
+                            className={`px-5 py-3.5 text-sm font-semibold cursor-pointer transition-all ${adSortOrder === opt.id ? 'text-primary bg-primary/5' : 'text-gray-600 hover:bg-gray-50 hover:pl-7'}`}
                             onClick={() => { setAdSortOrder(opt.id); setIsSortDropdownOpen(false); }}
                           >
                             {opt.label}
@@ -595,6 +600,27 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
         targetId={store.id}
         type="store"
       />
+
+      {/* Mobile Sticky Action Bar */}
+      <div 
+        className={`lg:hidden fixed left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${
+          isNavVisible 
+            ? 'bottom-[calc(54px+max(9px,env(safe-area-inset-bottom)))]' 
+            : 'bottom-0'
+        }`}
+      >
+        <a
+          href={`tel:${store.contactNumber.replace(/\s+/g, '')}`}
+          className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#22C55E] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(34,197,94,0.3)] active:scale-95 transition-all"
+        >
+          <span className="material-symbols-outlined !text-[20px]">call</span>
+          Zəng et
+        </a>
+        <button className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#3B82F6] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(59,130,246,0.3)] active:scale-95 transition-all">
+          <span className="material-symbols-outlined !text-[20px]">chat</span>
+          Mesaj yaz
+        </button>
+      </div>
     </main>
   );
 }

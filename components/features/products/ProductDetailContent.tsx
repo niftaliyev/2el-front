@@ -22,6 +22,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/thumbs';
 import 'swiper/css/free-mode';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
 
 export default function ProductDetailContent({ id }: { id: string }) {
   const { user, isAuthenticated } = useAuth();
@@ -42,7 +43,9 @@ export default function ProductDetailContent({ id }: { id: string }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isChangingFav, setIsChangingFav] = useState(false);
   const [lightboxSwiper, setLightboxSwiper] = useState<SwiperType | null>(null);
+  const isNavVisible = useScrollDirection();
 
   const formatBooleanValue = (name: string, value: string | boolean) => {
     const strVal = String(value).toLowerCase();
@@ -115,7 +118,9 @@ export default function ProductDetailContent({ id }: { id: string }) {
                   subCategory: ad.subCategorySlug ? { name: '', slug: ad.subCategorySlug } : undefined,
                   location: { city: ad.city ?? '' },
                   createdAt: new Date(ad.createdDate),
+                  isPremium: ad.isPremium,
                   isFeatured: true,
+                  isBoosted: ad.isBoosted,
                   isFavourite: ad.isFavourite,
                 } as any;
               });
@@ -142,6 +147,8 @@ export default function ProductDetailContent({ id }: { id: string }) {
                   location: { city: ad.city ?? '' },
                   createdAt: new Date(ad.createdDate),
                   isPremium: ad.isPremium,
+                  isFeatured: ad.isVip,
+                  isBoosted: ad.isBoosted,
                   isFavourite: ad.isFavourite,
                 } as any;
               });
@@ -182,11 +189,13 @@ export default function ProductDetailContent({ id }: { id: string }) {
     : ['/placeholder-product.jpg'];
 
   const handleFavoriteToggle = async () => {
+    if (isChangingFav || !product) return;
     try {
+      setIsChangingFav(true);
       if (isFavorite) {
-        await adService.removeFromFavourites(product.id);
+        await adService.removeFromFavourites(product.id || '');
       } else {
-        await adService.addToFavourites(product.id);
+        await adService.addToFavourites(product.id || '');
       }
       setIsFavorite(!isFavorite);
     } catch (err) {
@@ -197,13 +206,16 @@ export default function ProductDetailContent({ id }: { id: string }) {
   };
 
   const handleFollowStore = async () => {
-    if (isChangingFav) return;
+    if (isChangingFav || !product?.storeId) return;
     try {
+      setIsChangingFav(true);
       const { storeService } = await import('@/services/store.service');
       await storeService.toggleFollowStore(product.storeId);
       setIsFollowingStore(!isFollowingStore);
     } catch (err) {
       console.error('Follow store error:', err);
+    } finally {
+      setIsChangingFav(false);
     }
   };
 
@@ -295,7 +307,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
           </aside>
 
           {/* Main Content Wrappers */}
-          <div className="flex-1 min-w-0 py-5 sm:py-10">
+          <div className="flex-1 min-w-0 pt-5 pb-24 sm:py-10">
             <div className="flex flex-col gap-6 max-w-[1200px] mx-auto">
               {/* Breadcrumb */}
               <div>
@@ -355,10 +367,16 @@ export default function ProductDetailContent({ id }: { id: string }) {
                     </h1>
                     <div className="flex gap-2">
                       {product.isVip && (
-                        <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider">VIP</span>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#0057e6] to-[#0070f3] text-white rounded-full shadow-lg shadow-blue-500/20 border border-white/10 scale-[0.95] sm:scale-100 origin-left">
+                          <span className="material-symbols-outlined !text-[16px] font-black">stars</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest">VIP</span>
+                        </div>
                       )}
                       {product.isPremium && (
-                        <span className="bg-primary text-white text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider">PREMIUM</span>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#ff9900] to-[#ffb84d] text-white rounded-full shadow-lg shadow-amber-500/20 border border-white/10 scale-[0.95] sm:scale-100 origin-left">
+                          <span className="material-symbols-outlined !text-[16px] font-black">workspace_premium</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest">PREMIUM</span>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -640,15 +658,30 @@ export default function ProductDetailContent({ id }: { id: string }) {
                               )}
                             </div>
                             <div className="flex flex-col gap-1.5 min-h-[1.5rem] justify-center">
-                              <span className="text-gray-900 font-black text-xl tracking-tight leading-none overflow-hidden">
-                                {showFullPhone
-                                  ? product.phoneNumber
-                                  : product.phoneNumber.replace(/(\+994|0)(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 *** ** **')}
-                              </span>
+                              {showFullPhone ? (
+                                <a
+                                  href={`tel:${product.phoneNumber.replace(/\s+/g, '')}`}
+                                  className="text-gray-900 font-black text-xl tracking-tight leading-none hover:text-primary transition-colors"
+                                >
+                                  {product.phoneNumber}
+                                </a>
+                              ) : (
+                                <span className="text-gray-900 font-black text-xl tracking-tight leading-none cursor-pointer" onClick={() => setShowFullPhone(true)}>
+                                  {product.phoneNumber.replace(/(\+994|0)(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 *** ** **')}
+                                </span>
+                              )}
                               {showFullPhone && (product.contactNumber2 || product.contactNumber3) && (
                                 <div className="flex flex-col gap-1.5 mt-1 border-t border-gray-200/50 pt-2 animate-in fade-in duration-300">
-                                  {product.contactNumber2 && <span className="text-gray-900 font-extrabold text-lg tracking-tight leading-none">{product.contactNumber2}</span>}
-                                  {product.contactNumber3 && <span className="text-gray-900 font-extrabold text-lg tracking-tight leading-none">{product.contactNumber3}</span>}
+                                  {product.contactNumber2 && (
+                                    <a href={`tel:${product.contactNumber2.replace(/\s+/g, '')}`} className="text-gray-900 font-extrabold text-lg tracking-tight leading-none hover:text-primary transition-colors">
+                                      {product.contactNumber2}
+                                    </a>
+                                  )}
+                                  {product.contactNumber3 && (
+                                    <a href={`tel:${product.contactNumber3.replace(/\s+/g, '')}`} className="text-gray-900 font-extrabold text-lg tracking-tight leading-none hover:text-primary transition-colors">
+                                      {product.contactNumber3}
+                                    </a>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -704,7 +737,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                                 )}
 
                                 {product.storeAddress && (
-                                  <a 
+                                  <a
                                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(product.storeAddress)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -769,10 +802,10 @@ export default function ProductDetailContent({ id }: { id: string }) {
                   <div className="space-y-5">
                     <div className="flex justify-between items-center px-2">
                       <h2 className="text-xl font-bold text-gray-900">Bənzər elanlar</h2>
-                      <Link 
+                      <Link
                         href={product.childCategorySlug && product.childCategorySlug !== product.parentCategorySlug
                           ? ROUTES.SUBCATEGORY(product.parentCategorySlug || '', product.childCategorySlug)
-                          : ROUTES.CATEGORY(product.parentCategorySlug || '')} 
+                          : ROUTES.CATEGORY(product.parentCategorySlug || '')}
                         className="text-primary text-sm font-bold hover:underline flex items-center gap-1"
                       >
                         Hamısını göstər <span className="material-symbols-outlined !text-[18px]">chevron_right</span>
@@ -840,6 +873,36 @@ export default function ProductDetailContent({ id }: { id: string }) {
         targetId={id}
         type="ad"
       />
+
+      {/* Mobile Sticky Action Bar */}
+      <div
+        className={`lg:hidden fixed left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${isNavVisible
+          ? 'bottom-[calc(54px+max(9px,env(safe-area-inset-bottom)))]'
+          : 'bottom-0'
+          }`}
+      >
+        {showFullPhone ? (
+          <a
+            href={`tel:${product.phoneNumber.replace(/\s+/g, '')}`}
+            className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#22C55E] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(34,197,94,0.3)] active:scale-95 transition-all"
+          >
+            <span className="material-symbols-outlined !text-[20px]">call</span>
+            Zəng et
+          </a>
+        ) : (
+          <button
+            onClick={() => setShowFullPhone(true)}
+            className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#22C55E] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(34,197,94,0.3)] active:scale-95 transition-all"
+          >
+            <span className="material-symbols-outlined !text-[20px]">call</span>
+            Zəng et
+          </button>
+        )}
+        <button className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#3B82F6] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(59,130,246,0.3)] active:scale-95 transition-all">
+          <span className="material-symbols-outlined !text-[20px]">chat</span>
+          Mesaj yaz
+        </button>
+      </div>
     </main>
   );
 }

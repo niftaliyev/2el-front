@@ -30,17 +30,15 @@ export default function FavoritesPage() {
     try {
       if (activeTab === 'ads') {
         const result = await adService.getFavourites({ pageNumber: 1, pageSize: 50 });
-        setFavorites(result.data ?? []);
+        setFavorites(result?.data ?? []);
       } else {
+        let response: StoreListItem[] = [];
         if (isAuthenticated) {
-           const { storeService } = await import('@/services/store.service');
-           // Assuming a getFollowedStores exists in the service
-           const response = await storeService.getFollowedStores?.();
-           setFollowedStores(response || []);
+          response = await storeService.getFollowedStores();
         } else {
-           const response = await storeService.getFollowedStoresByIds();
-           setFollowedStores(response || []);
+          response = await storeService.getFollowedStoresByIds();
         }
+        setFollowedStores(response || []);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -89,18 +87,16 @@ export default function FavoritesPage() {
                 <div className="flex gap-8 overflow-x-auto scrollbar-hide">
                   <button
                     onClick={() => setActiveTab('ads')}
-                    className={`pb-4 px-1 text-sm sm:text-base font-bold transition-all relative whitespace-nowrap ${
-                      activeTab === 'ads' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
-                    }`}
+                    className={`pb-4 px-1 text-sm sm:text-base font-bold transition-all relative whitespace-nowrap ${activeTab === 'ads' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
+                      }`}
                   >
                     Elanlar ({favorites.length})
                     {activeTab === 'ads' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
                   </button>
                   <button
                     onClick={() => setActiveTab('stores')}
-                    className={`pb-4 px-1 text-sm sm:text-base font-bold transition-all relative whitespace-nowrap ${
-                      activeTab === 'stores' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
-                    }`}
+                    className={`pb-4 px-1 text-sm sm:text-base font-bold transition-all relative whitespace-nowrap ${activeTab === 'stores' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
+                      }`}
                   >
                     Mağazalar ({followedStores.length})
                     {activeTab === 'stores' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
@@ -118,7 +114,7 @@ export default function FavoritesPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
                     {favorites.map(ad => {
                       const imageUrl = ad.image ? getImageUrl(ad.image) : '/placeholder-product.jpg';
-                      
+
                       return (
                         <div key={ad.id} className="relative group/card h-full">
                           <Link href={ROUTES.PRODUCT(ad)} className="h-full block">
@@ -132,14 +128,14 @@ export default function FavoritesPage() {
                                   className="object-cover transition-transform duration-500 group-hover/card:scale-105"
                                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
                                 />
-                                
+
                                 {/* Price Badge */}
                                 <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-white/95 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl shadow-lg border border-white z-10">
-                                   <p className="text-primary font-bold text-sm sm:text-base tabular-nums">
-                                     {formatPrice(ad.price, 'AZN')}
-                                   </p>
+                                  <p className="text-primary font-bold text-sm sm:text-base tabular-nums">
+                                    {formatPrice(ad.price, 'AZN')}
+                                  </p>
                                 </div>
-  
+
                                 {/* Featured Badges */}
                                 <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex gap-0.5 sm:gap-1 z-10">
                                   {ad.isVip && (
@@ -154,12 +150,12 @@ export default function FavoritesPage() {
                                   )}
                                 </div>
                               </div>
-                              
+
                               <div className="flex flex-col p-2 sm:p-4 flex-1">
                                 <h3 className="text-[12px] sm:text-sm font-bold text-gray-900 group-hover/card:text-primary transition-colors line-clamp-2 mb-2 sm:mb-3 leading-tight min-h-[30px] sm:min-h-0">
                                   {ad.title}
                                 </h3>
-                                
+
                                 <div className="mt-auto space-y-1 sm:space-y-2">
                                   <div className="flex justify-between items-center text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-tight">
                                     <div className="flex items-center gap-0.5 sm:gap-1">
@@ -175,7 +171,7 @@ export default function FavoritesPage() {
                               </div>
                             </div>
                           </Link>
-                          
+
                           {/* Remove Button */}
                           <button
                             onClick={(e) => {

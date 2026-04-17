@@ -92,12 +92,15 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
 
   // Lock body scroll when open on mobile
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && window.innerWidth < 1024) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+        document.documentElement.style.overflow = '';
+      };
     }
-    return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -105,9 +108,9 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
   return (
     <>
       {/* ==================== MOBILE VIEW ==================== */}
-      <div className="lg:hidden fixed inset-0 z-50 bg-white flex flex-col">
+      <div className="lg:hidden fixed inset-0 z-[200] bg-white flex flex-col overscroll-contain overflow-hidden">
         {/* Mobile Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200 bg-white flex-shrink-0">
           <button
             onClick={onClose}
             className="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 transition-colors"
@@ -158,12 +161,12 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
       {/* ==================== DESKTOP VIEW ==================== */}
       {/* Backdrop */}
       <div
-        className="hidden lg:block fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] transition-opacity"
+        className="hidden lg:block fixed inset-0 top-[64px] z-40 bg-black/20 backdrop-blur-[2px] transition-opacity"
         onClick={onClose}
       />
 
       {/* Desktop Dropdown */}
-      <div className="hidden lg:flex absolute top-full left-0 mt-3 w-screen max-w-6xl bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-50 overflow-hidden h-[500px]">
+      <div className="hidden lg:flex fixed top-[72px] left-1/2 -translate-x-1/2 w-full max-w-6xl bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-50 overflow-hidden h-[500px]">
 
         {/* Column 1: Main Categories */}
         <div className="w-[280px] border-r border-gray-100 overflow-y-auto bg-gray-50/50">
