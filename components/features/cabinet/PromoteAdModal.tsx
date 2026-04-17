@@ -83,24 +83,27 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => setActiveTab('vip')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'vip' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:bg-gray-50'
+            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 ${activeTab === 'vip' ? 'text-blue-600 border-blue-600 bg-blue-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
               }`}
           >
-            VIP
+            <span className="material-symbols-outlined !text-[20px] font-bold">stars</span>
+            <span>VIP</span>
           </button>
           <button
             onClick={() => setActiveTab('premium')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'premium' ? 'text-primary border-b-2 border-primary bg-primary/5' : 'text-gray-500 hover:bg-gray-50'
+            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 ${activeTab === 'premium' ? 'text-amber-500 border-amber-500 bg-amber-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
               }`}
           >
-            Premium
+            <span className="material-symbols-outlined !text-[20px] font-bold">workspace_premium</span>
+            <span>Premium</span>
           </button>
           <button
             onClick={() => setActiveTab('boost')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'boost' ? 'text-amber-500 border-b-2 border-amber-500 bg-amber-50/50' : 'text-gray-500 hover:bg-gray-50'
+            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 ${activeTab === 'boost' ? 'text-green-600 border-green-600 bg-green-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
               }`}
           >
-            İrəli Çək
+            <span className="material-symbols-outlined !text-[20px] font-bold">rocket_launch</span>
+            <span>İrəli Çək</span>
           </button>
         </div>
 

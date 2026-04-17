@@ -37,6 +37,12 @@ class StoreService {
     return response.data ?? [];
   }
 
+  /** Get followed stores for authenticated user */
+  async getFollowedStores(): Promise<StoreListItem[]> {
+    const response = await axiosInstance.get<StoreListItem[]>('/store/followed');
+    return response.data ?? [];
+  }
+
   /** Create store */
   async createStore(dto: CreateStoreDto): Promise<void> {
     await axiosInstance.post('/store', dto);

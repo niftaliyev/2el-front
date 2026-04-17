@@ -232,6 +232,9 @@ export interface StoreAdItem {
   categoryName?: string;
   city?: string;
   isNew: boolean;
+  isVip?: boolean;
+  isPremium?: boolean;
+  isBoosted?: boolean;
 }
 
 export interface StoreDetail {
