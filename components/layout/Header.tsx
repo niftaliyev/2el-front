@@ -29,11 +29,13 @@ export default function Header() {
   const handleShare = async () => {
     if (typeof window === 'undefined') return;
 
+    const url = window.location.href;
+
     if (navigator.share) {
       try {
         await navigator.share({
           title: document.title,
-          url: window.location.href,
+          url: url,
         });
       } catch (error: any) {
         if (error.name !== 'AbortError') {
@@ -42,12 +44,38 @@ export default function Header() {
         }
       }
     } else {
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        toast.success('Link kopyalandı!');
-      } catch (error) {
-        console.error('Error copying link:', error);
-        toast.error('Linki kopyalamaq mümkün olmadı');
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(url);
+          toast.success('Link kopyalandı!');
+        } catch (error) {
+          console.error('Error copying link:', error);
+          toast.error('Linki kopyalamaq mümkün olmadı');
+        }
+      } else {
+        // HTTP mühitləri üçün (Köhnə üsul)
+        try {
+          const textArea = document.createElement("textarea");
+          textArea.value = url;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-9999px";
+          textArea.style.top = "0";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textArea);
+
+          if (successful) {
+            toast.success('Link kopyalandı!');
+          } else {
+            toast.error('Linki kopyalamaq mümkün olmadı');
+          }
+        } catch (err) {
+          console.error('Fallback copying failed', err);
+          toast.error('Linki kopyalamaq mümkün olmadı');
+        }
       }
     }
   };
