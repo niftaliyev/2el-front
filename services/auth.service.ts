@@ -63,6 +63,11 @@ class AuthService {
     throw new Error('Failed to get current user');
   }
 
+  /** Change Password */
+  async changePassword(data: any): Promise<void> {
+    await axiosInstance.post('/auth/change-password', data);
+  }
+
   /** Check if authenticated */
   isAuthenticated(): boolean {
     return !!this.getAccessToken();

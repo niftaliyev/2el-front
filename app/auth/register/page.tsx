@@ -89,11 +89,13 @@ export default function RegisterPage() {
               <Input
                 label="Telefon nömrəsi"
                 type="tel"
-                placeholder="+994XX XXX XX XX"
+                placeholder="Nümunə: 0501234567 və ya +994501234567"
                 value={formData.phoneNumber}
                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                 disabled={isLoading}
                 required
+                pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
+                title="Səhv format. Nümunə: 0501234567 və ya +994501234567"
               />
 
               <Input

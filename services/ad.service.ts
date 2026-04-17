@@ -1,4 +1,5 @@
 import axiosInstance from '@/lib/axios';
+import { authService } from './auth.service';
 import {
   AdListItem,
   AdDetail,
@@ -281,17 +282,76 @@ class AdService {
 
   // ── Favourites ────────────────────────────────────────────────────────────
 
+  private getLocalFavourites(): string[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('offline_favourites');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private setLocalFavourites(ids: string[]): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('offline_favourites', JSON.stringify(ids));
+  }
+
   async addToFavourites(adId: string): Promise<void> {
-    await axiosInstance.get('/favourites/add', { params: { adId } });
+    if (authService.isAuthenticated()) {
+      await axiosInstance.get('/favourites/add', { params: { adId } });
+    } else {
+      const favs = this.getLocalFavourites();
+      if (!favs.includes(adId)) {
+        favs.push(adId);
+        this.setLocalFavourites(favs);
+      }
+    }
   }
 
   async removeFromFavourites(adId: string): Promise<void> {
-    await axiosInstance.delete('/favourites', { params: { adId } });
+    if (authService.isAuthenticated()) {
+      await axiosInstance.delete('/favourites', { params: { adId } });
+    } else {
+      let favs = this.getLocalFavourites();
+      favs = favs.filter(id => id !== adId);
+      this.setLocalFavourites(favs);
+    }
   }
 
   async getFavourites(params?: SearchParams): Promise<PaginatedResponse<AdListItem[]>> {
-    const response = await axiosInstance.post<PaginatedResponse<AdListItem[]>>('/favourites', params ?? { pageNumber: 1, pageSize: 20 });
-    return response.data;
+    if (authService.isAuthenticated()) {
+      const response = await axiosInstance.post<PaginatedResponse<AdListItem[]>>('/favourites', params ?? { pageNumber: 1, pageSize: 20 });
+      return response.data;
+    } else {
+      const favs = this.getLocalFavourites();
+      if (favs.length === 0) {
+        return { data: [], totalPages: 0, totalElements: 0, pageNumber: 1, pageSize: 20 };
+      }
+      const response = await axiosInstance.post<AdListItem[]>('/ad/by-ids', favs);
+      return {
+        data: response.data,
+        pageNumber: 1,
+        pageSize: favs.length,
+        totalPages: 1,
+        totalElements: favs.length,
+      };
+    }
+  }
+
+  async syncOfflineFavourites(): Promise<void> {
+    if (!authService.isAuthenticated()) return;
+    const favs = this.getLocalFavourites();
+    if (favs.length === 0) return;
+    
+    for (const adId of favs) {
+      try {
+        await axiosInstance.get('/favourites/add', { params: { adId } });
+      } catch (e) {
+        // ignore
+      }
+    }
+    localStorage.removeItem('offline_favourites');
   }
 
   /** Increase balance request */

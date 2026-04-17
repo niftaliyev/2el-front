@@ -336,11 +336,14 @@ export default function BusinessLandingPage() {
                                     />
                                     <Input
                                         label="Mobil nömrə"
-                                        placeholder="000 000 00 00"
+                                        type="tel"
+                                        placeholder="Nümunə: 0501234567 və ya +994501234567"
                                         required
                                         className="h-12 sm:h-14 rounded-xl border-gray-200 focus:ring-primary/20"
                                         value={formData.phoneNumber}
                                         onChange={(e: any) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                        pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
+                                        title="Səhv format. Nümunə: 0501234567 və ya +994501234567"
                                     />
                                 </div>
 

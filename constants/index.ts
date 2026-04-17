@@ -108,67 +108,99 @@ export const USER_STATUSES = [
 
 export const CATEGORIES = [
   { 
+    id: '4', 
+    name: 'Daşınmaz əmlak', 
+    slug: 'real-estate', 
+    icon: 'home',
+    image: '/category-images/daşınmaz_əmlak_cat.png',
+    description: 'Mənzillər, həyət və bağ evləri, torpaq sahələri...'
+  },
+  { 
+    id: 'transport_parts', 
+    name: 'Ehtiyat hissələri və aksesuarlar (avto)', 
+    slug: 'auto-parts', 
+    icon: 'settings',
+    image: '/category-images/ehtiyyat_hissələri_və_aksesuarlar_avto_cat.png',
+    description: ''
+  },
+  { 
     id: '1', 
     name: 'Elektronika', 
     slug: 'electronics', 
     icon: 'devices',
-    description: 'Audio və video, kompüter aksesuarları, telefo...',
-    children: [
-      { id: '1-1', name: 'Audio və video', slug: 'audio-video', icon: 'movie' },
-      { id: '1-2', name: 'Kompüter aksesuarları', slug: 'computer-accessories', icon: 'mouse' },
-      { id: '1-3', name: 'Oyunlar, pultlar və proqramlar', slug: 'games-consoles', icon: 'sports_esports', children: [
-        { id: '1-3-1', name: 'Oyun konsolları', slug: 'consoles' },
-        { id: '1-3-2', name: 'Konsollar üçün oyunlar', slug: 'console-games' },
-        { id: '1-3-3', name: 'Kompüter oyunları', slug: 'pc-games' },
-      ]},
-      { id: '1-4', name: 'Masaüstü kompüterlər', slug: 'desktops', icon: 'desktop_windows' },
-      { id: '1-5', name: 'Komponentlər və monitorlar', slug: 'components-monitors', icon: 'monitor' },
-    ]
-  },
-  { 
-    id: '2', 
-    name: 'Nəqliyyat', 
-    slug: 'transport', 
-    icon: 'directions_car',
-    description: 'Avtomobillər, ehtiyat hissələri, aksesuarlar, av...',
-    children: [
-      { id: '2-1', name: 'Avtomobillər', slug: 'cars', icon: 'directions_car' },
-      { id: '2-2', name: 'Ehtiyat hissələri və aksesuarlar', slug: 'parts', icon: 'settings' },
-      { id: '2-3', name: 'Motosikletlər', slug: 'motorcycles', icon: 'moped' },
-    ]
+    image: '/category-images/elektronika_cat.png',
+    description: 'Audio və video, kompüter aksesuarları, telefon...'
   },
   { 
     id: '3', 
     name: 'Ev və bağ üçün', 
     slug: 'home-garden', 
     icon: 'chair',
-    description: 'Təmir və tikinti, mebel və interyer, məişət texn...',
-    children: [
-      { id: '3-1', name: 'Mebel', slug: 'furniture', icon: 'chair' },
-      { id: '3-2', name: 'Təmir və tikinti', slug: 'building', icon: 'construction' },
-      { id: '3-3', name: 'Məişət texnikası', slug: 'appliances', icon: 'kitchen' },
-    ]
+    image: '/category-images/ev_və_bağ_üçün_cat.png',
+    description: 'Təmir və tikinti, mebel və interyer, məişət texn...'
   },
   { 
-    id: '4', 
-    name: 'Daşınmaz əmlak', 
-    slug: 'real-estate', 
-    icon: 'home',
-    description: 'Mənzillər, həyət və bağ evləri, torpaq sahələri...',
-    children: [
-      { id: '4-1', name: 'Mənzillər', slug: 'apartments', icon: 'apartment' },
-      { id: '4-2', name: 'Həyət evləri', slug: 'houses', icon: 'home' },
-      { id: '4-3', name: 'Torpaq', slug: 'land', icon: 'landscape' },
-    ]
+    id: '11', 
+    name: 'Heyvanlar', 
+    slug: 'animals', 
+    icon: 'pets',
+    image: '/category-images/heyvanlar_cat.png',
+    description: 'Ev heyvanları, aksesuarlar və yem'
   },
-  { id: '5', name: 'Xidmətlər və biznes', slug: 'services', icon: 'home_repair_service', description: 'Avadanlıqların icarəsi və quraşdırılması, təmir...' },
-  { id: '6', name: 'Şəxsi əşyalar', slug: 'personal', icon: 'watch', description: 'Geyim və ayaqqabılar, aksesuarlar, saat və zi...' },
-  { id: '7', name: 'Telefonlar', slug: 'phones', icon: 'smartphone', description: 'Telefonlar, smartfonlar və aksesuarlar elanları' },
-  { id: '8', name: 'Hobbi və asudə', slug: 'hobbies', icon: 'sports_esports', description: 'Biletlər və səyahət, velosipedlər, kolleksiya, id...' },
-  { id: '9', name: 'Məişət texnikası', slug: 'appliances', icon: 'kitchen', description: 'Eviniz üçün məişət texnikası' },
-  { id: '10', name: 'Uşaq aləmi', slug: 'kids', icon: 'stroller', description: 'Uşaq geyimləri, oyuncaqlar, uşaq arabaları...', children: [
-    { id: '10-1', name: 'Məktəblilər üçün', slug: 'school', icon: 'school' }
-  ]},
-  { id: '11', name: 'Heyvanlar', slug: 'animals', icon: 'pets', description: 'Ev heyvanları, aksesuarlar və yem' },
-  { id: '12', name: 'İş elanları', slug: 'jobs', icon: 'work', description: 'İş elanları, biznes təklifləri' },
+  { 
+    id: '8', 
+    name: 'Hobbi və asudə', 
+    slug: 'hobbies', 
+    icon: 'sports_esports',
+    image: '/category-images/hobbi_və_asudə_cat.png',
+    description: 'Biletlər və səyahət, velosipedlər, kolleksiya, id...'
+  },
+  { 
+    id: '12', 
+    name: 'İş elanları', 
+    slug: 'jobs', 
+    icon: 'work',
+    image: '/category-images/iş_elanları_cat.png',
+    description: 'İş elanları, biznes təklifləri'
+  },
+  { 
+    id: 'kids_school', 
+    name: 'Məktəblilər üçün', 
+    slug: 'school', 
+    icon: 'school',
+    image: '/category-images/məktəblilər_üçün_cat.png',
+    description: ''
+  },
+  { 
+    id: '2', 
+    name: 'Nəqliyyat', 
+    slug: 'transport', 
+    icon: 'directions_car',
+    image: '/category-images/nəqliyyat_cat.png',
+    description: 'Avtomobillər, ehtiyat hissələri, aksesuarlar, av...'
+  },
+  { 
+    id: '6', 
+    name: 'Şəxsi əşyalar', 
+    slug: 'personal', 
+    icon: 'watch',
+    image: '/category-images/şəxsi_əşyalar_cat.png',
+    description: 'Geyim və ayaqqabılar, aksesuarlar, saat və zi...'
+  },
+  { 
+    id: '10', 
+    name: 'Uşaq aləmi', 
+    slug: 'kids', 
+    icon: 'stroller',
+    image: '/category-images/uşaq_aləmi_cat.png',
+    description: 'Uşaq geyimləri, oyuncaqlar, uşaq arabaları...'
+  },
+  { 
+    id: '5', 
+    name: 'Xidmətlər və biznes', 
+    slug: 'services', 
+    icon: 'home_repair_service',
+    image: '/category-images/xidmətlər_və_biznes_cat.png',
+    description: 'Avadanlıqların icarəsi və quraşdırılması, təmir...'
+  }
 ] as const;
