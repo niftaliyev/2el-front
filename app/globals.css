@@ -14,11 +14,11 @@
   --mobile-nav-height: 54px;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   max-width: 100vw;
-  overflow-x: clip; 
-  overscroll-behavior-y: none; /* Prevents bouncing on some mobile browsers if completely unwanted, but -x is critical */
+  overflow-x: clip;
   overscroll-behavior-x: none;
   position: relative;
 }
