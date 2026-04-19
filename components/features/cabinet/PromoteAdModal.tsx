@@ -169,7 +169,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
                           </p>
                         </div>
                         <span className="text-lg font-black text-gray-900 whitespace-nowrap ml-4">
-                          {pkg.price} AZN
+                          {pkg.price} ₼
                         </span>
                       </div>
                     </div>

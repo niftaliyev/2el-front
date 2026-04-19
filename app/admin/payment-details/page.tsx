@@ -122,7 +122,7 @@ export default function AdminPaymentDetailsPage() {
 
             <form onSubmit={handleSettingsSubmit} className="p-8 space-y-8">
                <div className="space-y-4">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Minimum Balans (AZN)</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Minimum Balans (₼)</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -133,7 +133,7 @@ export default function AdminPaymentDetailsPage() {
                       min={0}
                       required
                     />
-                    <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-gray-300 text-sm">AZN</span>
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-gray-300 text-sm">₼</span>
                   </div>
                   <p className="text-[10px] text-gray-400 font-bold leading-relaxed px-2">
                     İstifadəçi mağaza müraciəti göndərmək üçün balansında ən azı bu məbləğ olmalıdır.

@@ -3,6 +3,7 @@
 import { PackageItem } from '@/types/api';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { formatPrice } from '@/lib/utils';
 
 interface PromotionPackagesProps {
   packages: PackageItem[];
@@ -65,11 +66,11 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
         <div className="flex flex-col mb-0.5 sm:mb-1">
             {hasDiscount && (
                 <div className="flex items-center gap-1">
-                    <span className="text-red-500 line-through text-[10px] font-bold">{originalPrice} AZN</span>
+                    <span className="text-red-500 line-through text-[10px] font-bold">{formatPrice(originalPrice)}</span>
                     <span className="bg-green-500 text-white text-[8px] px-1 rounded-sm font-black">-{businessDiscount}%</span>
                 </div>
             )}
-            <h3 className="text-gray-900 font-extrabold text-base sm:text-lg lg:text-xl">{discountedPrice.toFixed(2)} AZN</h3>
+            <h3 className="text-gray-900 font-extrabold text-base sm:text-lg lg:text-xl">{formatPrice(discountedPrice)}</h3>
         </div>
         <div className="flex flex-col gap-0.5 sm:gap-1 mb-3 sm:mb-4 h-10 sm:h-12">
           <p className="text-gray-900 text-[10px] sm:text-[12px] font-bold">

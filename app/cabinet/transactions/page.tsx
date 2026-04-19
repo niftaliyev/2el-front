@@ -133,7 +133,7 @@ export default function TransactionsPage() {
                                 ) : (
                                   <span className="material-symbols-outlined !text-[16px]">arrow_upward</span>
                                 )}
-                                {['Deposit', 'Refund'].includes(t.type) ? '+' : '-'}{t.amount.toFixed(2)} AZN
+                                {['Deposit', 'Refund'].includes(t.type) ? '+' : '-'}{t.amount.toFixed(2)} ₼
                               </div>
                             </td>
                             <td className="py-5 px-6">

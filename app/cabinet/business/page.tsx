@@ -168,7 +168,7 @@ function BusinessPageInner() {
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cəmi Balans</p>
                     <p className="text-lg font-black text-slate-900">
-                      {((user?.balance || 0) + (user?.packageBalance || 0) + (user?.bonusBalance || 0)).toFixed(2)} <span className="text-sm font-bold">AZN</span>
+                      {((user?.balance || 0) + (user?.packageBalance || 0) + (user?.bonusBalance || 0)).toFixed(2)} <span className="text-sm font-bold">₼</span>
                     </p>
                   </div>
                 </div>
@@ -309,13 +309,13 @@ function BusinessPageInner() {
                                 <div className="mb-8 bg-slate-50/50 rounded-3xl p-6 border border-slate-50">
                                   {discount > 0 && (
                                     <div className="flex items-center gap-2 mb-1">
-                                      <span className="text-slate-400 line-through text-sm font-bold">{originalPrice.toFixed(0)} AZN</span>
+                                      <span className="text-slate-400 line-through text-sm font-bold">{originalPrice.toFixed(0)} ₼</span>
                                       <span className="bg-green-100 text-green-600 text-[10px] font-black px-2 py-0.5 rounded-lg">-{discount}% ENDİRİM</span>
                                     </div>
                                   )}
                                   <div className="flex items-baseline gap-2">
                                     <span className="text-4xl font-black text-slate-900 tracking-tight">{price.toFixed(0)}</span>
-                                    <span className="text-xl font-bold text-slate-400">AZN</span>
+                                    <span className="text-xl font-bold text-slate-400">₼</span>
                                   </div>
                                   <div className="mt-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">{selectedDuration} GÜNLÜK ÖDƏNİŞ</div>
                                 </div>
@@ -333,7 +333,7 @@ function BusinessPageInner() {
                                       <Wallet size={14} strokeWidth={3} />
                                     </div>
                                     <span className="text-slate-700 text-sm font-semibold">
-                                      Xidmət balansı: <strong className="text-slate-900">{pkg.serviceBalance * (selectedDuration / 30)} AZN</strong>
+                                      Xidmət balansı: <strong className="text-slate-900">{pkg.serviceBalance * (selectedDuration / 30)} ₼</strong>
                                     </span>
                                   </li>
                                   <li className="flex items-center gap-3 group/item">
@@ -373,7 +373,7 @@ function BusinessPageInner() {
                           <h4 className="text-slate-400 font-bold uppercase tracking-widest text-xs">Hesabın ümumi vəziyyəti</h4>
                         </div>
                         <h2 className="text-5xl font-black tracking-tight mb-2">
-                          {((user?.balance || 0) + (user?.packageBalance || 0) + (user?.bonusBalance || 0)).toFixed(2)} <span className="text-2xl font-bold text-slate-500">AZN</span>
+                          {((user?.balance || 0) + (user?.packageBalance || 0) + (user?.bonusBalance || 0)).toFixed(2)} <span className="text-2xl font-bold text-slate-500">₼</span>
                         </h2>
                         <p className="text-slate-400 font-medium">Bu məbləğ platformadakı bütün aktiv balanslarınızın cəmidir.</p>
                       </div>
@@ -396,7 +396,7 @@ function BusinessPageInner() {
                           <div>
                             <h5 className="text-slate-900 text-lg font-black mb-1">{b.title}</h5>
                             <p className="text-slate-500 text-xs font-medium leading-relaxed mb-4">{b.desc}</p>
-                            <p className="text-3xl font-black text-slate-900 tracking-tight">{b.value?.toFixed(2)} <span className="text-sm">AZN</span></p>
+                            <p className="text-3xl font-black text-slate-900 tracking-tight">{b.value?.toFixed(2)} <span className="text-sm">₼</span></p>
                           </div>
                         </div>
                       ))}
@@ -456,7 +456,7 @@ function BusinessPageInner() {
                                     <td className="px-8 py-5 font-bold text-slate-900">{formatDate(inv.createdDate)}</td>
                                     <td className="px-8 py-5 font-bold text-slate-500">#{inv.invoiceNumber}</td>
                                     <td className="px-8 py-5 font-black text-slate-900">{inv.serviceType}</td>
-                                    <td className="px-8 py-5 font-black text-primary text-base">{inv.amount.toFixed(2)} <span className="text-[10px] opacity-60">AZN</span></td>
+                                    <td className="px-8 py-5 font-black text-primary text-base">{inv.amount.toFixed(2)} <span className="text-[10px] opacity-60">₼</span></td>
                                     <td className="px-8 py-5">
                                       <div className="flex flex-col">
                                         <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${statusColors[inv.status] || 'text-slate-600 bg-slate-100'}`}>
@@ -497,7 +497,7 @@ function BusinessPageInner() {
                                 </div>
                                 <div className="flex justify-between items-end">
                                   <div className="text-slate-400 text-xs font-medium">{formatDate(inv.createdDate)}</div>
-                                  <div className="text-lg font-black text-primary">{inv.amount.toFixed(2)} <span className="text-xs uppercase opacity-60">AZN</span></div>
+                                  <div className="text-lg font-black text-primary">{inv.amount.toFixed(2)} <span className="text-xs uppercase opacity-60">₼</span></div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 mt-6">
                                   <button onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')} className="flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-bold text-xs">

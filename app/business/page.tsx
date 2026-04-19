@@ -188,7 +188,7 @@ export default function BusinessLandingPage() {
     };
 
     const benefits = [
-        { icon: 'payments', title: '0 AZN', desc: 'Elanın qiyməti', color: 'text-green-500' },
+        { icon: 'payments', title: '0 ₼', desc: 'Elanın qiyməti', color: 'text-green-500' },
         { icon: 'rocket_launch', title: '35%-dək', desc: 'Ödənişli xidmətlərdə fayda', color: 'text-primary' },
         { icon: 'support_agent', title: 'Fərdi dəstək', desc: 'Menecer xidməti', color: 'text-indigo-500' },
         { icon: 'business_center', title: 'Biznes imkanlar', desc: 'Əlavə funksionallıqlar', color: 'text-purple-500' },
@@ -475,7 +475,7 @@ export default function BusinessLandingPage() {
 
                                     <div className="mb-8 sm:mb-10 flex items-baseline gap-2">
                                         <span className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tighter">{pkg.basePrice}</span>
-                                        <span className="text-gray-400 font-black text-xs sm:text-sm uppercase tracking-widest">AZN / AY</span>
+                                        <span className="text-gray-400 font-black text-xs sm:text-sm uppercase tracking-widest">₼ / AY</span>
                                     </div>
 
                                     <div className="space-y-4 sm:space-y-5 mb-8 sm:mb-12 flex-1">
@@ -489,7 +489,7 @@ export default function BusinessLandingPage() {
                                             <div className="size-5 sm:size-6 rounded-full bg-green-50 text-green-500 flex items-center justify-center">
                                                 <span className="material-symbols-outlined !text-sm sm:!text-base font-black">check</span>
                                             </div>
-                                            {pkg.serviceBalance} AZN Bonus Balans
+                                            {pkg.serviceBalance} ₼ Bonus Balans
                                         </div>
                                         <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-black text-gray-600">
                                             <div className="size-5 sm:size-6 rounded-full bg-green-50 text-green-500 flex items-center justify-center">

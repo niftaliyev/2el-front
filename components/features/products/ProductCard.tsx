@@ -134,11 +134,8 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="flex items-baseline gap-0.5 mb-1 h-6">
             {product.category?.name === 'Tanışlıq' || product.subCategory?.name === 'Tanışlıq' ? null : (
               <>
-                <span className="text-base sm:text-lg font-black text-gray-900">
-                  {formatPrice(product.price, product.currency).split(' ')[0]}
-                </span>
-                <span className="text-xs sm:text-sm font-bold text-gray-500 ml-0.5">
-                  {product.currency}
+                <span className="text-gray-900 font-bold text-sm sm:text-base">
+                  {formatPrice(product.price, product.currency)}
                 </span>
               </>
             )}

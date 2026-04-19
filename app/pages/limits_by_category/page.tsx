@@ -95,7 +95,7 @@ export default function LimitsByCategory() {
                       <th className="px-8 py-6 text-xs font-black text-gray-800 uppercase tracking-widest sticky left-0 bg-gray-50 z-10 w-1/4">KATEQORİYALAR</th>
                       <th className="px-4 py-6 text-xs font-black text-gray-800 uppercase tracking-widest text-center border-l border-gray-100 w-24">LİMİT</th>
                       <th colSpan={9} className="px-4 py-6 text-xs font-black text-gray-800 uppercase tracking-widest text-center border-l border-gray-100 bg-gray-100/40">
-                        ELAN SAYI / QİYMƏT, AZN
+                        ELAN SAYI / QİYMƏT, ₼
                       </th>
                     </tr>
                     <tr className="bg-gray-50/50 border-b border-gray-100 text-[11px] font-black text-gray-500">

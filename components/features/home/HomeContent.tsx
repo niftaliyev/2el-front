@@ -74,7 +74,7 @@ export default function HomeContent() {
             title: ad.title,
             description: ad.description ?? '',
             price: ad.price,
-            currency: 'AZN',
+            currency: '₼',
             images: imageUrl ? [imageUrl] : [],
             category: { id: ad.categoryId ?? '1', name: ad.category ?? '', slug: '' },
             location: { id: '1', city: ad.city ?? '', region: '', country: 'Azerbaijan' },

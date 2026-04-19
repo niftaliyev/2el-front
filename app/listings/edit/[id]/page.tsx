@@ -740,7 +740,7 @@ export default function EditListingPage() {
 
                                             {selectedCategory.paidPrice1 > 0 && (
                                                 <div className="mt-1 border-t border-blue-100/50 pt-1">
-                                                    Qiymət: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} AZN</span>
+                                                    Qiymət: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} ₼</span>
                                                 </div>
                                             )}
                                         </div>

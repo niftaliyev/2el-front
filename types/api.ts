@@ -26,6 +26,9 @@ export interface AdListItem {
   isPremium: boolean;
   isBoosted: boolean;
   boostedAt?: string;
+  vipExpiresAt?: string;
+  premiumExpiresAt?: string;
+  totalBoostsRemaining: number;
   city?: string;
   category?: string;
   adType?: string;
@@ -74,6 +77,10 @@ export interface AdDetail {
   isVip: boolean;
   isPremium: boolean;
   isBoosted: boolean;
+  boostedAt?: string;
+  vipExpiresAt?: string;
+  premiumExpiresAt?: string;
+  totalBoostsRemaining: number;
   isFavourite: boolean;
   viewCount: number;
   isStore: boolean;

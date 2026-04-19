@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ROUTES } from '@/constants';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getDaysLeft } from '@/lib/utils';
 
 interface Listing {
   id: string;
@@ -16,6 +16,11 @@ interface Listing {
   postedDate: string;
   categoryName?: string;
   status: 'active' | 'pending' | 'inactive' | 'rejected';
+  isBoosted: boolean;
+  boostedAt?: string;
+  totalBoostsRemaining: number;
+  vipExpiresAt?: string;
+  premiumExpiresAt?: string;
 }
 
 interface UserListingCardProps {
@@ -69,7 +74,7 @@ export default function UserListingCard({
         {listing.categoryName !== 'Tanışlıq' && (
           <div className="sm:hidden absolute bottom-2 right-2 bg-white/95 px-2.5 py-1 rounded-lg shadow-sm border border-white">
             <span className="text-primary font-bold text-sm tabular-nums">
-              {formatPrice(listing.price)} <span className="text-[10px] uppercase font-bold text-gray-400">AZN</span>
+              {formatPrice(listing.price)}
             </span>
           </div>
         )}
@@ -94,7 +99,6 @@ export default function UserListingCard({
             <div className="hidden sm:block text-right flex-shrink-0">
               <p className="text-primary font-black text-lg tabular-nums leading-none">
                 {formatPrice(listing.price)}
-                <span className="text-[10px] text-gray-400 ml-1 font-bold uppercase">AZN</span>
               </p>
             </div>
           )}
@@ -109,6 +113,33 @@ export default function UserListingCard({
             <div className="flex flex-col">
               <span className="text-[8px] text-gray-400 font-medium">Status</span>
               <span className="text-emerald-600">Aktiv</span>
+            </div>
+          )}
+          {listing.isBoosted && (
+            <div className="flex flex-col">
+              <span className="text-[8px] text-gray-400 font-medium">Boost</span>
+              <span className="text-orange-600 flex items-center gap-0.5">
+                <span className="material-symbols-outlined !text-[12px] font-bold">rocket_launch</span>
+                <span>Aktiv</span>
+              </span>
+            </div>
+          )}
+          {listing.totalBoostsRemaining > 0 && (
+            <div className="flex flex-col">
+              <span className="text-[8px] text-gray-400 font-medium">Qalan Boostlar</span>
+              <span className="text-primary">{listing.totalBoostsRemaining}</span>
+            </div>
+          )}
+          {listing.vipExpiresAt && getDaysLeft(listing.vipExpiresAt) > 0 && (
+            <div className="flex flex-col">
+              <span className="text-[8px] text-gray-400 font-medium text-orange-600">VIP Bitir</span>
+              <span>{getDaysLeft(listing.vipExpiresAt)} gün</span>
+            </div>
+          )}
+          {listing.premiumExpiresAt && getDaysLeft(listing.premiumExpiresAt) > 0 && (
+            <div className="flex flex-col">
+              <span className="text-[8px] text-gray-400 font-medium text-indigo-600">Premium Bitir</span>
+              <span>{getDaysLeft(listing.premiumExpiresAt)} gün</span>
             </div>
           )}
         </div>

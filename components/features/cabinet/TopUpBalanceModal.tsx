@@ -85,7 +85,7 @@ export default function TopUpBalanceModal({ isOpen, onClose, onSuccess }: TopUpB
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Amount Input */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Məbləğ (AZN)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Məbləğ (₼)</label>
               <div className="relative">
                 <input
                   type="number"

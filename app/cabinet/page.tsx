@@ -23,6 +23,11 @@ interface Listing {
   postedDate: string;
   categoryName?: string;
   status: 'active' | 'pending' | 'inactive' | 'rejected';
+  isBoosted: boolean;
+  boostedAt?: string;
+  totalBoostsRemaining: number;
+  vipExpiresAt?: string;
+  premiumExpiresAt?: string;
 }
 
 export default function CabinetPage() {
@@ -86,6 +91,11 @@ export default function CabinetPage() {
           postedDate: formattedDate,
           categoryName: ad.category,
           status: normalizedStatus,
+          isBoosted: ad.isBoosted,
+          boostedAt: ad.boostedAt,
+          totalBoostsRemaining: ad.totalBoostsRemaining,
+          vipExpiresAt: ad.vipExpiresAt,
+          premiumExpiresAt: ad.premiumExpiresAt,
         };
       });
 

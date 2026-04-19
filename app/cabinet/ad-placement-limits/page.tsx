@@ -173,7 +173,7 @@ export default function AdPlacementLimitsPage() {
                                   <span className="text-gray-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Limit aşarsa</span>
                                   <div className="flex items-center gap-1.5">
                                     <span className="text-xs sm:text-sm font-black text-gray-900 tabular-nums">{limit.paidPrice.toFixed(2)}</span>
-                                    <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold">AZN</span>
+                                    <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold">₼</span>
                                   </div>
                                 </div>
                               </div>
