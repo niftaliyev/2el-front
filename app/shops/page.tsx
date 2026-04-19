@@ -46,7 +46,7 @@ export default function StoresPage() {
   useEffect(() => {
     Promise.all([
       storeService.getStores(),
-      adService.getCategoryTree(),
+      adService.getCategories(),
       adService.getCities()
     ]).then(([storeData, categoryData, cityData]) => {
       // De-duplicate stores by ID just in case backend returns duplicates
@@ -157,6 +157,7 @@ export default function StoresPage() {
                  <button 
                    onClick={() => { setIsCityDropdownOpen(!isCityDropdownOpen); setIsSortDropdownOpen(false); }}
                    className="w-full h-11 px-4 rounded-xl bg-gray-50 text-sm font-bold text-gray-700 flex items-center justify-between hover:bg-gray-100 transition-colors min-w-0"
+                   disabled={isLoading}
                  >
                    <span className="truncate">{selectedCityId ? cities.find(c => c.id === selectedCityId)?.name : 'Bütün şəhərlər'}</span>
                    <span className={`material-symbols-outlined !text-[18px] text-gray-400 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
@@ -187,6 +188,7 @@ export default function StoresPage() {
                  <button 
                    onClick={() => { setIsSortDropdownOpen(!isSortDropdownOpen); setIsCityDropdownOpen(false); }}
                    className="w-full h-11 px-4 rounded-xl bg-gray-50 text-sm font-bold text-gray-700 flex items-center justify-between hover:bg-gray-100 transition-colors min-w-0"
+                   disabled={isLoading}
                  >
                    <span className="truncate">
                       {sortOrder === 'default' && 'Sıralama'}
@@ -224,29 +226,39 @@ export default function StoresPage() {
 
             {/* Categories Scrollable Row */}
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 flex-1 -mx-4 px-4 lg:mx-0 lg:px-0">
-               <button
-                 onClick={() => handleCategoryChange(null)}
-                 className={`px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                   selectedCategory === null
-                     ? 'bg-primary text-white shadow-sm'
-                     : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                 }`}
-               >
-                 Bütün
-               </button>
-               {categories.map((cat) => (
-                 <button
-                   key={cat.id}
-                   onClick={() => handleCategoryChange(cat.name)}
-                   className={`px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                     selectedCategory === cat.name
-                       ? 'bg-primary text-white shadow-sm'
-                       : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                   }`}
-                 >
-                   {cat.name}
-                 </button>
-               ))}
+               {isLoading ? (
+                 <>
+                   {[1, 2, 3, 4, 5].map((i) => (
+                     <div key={i} className="h-9 w-20 bg-gray-50 animate-pulse rounded-xl" />
+                   ))}
+                 </>
+               ) : (
+                 <>
+                   <button
+                     onClick={() => handleCategoryChange(null)}
+                     className={`px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                       selectedCategory === null
+                         ? 'bg-primary text-white shadow-sm'
+                         : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                     }`}
+                   >
+                     Bütün
+                   </button>
+                   {categories.map((cat) => (
+                     <button
+                       key={cat.id}
+                       onClick={() => handleCategoryChange(cat.name)}
+                       className={`px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                         selectedCategory === cat.name
+                           ? 'bg-primary text-white shadow-sm'
+                           : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                       }`}
+                     >
+                       {cat.name}
+                     </button>
+                   ))}
+                 </>
+               )}
             </div>
           </div>
         </div>
@@ -256,128 +268,161 @@ export default function StoresPage() {
           ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4" 
           : "flex flex-col gap-4"
         }>
-          {currentStores.map((store) => (
-            <Link key={store.id} href={`/shops/${store.slug || store.id}`} className={viewMode === 'grid' ? "h-full" : ""}>
-              {viewMode === 'grid' ? (
-                /* Grid View Card */
-                <div className="bg-white rounded-2xl overflow-hidden flex flex-col h-full group cursor-pointer transition-all duration-300 border border-gray-50 hover:border-primary/20 hover:shadow-lg">
-                  <div className="h-28 relative bg-gray-50">
-                    {store.storeCoverUrl ? (
-                      <Image
-                        src={getImageUrl(store.storeCoverUrl)}
-                        alt={`${store.storeName} cover`}
-                        fill
-                        className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                      />
-                    ) : (
-                      <div className="size-full bg-gradient-to-br from-gray-50 to-gray-100" />
-                    )}
-                    <div className="absolute top-2 right-2 z-10">
-                      {store.cityName && (
-                        <div className="bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-lg shadow-sm border border-gray-100">
-                          <span className="text-[9px] font-black text-gray-500 uppercase tracking-tight">{store.cityName}</span>
-                        </div>
-                      )}
+          {isLoading ? (
+            /* Loading Skeleton */
+            Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className={`bg-white rounded-2xl border border-gray-50 overflow-hidden ${viewMode === 'grid' ? 'h-[280px]' : 'h-24 sm:h-32'}`}>
+                <div className="animate-pulse h-full flex flex-col">
+                  {viewMode === 'grid' ? (
+                    <>
+                      <div className="h-28 bg-gray-50" />
+                      <div className="p-4 flex flex-col items-center gap-3">
+                        <div className="size-16 rounded-xl bg-gray-50 -mt-10 border-4 border-white" />
+                        <div className="h-4 w-24 bg-gray-50 rounded" />
+                        <div className="h-3 w-16 bg-gray-50 rounded" />
+                        <div className="mt-4 w-full h-10 bg-gray-50 rounded" />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center p-4 gap-4 size-full">
+                       <div className="size-16 sm:size-20 bg-gray-50 rounded-xl" />
+                       <div className="flex-1 space-y-2">
+                          <div className="h-4 w-32 bg-gray-50 rounded" />
+                          <div className="h-3 w-48 bg-gray-50 rounded" />
+                          <div className="flex gap-2">
+                             <div className="h-6 w-16 bg-gray-50 rounded" />
+                             <div className="h-6 w-16 bg-gray-50 rounded" />
+                          </div>
+                       </div>
                     </div>
-                    <div className="absolute inset-0 bg-black/5" />
-                  </div>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            currentStores.map((store) => (
+              <Link key={store.id} href={`/shops/${store.slug || store.id}`} className={viewMode === 'grid' ? "h-full" : ""}>
+                {viewMode === 'grid' ? (
+                  /* Grid View Card */
+                  <div className="bg-white rounded-2xl overflow-hidden flex flex-col h-full group cursor-pointer transition-all duration-300 border border-gray-50 hover:border-primary/20 hover:shadow-lg">
+                    <div className="h-28 relative bg-gray-50">
+                      {store.storeCoverUrl ? (
+                        <Image
+                          src={getImageUrl(store.storeCoverUrl)}
+                          alt={`${store.storeName} cover`}
+                          fill
+                          className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                        />
+                      ) : (
+                        <div className="size-full bg-gradient-to-br from-gray-50 to-gray-100" />
+                      )}
+                      <div className="absolute top-2 right-2 z-10">
+                        {store.cityName && (
+                          <div className="bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-lg shadow-sm border border-gray-100">
+                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-tight">{store.cityName}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="absolute inset-0 bg-black/5" />
+                    </div>
 
-                  <div className="px-4 pb-4 flex flex-col items-center text-center -mt-10 relative z-20">
-                    <div className="size-18 rounded-xl border-4 border-white bg-white shadow-md relative overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <div className="px-4 pb-4 flex flex-col items-center text-center -mt-10 relative z-20">
+                      <div className="size-18 rounded-xl border-4 border-white bg-white shadow-md relative overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform">
+                        {store.storeLogoUrl ? (
+                          <Image
+                            src={getImageUrl(store.storeLogoUrl)}
+                            alt={`${store.storeName} logo`}
+                            fill
+                            className="object-cover p-1"
+                          />
+                        ) : (
+                          <span className="material-symbols-outlined text-2xl text-gray-200">store</span>
+                        )}
+                      </div>
+
+                      <div className="mt-3 space-y-0.5 w-full">
+                        <h3 className="text-sm font-black text-gray-900 group-hover:text-primary transition-colors line-clamp-1 flex items-center justify-center gap-1">
+                          {store.storeName}
+                          <span className="material-symbols-outlined text-blue-500 !text-[14px]">verified</span>
+                        </h3>
+                        <p className="text-[11px] font-semibold text-[#8D94AD] truncate h-3 mt-1">
+                          {store.headline || store.categories?.[0] || 'Mağaza'}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 w-full pt-3 border-t border-gray-50 flex items-center justify-center gap-4">
+                        <div className="flex flex-col items-center">
+                           <span className="text-xs font-black text-gray-900">{store.adCount || 0}</span>
+                           <span className="text-[9px] font-bold text-gray-400">Elan</span>
+                        </div>
+                        <div className="w-px h-5 bg-gray-50" />
+                        <div className="flex flex-col items-center">
+                           <span className="text-xs font-black text-gray-900">{store.viewCount || 0}</span>
+                           <span className="text-[9px] font-bold text-gray-400">Baxış</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* List View Card */
+                  <div className="bg-white rounded-2xl overflow-hidden flex items-center p-3 sm:p-4 gap-4 sm:gap-6 group cursor-pointer transition-all duration-300 border border-gray-50 hover:border-primary/20 hover:shadow-lg">
+                    {/* Logo Container */}
+                    <div className="size-16 sm:size-20 rounded-xl sm:rounded-2xl border-2 border-gray-50 bg-white relative overflow-hidden flex-shrink-0 flex items-center justify-center shadow-sm">
                       {store.storeLogoUrl ? (
                         <Image
                           src={getImageUrl(store.storeLogoUrl)}
                           alt={`${store.storeName} logo`}
                           fill
-                          className="object-cover p-1"
+                          className="object-cover p-1.5 sm:p-2"
                         />
                       ) : (
-                        <span className="material-symbols-outlined text-2xl text-gray-200">store</span>
+                        <span className="material-symbols-outlined text-2xl sm:text-3xl text-gray-200">store</span>
                       )}
                     </div>
 
-                    <div className="mt-3 space-y-0.5 w-full">
-                      <h3 className="text-sm font-black text-gray-900 group-hover:text-primary transition-colors line-clamp-1 flex items-center justify-center gap-1">
-                        {store.storeName}
-                        <span className="material-symbols-outlined text-blue-500 !text-[14px]">verified</span>
-                      </h3>
-                      <p className="text-[11px] font-semibold text-[#8D94AD] truncate h-3 mt-1">
-                        {store.headline || store.categories?.[0] || 'Mağaza'}
-                      </p>
+                    {/* Info Section */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                        <h3 className="text-sm sm:text-lg font-black text-gray-900 group-hover:text-primary transition-colors flex items-center gap-1.5">
+                          {store.storeName}
+                          <span className="material-symbols-outlined text-blue-500 !text-[15px] sm:!text-[18px]">verified</span>
+                        </h3>
+                        {store.cityName && (
+                           <div className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100 self-start sm:self-auto">
+                             <span className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-tighter">{store.cityName}</span>
+                           </div>
+                        )}
+                      </div>
+                      
+                      <p className="text-[11px] sm:text-sm font-semibold text-gray-500 mb-2 sm:mb-4 line-clamp-1">{store.headline || store.categories?.[0] || 'Mağaza'}</p>
+                      
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold bg-gray-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
+                          <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] text-primary">ads_click</span>
+                          {store.adCount || 0} <span className="hidden sm:inline">elan</span>
+                        </div>
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold bg-gray-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
+                          <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] text-blue-500">visibility</span>
+                          {store.viewCount || 0} <span className="hidden sm:inline">baxış</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="mt-4 w-full pt-3 border-t border-gray-50 flex items-center justify-center gap-4">
-                      <div className="flex flex-col items-center">
-                         <span className="text-xs font-black text-gray-900">{store.adCount || 0}</span>
-                         <span className="text-[9px] font-bold text-gray-400">Elan</span>
-                      </div>
-                      <div className="w-px h-5 bg-gray-50" />
-                      <div className="flex flex-col items-center">
-                         <span className="text-xs font-black text-gray-900">{store.viewCount || 0}</span>
-                         <span className="text-[9px] font-bold text-gray-400">Baxış</span>
+                    {/* Action Button */}
+                    <div className="hidden sm:block ml-auto">
+                      <div className="flex items-center justify-center size-10 sm:size-12 rounded-xl bg-gray-50 text-gray-400 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                        <span className="material-symbols-outlined font-bold">arrow_forward</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                /* List View Card */
-                <div className="bg-white rounded-2xl overflow-hidden flex items-center p-3 sm:p-4 gap-4 sm:gap-6 group cursor-pointer transition-all duration-300 border border-gray-50 hover:border-primary/20 hover:shadow-lg">
-                  {/* Logo Container */}
-                  <div className="size-16 sm:size-20 rounded-xl sm:rounded-2xl border-2 border-gray-50 bg-white relative overflow-hidden flex-shrink-0 flex items-center justify-center shadow-sm">
-                    {store.storeLogoUrl ? (
-                      <Image
-                        src={getImageUrl(store.storeLogoUrl)}
-                        alt={`${store.storeName} logo`}
-                        fill
-                        className="object-cover p-1.5 sm:p-2"
-                      />
-                    ) : (
-                      <span className="material-symbols-outlined text-2xl sm:text-3xl text-gray-200">store</span>
-                    )}
-                  </div>
-
-                  {/* Info Section */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                      <h3 className="text-sm sm:text-lg font-black text-gray-900 group-hover:text-primary transition-colors flex items-center gap-1.5">
-                        {store.storeName}
-                        <span className="material-symbols-outlined text-blue-500 !text-[15px] sm:!text-[18px]">verified</span>
-                      </h3>
-                      {store.cityName && (
-                         <div className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100 self-start sm:self-auto">
-                           <span className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-tighter">{store.cityName}</span>
-                         </div>
-                      )}
-                    </div>
-                    
-                    <p className="text-[11px] sm:text-sm font-semibold text-gray-500 mb-2 sm:mb-4 line-clamp-1">{store.headline || store.categories?.[0] || 'Mağaza'}</p>
-                    
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                      <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold bg-gray-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
-                        <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] text-primary">ads_click</span>
-                        {store.adCount || 0} <span className="hidden sm:inline">elan</span>
-                      </div>
-                      <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold bg-gray-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
-                        <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] text-blue-500">visibility</span>
-                        {store.viewCount || 0} <span className="hidden sm:inline">baxış</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="hidden sm:block ml-auto">
-                    <div className="flex items-center justify-center size-10 sm:size-12 rounded-xl bg-gray-50 text-gray-400 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                      <span className="material-symbols-outlined font-bold">arrow_forward</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Link>
-          ))}
+                )}
+              </Link>
+            ))
+          )}
         </div>
 
         {/* Pagination - Professional & Minimal */}
-        {filteredStores.length > ITEMS_PER_PAGE && (
+        {!isLoading && filteredStores.length > ITEMS_PER_PAGE && (
           <div className="flex justify-center items-center gap-2 mt-8">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -414,7 +459,7 @@ export default function StoresPage() {
         )}
 
         {/* No Results */}
-        {filteredStores.length === 0 && (
+        {!isLoading && filteredStores.length === 0 && (
           <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-100">
             <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-gray-300 !text-3xl">storefront</span>

@@ -27,6 +27,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
   const isHeaderVisible = useScrollDirection();
 
   const [loading, setLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -70,6 +71,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
     condition: (searchParams.get('condition') as any) || initialFilters?.condition || undefined,
     sortBy: searchParams.get('sortBy') || initialFilters?.sortBy || 'latest',
     isDeliverable: searchParams.get('delivery') === 'true' ? true : (searchParams.get('delivery') === 'false' ? false : initialFilters?.isDeliverable),
+    userId: searchParams.get('userId') || initialFilters?.userId || undefined,
     dynamicProperties: {
       ...initialFilters?.dynamicProperties,
       ...Object.fromEntries(
@@ -91,6 +93,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
     const currentCondition = (searchParams.get('condition') as any) || initialFilters?.condition || undefined;
     const currentSort = searchParams.get('sortBy') || initialFilters?.sortBy || 'latest';
     const currentDelivery = searchParams.get('delivery') === 'true' ? true : (searchParams.get('delivery') === 'false' ? false : initialFilters?.isDeliverable);
+    const currentUser = searchParams.get('userId') || initialFilters?.userId || undefined;
 
     const currentDynamic = {
       ...initialFilters?.dynamicProperties,
@@ -112,6 +115,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       sortBy: currentSort,
       isDeliverable: currentDelivery,
       dynamicProperties: currentDynamic,
+      userId: currentUser,
     };
 
     // Deep comparison to prevent infinite loops
@@ -148,8 +152,10 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        setCategoriesLoading(true);
         const tree = await adService.getCategoryTree();
         if (tree && tree.length > 0) {
+          // ... (ICONS and mapping logic)
           const ICONS: Record<string, string> = {
             'Elektronika': 'devices',
             'Nəqliyyat': 'directions_car',
@@ -193,7 +199,10 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           }));
           setCategories(mapped);
         }
-      } catch (e) { }
+      } catch (e) {
+      } finally {
+        setCategoriesLoading(false);
+      }
     };
     fetchCategories();
   }, []);
@@ -210,6 +219,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           cityId: filters.cityId,
           isNew: filters.condition === 'new' ? true : (filters.condition === 'used' ? false : undefined),
           isDeliverable: filters.isDeliverable,
+          userId: filters.userId,
           ...Object.fromEntries(
             Object.entries(filters.dynamicProperties || {}).map(([id, val]) => [`p[${id}]`, val])
           )
@@ -277,6 +287,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           isNew: filters.condition === 'new' ? true : (filters.condition === 'used' ? false : undefined),
           isDeliverable: filters.isDeliverable,
           sortBy: filters.sortBy !== 'latest' ? filters.sortBy : undefined,
+          userId: filters.userId,
           ...Object.fromEntries(
             Object.entries(filters.dynamicProperties || {}).map(([id, val]) => [`p[${id}]`, val])
           )
@@ -350,6 +361,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
     if (newFilters.cityId) params.set('cityId', newFilters.cityId); else params.delete('cityId');
     if (newFilters.condition) params.set('condition', newFilters.condition); else params.delete('condition');
     if (newFilters.sortBy) params.set('sortBy', newFilters.sortBy); else params.delete('sortBy');
+    if (newFilters.userId) params.set('userId', newFilters.userId); else params.delete('userId');
     if (newFilters.isDeliverable === true) params.set('delivery', 'true');
     else if (newFilters.isDeliverable === false) params.set('delivery', 'false');
     else params.delete('delivery');
@@ -443,115 +455,124 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
               onScroll={handleCarouselScroll}
               className="flex overflow-x-auto overscroll-x-contain scrollbar-hide gap-3 pb-2 items-start scroll-smooth"
             >
-              {(() => {
-                const allCategoriesFlattened: any[] = [];
-                const flatten = (items: any[]) => {
-                  items.forEach(item => {
-                    allCategoriesFlattened.push(item);
-                    if (item.children) flatten(item.children);
-                    if (item.subCategories) flatten(item.subCategories);
-                  });
-                };
-                flatten(categories);
+              {categoriesLoading ? (
+                Array.from({ length: 10 }).map((_, i) => (
+                  <div key={i} className="flex flex-col items-center gap-[10px] flex-shrink-0 w-[88px] animate-pulse">
+                    <div className="w-[88px] h-[88px] bg-gray-100 rounded-2xl"></div>
+                    <div className="h-3 w-16 bg-gray-100 rounded"></div>
+                  </div>
+                ))
+              ) : (
+                (() => {
+                  const allCategoriesFlattened: any[] = [];
+                  const flatten = (items: any[]) => {
+                    items.forEach(item => {
+                      allCategoriesFlattened.push(item);
+                      if (item.children) flatten(item.children);
+                      if (item.subCategories) flatten(item.subCategories);
+                    });
+                  };
+                  flatten(categories);
 
-                const currentCategoryId = filters.categoryId;
-                const currentSubCategoryId = filters.subCategoryId;
+                  const currentCategoryId = filters.categoryId;
+                  const currentSubCategoryId = filters.subCategoryId;
 
-                const activeCat = allCategoriesFlattened.find(c => c.id === currentCategoryId);
-                const activeSub = allCategoriesFlattened.find(c => c.id === currentSubCategoryId);
+                  const activeCat = allCategoriesFlattened.find(c => c.id === currentCategoryId);
+                  const activeSub = allCategoriesFlattened.find(c => c.id === currentSubCategoryId);
 
-                let itemsToShow: any[] = [];
-                let backHref = '/elanlar';
+                  let itemsToShow: any[] = [];
+                  let backHref = '/elanlar';
 
-                if (!currentCategoryId) {
-                  itemsToShow = categories;
-                } else if (currentCategoryId && !currentSubCategoryId) {
-                  const combinedChildren = [
-                    ...(activeCat?.children || []),
-                    ...(activeCat?.subCategories || [])
-                  ];
-
-                  if (combinedChildren.length > 0) {
-                    itemsToShow = combinedChildren;
-                    const parent = allCategoriesFlattened.find(c => c.children?.some((ch: any) => ch.id === currentCategoryId));
-                    backHref = parent?.slug ? ROUTES.CATEGORY(parent.slug) : '/elanlar';
-                  } else {
-                    const parent = allCategoriesFlattened.find(c => c.children?.some((ch: any) => ch.id === currentCategoryId));
-                    const combinedBrother = [
-                      ...(parent?.children || []),
-                      ...(parent?.subCategories || [])
+                  if (!currentCategoryId) {
+                    itemsToShow = categories;
+                  } else if (currentCategoryId && !currentSubCategoryId) {
+                    const combinedChildren = [
+                      ...(activeCat?.children || []),
+                      ...(activeCat?.subCategories || [])
                     ];
-                    itemsToShow = combinedBrother;
 
-                    if (parent) {
-                      backHref = parent.slug ? ROUTES.CATEGORY(parent.slug) : `/elanlar?categoryId=${parent.id}`;
+                    if (combinedChildren.length > 0) {
+                      itemsToShow = combinedChildren;
+                      const parent = allCategoriesFlattened.find(c => c.children?.some((ch: any) => ch.id === currentCategoryId));
+                      backHref = parent?.slug ? ROUTES.CATEGORY(parent.slug) : '/elanlar';
                     } else {
-                      backHref = '/elanlar';
+                      const parent = allCategoriesFlattened.find(c => c.children?.some((ch: any) => ch.id === currentCategoryId));
+                      const combinedBrother = [
+                        ...(parent?.children || []),
+                        ...(parent?.subCategories || [])
+                      ];
+                      itemsToShow = combinedBrother;
+
+                      if (parent) {
+                        backHref = parent.slug ? ROUTES.CATEGORY(parent.slug) : `/elanlar?categoryId=${parent.id}`;
+                      } else {
+                        backHref = '/elanlar';
+                      }
+                    }
+                  } else {
+                    const parent = allCategoriesFlattened.find(c => (c.subCategories || c.children)?.some((sc: any) => sc.id === currentSubCategoryId));
+                    if (parent) {
+                      itemsToShow = (parent.subCategories || parent.children) || [];
+                      backHref = parent.slug ? ROUTES.CATEGORY(parent.slug) : `/elanlar?categoryId=${currentCategoryId}`;
                     }
                   }
-                } else {
-                  const parent = allCategoriesFlattened.find(c => (c.subCategories || c.children)?.some((sc: any) => sc.id === currentSubCategoryId));
-                  if (parent) {
-                    itemsToShow = (parent.subCategories || parent.children) || [];
-                    backHref = parent.slug ? ROUTES.CATEGORY(parent.slug) : `/elanlar?categoryId=${currentCategoryId}`;
-                  }
-                }
 
-                return (
-                  <>
-                    {currentCategoryId && (
-                      <Link href={backHref} key="back-button" className="group flex flex-col items-center gap-[10px] flex-shrink-0 w-[88px]">
-                        <div className="flex items-center justify-center w-[88px] h-[88px] bg-[#f1f2f4] rounded-2xl group-hover:bg-[#e9e9eb] transition-colors">
-                          <span className="material-symbols-outlined !text-[32px] text-[#212121] transition-colors">
-                            arrow_back
-                          </span>
-                        </div>
-                        <span className="text-[13px] text-[#212121] text-center leading-[1.3] px-1">
-                          Geri
-                        </span>
-                      </Link>
-                    )}
-
-                    {itemsToShow.map((item: any) => {
-                      const isActive = currentCategoryId === item.id || currentSubCategoryId === item.id;
-
-                      let href = '/elanlar';
-                      if (item.parentSlug && item.slug) {
-                        href = `/elanlar/${item.parentSlug}/${item.slug}`;
-                      } else if (item.slug) {
-                        href = `/elanlar/${item.slug}`;
-                      } else {
-                        href = `/elanlar?categoryId=${item.id}`;
-                      }
-
-                      return (
-                        <Link
-                          href={href}
-                          key={item.id}
-                          className="group flex flex-col items-center gap-[10px] flex-shrink-0 w-[88px]"
-                        >
-                          <div className={`flex items-center justify-center w-[88px] h-[88px] rounded-2xl transition-colors overflow-hidden ${isActive ? 'bg-[#607afb]/10 ring-2 ring-[#607afb]/20' : 'bg-[#f1f2f4] group-hover:bg-[#e9e9eb]'}`}>
-                            {item.image ? (
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="w-full h-full object-contain p-2"
-                              />
-                            ) : (
-                              <span className={`material-symbols-outlined !text-[32px] transition-colors ${isActive ? 'text-[#607afb]' : 'text-[#212121]'}`}>
-                                {item.icon || 'category'}
-                              </span>
-                            )}
+                  return (
+                    <>
+                      {currentCategoryId && (
+                        <Link href={backHref} key="back-button" className="group flex flex-col items-center gap-[10px] flex-shrink-0 w-[88px]">
+                          <div className="flex items-center justify-center w-[88px] h-[88px] bg-[#f1f2f4] rounded-2xl group-hover:bg-[#e9e9eb] transition-colors">
+                            <span className="material-symbols-outlined !text-[32px] text-[#212121] transition-colors">
+                              arrow_back
+                            </span>
                           </div>
-                          <span className={`text-[13px] text-center leading-[1.3] px-1 line-clamp-2 ${isActive ? 'text-[#607afb] font-bold' : 'text-[#212121]'}`}>
-                            {item.name}
+                          <span className="text-[13px] text-[#212121] text-center leading-[1.3] px-1">
+                            Geri
                           </span>
                         </Link>
-                      );
-                    })}
-                  </>
-                );
-              })()}
+                      )}
+
+                      {itemsToShow.map((item: any) => {
+                        const isActive = currentCategoryId === item.id || currentSubCategoryId === item.id;
+
+                        let href = '/elanlar';
+                        if (item.parentSlug && item.slug) {
+                          href = `/elanlar/${item.parentSlug}/${item.slug}`;
+                        } else if (item.slug) {
+                          href = `/elanlar/${item.slug}`;
+                        } else {
+                          href = `/elanlar?categoryId=${item.id}`;
+                        }
+
+                        return (
+                          <Link
+                            href={href}
+                            key={item.id}
+                            className="group flex flex-col items-center gap-[10px] flex-shrink-0 w-[88px]"
+                          >
+                            <div className={`flex items-center justify-center w-[88px] h-[88px] rounded-2xl transition-colors overflow-hidden ${isActive ? 'bg-[#607afb]/10 ring-2 ring-[#607afb]/20' : 'bg-[#f1f2f4] group-hover:bg-[#e9e9eb]'}`}>
+                              {item.image ? (
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-contain p-2"
+                                />
+                              ) : (
+                                <span className={`material-symbols-outlined !text-[32px] transition-colors ${isActive ? 'text-[#607afb]' : 'text-[#212121]'}`}>
+                                  {item.icon || 'category'}
+                                </span>
+                              )}
+                            </div>
+                            <span className={`text-[13px] text-center leading-[1.3] px-1 line-clamp-2 ${isActive ? 'text-[#607afb] font-bold' : 'text-[#212121]'}`}>
+                              {item.name}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </>
+                  );
+                })()
+              )}
             </div>
 
             {showRightScroll && (
@@ -618,42 +639,50 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             <div className="mb-6">
               <h3 className="text-[#212121] font-bold text-[15px] mb-3">Bütün kateqoriyalar</h3>
               <ul className="space-y-[10px] pl-2">
-                {categories.map(c => {
-                  const isParentSelected = filters.categoryId === c.id;
-                  const children = (c as any).children || [];
-                  const hasSelectedChild = children.some((ch: any) =>
-                    filters.categoryId === ch.id ||
-                    ch.children?.some((sub: any) => filters.subCategoryId === sub.id)
-                  );
-
-                  return (
-                    <li key={c.id}>
-                      <Link href={`/elanlar/${c.slug}`} className={`text-[14px] hover:text-[#607afb] transition-colors ${isParentSelected ? 'text-[#607afb] font-bold' : 'text-[#4e4e4e]'}`}>
-                        {c.name}
-                      </Link>
-                      {(isParentSelected || hasSelectedChild) && children.length > 0 && (
-                        <ul className="mt-2 ml-4 space-y-2 border-l border-gray-100 pl-3">
-                          {children.map((child: any) => {
-                            const isChildSelected = filters.categoryId === child.id;
-                            const subCategories = child.children || [];
-                            const hasSelectedSub = subCategories.some((sub: any) => filters.subCategoryId === sub.id);
-
-                            return (
-                              <li key={child.id}>
-                                <Link
-                                  href={`/elanlar/${c.slug}/${child.slug}`}
-                                  className={`text-[13px] hover:text-[#607afb] transition-colors ${(isChildSelected || hasSelectedSub) ? 'text-[#607afb] font-semibold' : 'text-gray-500'}`}
-                                >
-                                  {child.name}
-                                </Link>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
+                {categoriesLoading ? (
+                  Array.from({ length: 8 }).map((_, i) => (
+                    <li key={i} className="animate-pulse flex items-center gap-2">
+                      <div className="h-4 w-3/4 bg-gray-100 rounded"></div>
                     </li>
-                  );
-                })}
+                  ))
+                ) : (
+                  categories.map(c => {
+                    const isParentSelected = filters.categoryId === c.id;
+                    const children = (c as any).children || [];
+                    const hasSelectedChild = children.some((ch: any) =>
+                      filters.categoryId === ch.id ||
+                      ch.children?.some((sub: any) => filters.subCategoryId === sub.id)
+                    );
+
+                    return (
+                      <li key={c.id}>
+                        <Link href={`/elanlar/${c.slug}`} className={`text-[14px] hover:text-[#607afb] transition-colors ${isParentSelected ? 'text-[#607afb] font-bold' : 'text-[#4e4e4e]'}`}>
+                          {c.name}
+                        </Link>
+                        {(isParentSelected || hasSelectedChild) && children.length > 0 && (
+                          <ul className="mt-2 ml-4 space-y-2 border-l border-gray-100 pl-3">
+                            {children.map((child: any) => {
+                              const isChildSelected = filters.categoryId === child.id;
+                              const subCategories = child.children || [];
+                              const hasSelectedSub = subCategories.some((sub: any) => filters.subCategoryId === sub.id);
+
+                              return (
+                                <li key={child.id}>
+                                  <Link
+                                    href={`/elanlar/${c.slug}/${child.slug}`}
+                                    className={`text-[13px] hover:text-[#607afb] transition-colors ${(isChildSelected || hasSelectedSub) ? 'text-[#607afb] font-semibold' : 'text-gray-500'}`}
+                                  >
+                                    {child.name}
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </li>
+                    );
+                  })
+                )}
               </ul>
             </div>
             <FilterPanel filters={filters} onFilterChange={handleFilterChange} categories={categories} />

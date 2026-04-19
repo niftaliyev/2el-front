@@ -76,6 +76,7 @@ export interface SearchFilters {
   sortBy?: string;
   isDeliverable?: boolean;
   dynamicProperties?: Record<string, string>;
+  userId?: string;
   page?: number;
   limit?: number;
 }

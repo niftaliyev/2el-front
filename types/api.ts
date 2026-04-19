@@ -49,6 +49,7 @@ export interface AdListItem {
 // Matches AdDetailDto
 export interface AdDetail {
   id: string;
+  userId: string;
   title: string;
   slug?: string;
   parentCategoryName?: string;
@@ -242,6 +243,7 @@ export interface StoreAdItem {
   isVip?: boolean;
   isPremium?: boolean;
   isBoosted?: boolean;
+  isFavourite: boolean;
 }
 
 export interface StoreDetail {

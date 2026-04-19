@@ -66,6 +66,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
           isFeatured: ad.isVip,
           isPremium: ad.isPremium,
           isBoosted: ad.isBoosted,
+          isFavourite: ad.isFavourite,
           status: 'active',
           viewCount: 0,
           favoriteCount: 0,
