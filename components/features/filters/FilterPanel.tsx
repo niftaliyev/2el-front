@@ -168,7 +168,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
             className="flex items-center justify-between mb-3 cursor-pointer select-none"
             onClick={() => setIsPriceOpen(!isPriceOpen)}
           >
-            <span className="text-[15px] text-[#212121]">Qiymət, AZN</span>
+            <span className="text-[15px] text-[#212121]">Qiymət, ₼</span>
             <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isPriceOpen ? '' : 'rotate-180'}`}>expand_less</span>
           </div>
           {isPriceOpen && (

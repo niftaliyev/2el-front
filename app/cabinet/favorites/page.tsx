@@ -132,7 +132,7 @@ export default function FavoritesPage() {
                                 {/* Price Badge */}
                                 <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-white/95 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl shadow-lg border border-white z-10">
                                   <p className="text-primary font-bold text-sm sm:text-base tabular-nums">
-                                    {formatPrice(ad.price, 'AZN')}
+                                    {formatPrice(ad.price)}
                                   </p>
                                 </div>
 

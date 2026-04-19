@@ -21,22 +21,22 @@ export function formatDate(date: Date | string): string {
 export function formatRelativeTime(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  const diffInHours = Math.floor(diffInSeconds / 3600);
-  const diffInDays = Math.floor(diffInSeconds / 86400);
+  
+  // Calculate calendar days difference
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diffInDays = Math.round((startOfToday.getTime() - startOfDate.getTime()) / (1000 * 3600 * 24));
+
+  const hours = d.getHours().toString().padStart(2, '0');
+  const minutes = d.getMinutes().toString().padStart(2, '0');
 
   // Today
   if (diffInDays === 0) {
-    const hours = d.getHours().toString().padStart(2, '0');
-    const minutes = d.getMinutes().toString().padStart(2, '0');
     return `Bugün, ${hours}:${minutes}`;
   }
 
   // Yesterday
   if (diffInDays === 1) {
-    const hours = d.getHours().toString().padStart(2, '0');
-    const minutes = d.getMinutes().toString().padStart(2, '0');
     return `Dünən, ${hours}:${minutes}`;
   }
 
@@ -58,6 +58,14 @@ export function formatRelativeTime(date: Date | string): string {
   }
 
   return formatDate(d);
+}
+
+export function getDaysLeft(date: Date | string): number {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const now = new Date();
+  const diffInMs = d.getTime() - now.getTime();
+  const diffInDays = Math.ceil(diffInMs / (1000 * 3600 * 24));
+  return diffInDays > 0 ? diffInDays : 0;
 }
 
 export function truncateText(text: string, maxLength: number): string {

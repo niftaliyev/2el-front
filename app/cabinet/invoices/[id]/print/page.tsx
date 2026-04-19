@@ -158,7 +158,7 @@ export default function InvoicePrintPage() {
                     <p className="text-gray-400 text-sm font-medium">ElanAz platformasında göstərilən elektron xidmət haqqı</p>
                   </td>
                   <td className="py-8 text-right align-top">
-                    <p className="text-2xl font-black text-gray-900">{invoice.amount.toFixed(2)} AZN</p>
+                    <p className="text-2xl font-black text-gray-900">{invoice.amount.toFixed(2)} ₼</p>
                   </td>
                 </tr>
               </tbody>
@@ -170,15 +170,15 @@ export default function InvoicePrintPage() {
             <div className="w-full max-w-xs space-y-4">
               <div className="flex justify-between items-center text-gray-500 font-medium">
                 <span>Subtotal</span>
-                <span>{invoice.amount.toFixed(2)} AZN</span>
+                <span>{invoice.amount.toFixed(2)} ₼</span>
               </div>
               <div className="flex justify-between items-center text-gray-500 font-medium">
                 <span>ƏDV / VAT (0%)</span>
-                <span>0.00 AZN</span>
+                <span>0.00 ₼</span>
               </div>
               <div className="pt-4 border-t-2 border-gray-100 flex justify-between items-end">
                 <span className="text-2xl font-bold text-gray-900 leading-none">TOTAL</span>
-                <span className="text-4xl font-black text-[#607afb] tracking-tighter leading-none">{invoice.amount.toFixed(2)} AZN</span>
+                <span className="text-4xl font-black text-[#607afb] tracking-tighter leading-none">{invoice.amount.toFixed(2)} ₼</span>
               </div>
             </div>
           </div>

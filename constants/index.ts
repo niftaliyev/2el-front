@@ -112,7 +112,7 @@ export const CATEGORIES = [
     name: 'Daşınmaz əmlak', 
     slug: 'real-estate', 
     icon: 'home',
-    image: '/category-images/daşınmaz_əmlak_cat.png',
+    image: '/category-images/dasinmaz_emlak_cat.png',
     description: 'Mənzillər, həyət və bağ evləri, torpaq sahələri...'
   },
   { 
@@ -120,7 +120,7 @@ export const CATEGORIES = [
     name: 'Ehtiyat hissələri və aksesuarlar (avto)', 
     slug: 'auto-parts', 
     icon: 'settings',
-    image: '/category-images/ehtiyyat_hissələri_və_aksesuarlar_avto_cat.png',
+    image: '/category-images/ehtiyyat_hisseleri_ve_aksesuarlar_avto_cat.png',
     description: ''
   },
   { 
@@ -136,7 +136,7 @@ export const CATEGORIES = [
     name: 'Ev və bağ üçün', 
     slug: 'home-garden', 
     icon: 'chair',
-    image: '/category-images/ev_və_bağ_üçün_cat.png',
+    image: '/category-images/ev_ve_bag_ucun_cat.png',
     description: 'Təmir və tikinti, mebel və interyer, məişət texn...'
   },
   { 
@@ -152,7 +152,7 @@ export const CATEGORIES = [
     name: 'Hobbi və asudə', 
     slug: 'hobbies', 
     icon: 'sports_esports',
-    image: '/category-images/hobbi_və_asudə_cat.png',
+    image: '/category-images/hobbi_ve_asude_cat.png',
     description: 'Biletlər və səyahət, velosipedlər, kolleksiya, id...'
   },
   { 
@@ -160,7 +160,7 @@ export const CATEGORIES = [
     name: 'İş elanları', 
     slug: 'jobs', 
     icon: 'work',
-    image: '/category-images/iş_elanları_cat.png',
+    image: '/category-images/is_elanlari_cat.png',
     description: 'İş elanları, biznes təklifləri'
   },
   { 
@@ -168,7 +168,7 @@ export const CATEGORIES = [
     name: 'Məktəblilər üçün', 
     slug: 'school', 
     icon: 'school',
-    image: '/category-images/məktəblilər_üçün_cat.png',
+    image: '/category-images/mektebliler_ucun_cat.png',
     description: ''
   },
   { 
@@ -176,7 +176,7 @@ export const CATEGORIES = [
     name: 'Nəqliyyat', 
     slug: 'transport', 
     icon: 'directions_car',
-    image: '/category-images/nəqliyyat_cat.png',
+    image: '/category-images/neqliyyat_cat.png',
     description: 'Avtomobillər, ehtiyat hissələri, aksesuarlar, av...'
   },
   { 
@@ -184,7 +184,7 @@ export const CATEGORIES = [
     name: 'Şəxsi əşyalar', 
     slug: 'personal', 
     icon: 'watch',
-    image: '/category-images/şəxsi_əşyalar_cat.png',
+    image: '/category-images/sexsi_esyalar_cat.png',
     description: 'Geyim və ayaqqabılar, aksesuarlar, saat və zi...'
   },
   { 
@@ -192,7 +192,7 @@ export const CATEGORIES = [
     name: 'Uşaq aləmi', 
     slug: 'kids', 
     icon: 'stroller',
-    image: '/category-images/uşaq_aləmi_cat.png',
+    image: '/category-images/usaq_alemi_cat.png',
     description: 'Uşaq geyimləri, oyuncaqlar, uşaq arabaları...'
   },
   { 
@@ -200,7 +200,7 @@ export const CATEGORIES = [
     name: 'Xidmətlər və biznes', 
     slug: 'services', 
     icon: 'home_repair_service',
-    image: '/category-images/xidmətlər_və_biznes_cat.png',
+    image: '/category-images/xidmetler_ve_biznes_cat.png',
     description: 'Avadanlıqların icarəsi və quraşdırılması, təmir...'
   }
 ] as const;

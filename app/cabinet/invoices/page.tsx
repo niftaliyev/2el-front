@@ -101,7 +101,7 @@ export default function InvoicesPage() {
                                 <div className="text-gray-700 font-medium text-sm">{inv.serviceType}</div>
                               </td>
                               <td className="py-5 px-6">
-                                <div className="text-sm font-black text-gray-900">{inv.amount.toFixed(2)} AZN</div>
+                                <div className="text-sm font-black text-gray-900">{inv.amount.toFixed(2)} ₼</div>
                               </td>
                               <td className="py-5 px-6">
                                 <div className="text-xs text-gray-500 font-medium">
@@ -153,7 +153,7 @@ export default function InvoicesPage() {
                           <p className="text-sm text-gray-700 font-medium mb-1">{inv.serviceType}</p>
                           <div className="flex justify-between items-center mt-3">
                             <span className="text-xs text-gray-400">{new Date(inv.createdDate).toLocaleDateString('az-AZ')}</span>
-                            <span className="text-base font-black text-gray-900">{inv.amount.toFixed(2)} AZN</span>
+                            <span className="text-base font-black text-gray-900">{inv.amount.toFixed(2)} ₼</span>
                           </div>
                           <div className="flex gap-2 mt-4">
                             <button

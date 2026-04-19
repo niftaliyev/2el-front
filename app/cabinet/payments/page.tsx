@@ -105,7 +105,7 @@ export default function PaymentsPage() {
                     <span className="text-primary font-black text-2xl sm:text-3xl tabular-nums leading-none">
                       {user?.balance?.toFixed(2) || '0.00'}
                     </span>
-                    <span className="text-xs text-primary/60 font-bold">AZN</span>
+                    <span className="text-xs text-primary/60 font-bold">₼</span>
                   </div>
                 </div>
               </div>
@@ -238,7 +238,7 @@ export default function PaymentsPage() {
                                   placeholder="0.00"
                                   required
                                 />
-                                <span className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 font-black text-[10px] uppercase tracking-widest">AZN</span>
+                                <span className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 font-black text-[10px] uppercase tracking-widest">₼</span>
                               </div>
                             </div>
 

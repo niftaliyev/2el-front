@@ -59,6 +59,7 @@ export interface Product {
   isPromoted?: boolean;
   isPremium?: boolean;
   isBoosted?: boolean;
+  boostedAt?: Date;
   isFavourite?: boolean;
   store?: Store;
 }

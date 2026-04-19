@@ -37,17 +37,17 @@ export default function Home() {
       try {
         const LOCAL_IMAGES: Record<string, string> = {
           'Elektronika': '/category-images/elektronika_cat.png',
-          'Nəqliyyat': '/category-images/nəqliyyat_cat.png',
-          'Ev və bağ üçün': '/category-images/ev_və_bağ_üçün_cat.png',
-          'Daşınmaz əmlak': '/category-images/daşınmaz_əmlak_cat.png',
-          'Xidmətlər və biznes': '/category-images/xidmətlər_və_biznes_cat.png',
-          'Şəxsi əşyalar': '/category-images/şəxsi_əşyalar_cat.png',
-          'Hobbi və asudə': '/category-images/hobbi_və_asudə_cat.png',
-          'Uşaq aləmi': '/category-images/uşaq_aləmi_cat.png',
+          'Nəqliyyat': '/category-images/neqliyyat_cat.png',
+          'Ev və bağ üçün': '/category-images/ev_ve_bag_ucun_cat.png',
+          'Daşınmaz əmlak': '/category-images/dasinmaz_emlak_cat.png',
+          'Xidmətlər və biznes': '/category-images/xidmetler_ve_biznes_cat.png',
+          'Şəxsi əşyalar': '/category-images/sexsi_esyalar_cat.png',
+          'Hobbi və asudə': '/category-images/hobbi_ve_asude_cat.png',
+          'Uşaq aləmi': '/category-images/usaq_alemi_cat.png',
           'Heyvanlar': '/category-images/heyvanlar_cat.png',
-          'İş elanları': '/category-images/iş_elanları_cat.png',
-          'Ehtiyat hissələri və aksesuarlar (avto)': '/category-images/ehtiyyat_hissələri_və_aksesuarlar_avto_cat.png',
-          'Məktəblilər üçün': '/category-images/məktəblilər_üçün_cat.png'
+          'İş elanları': '/category-images/is_elanlari_cat.png',
+          'Ehtiyat hissələri və aksesuarlar (avto)': '/category-images/ehtiyyat_hisseleri_ve_aksesuarlar_avto_cat.png',
+          'Məktəblilər üçün': '/category-images/mektebliler_ucun_cat.png'
         };
 
         const tree = await adService.getCategoryTree();
@@ -65,10 +65,10 @@ export default function Home() {
               slug: generateSlug(child.name),
               image: getImageUrl(child.imageUrl),
               subCategories: child.subCategories?.map((sc: any) => ({
-                 id: sc.id,
-                 name: sc.name,
-                 slug: generateSlug(sc.name),
-                 image: getImageUrl(sc.imageUrl)
+                id: sc.id,
+                name: sc.name,
+                slug: generateSlug(sc.name),
+                image: getImageUrl(sc.imageUrl)
               })) || []
             })) || []
           }));
@@ -93,12 +93,12 @@ export default function Home() {
             slug: ad.slug,
             description: ad.description ?? '',
             price: ad.price,
-            currency: 'AZN',
+            currency: '₼',
             images: imageUrl ? [imageUrl] : [],
-            category: { 
-              id: ad.categoryId ?? '1', 
-              name: ad.category ?? '', 
-              slug: ad.parentCategorySlug || (ad.category ? generateSlug(ad.category) : '') 
+            category: {
+              id: ad.categoryId ?? '1',
+              name: ad.category ?? '',
+              slug: ad.parentCategorySlug || (ad.category ? generateSlug(ad.category) : '')
             },
             subCategory: ad.childCategorySlug ? {
               id: ad.subCategoryId ?? '0',

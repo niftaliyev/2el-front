@@ -56,7 +56,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
           id: ad.id,
           title: ad.title,
           price: ad.price,
-          currency: 'AZN',
+          currency: '₼',
           images: ad.image ? [getImageUrl(ad.image)] : [],
           createdAt: new Date(ad.createdDate),
           category: { name: ad.categoryName || '', slug: '' },
