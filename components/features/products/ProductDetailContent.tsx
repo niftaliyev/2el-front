@@ -633,6 +633,12 @@ export default function ProductDetailContent({ id }: { id: string }) {
                             </div>
                             <div className="min-w-0">
                               <p className="text-gray-900 font-black text-lg leading-tight truncate">{product.fullName}</p>
+                              <Link
+                                href={`${ROUTES.LISTINGS}?userId=${product.userId}`}
+                                className="text-[13px] text-[#3D78C8] hover:underline font-bold mt-1 block"
+                              >
+                                İstifadəçinin bütün elanları
+                              </Link>
                               <div className="flex items-center gap-1 mt-1 text-xs text-green-600 font-bold">
                                 <span className="material-symbols-outlined !text-[14px]">verified_user</span>
                                 <span>Doğrulanmış</span>
