@@ -10,7 +10,7 @@ import { SearchFilters, Category } from '@/types';
 export default function ElanlarDynamicPage({ params }: { params: Promise<{ slug?: string[] }> }) {
   const unwrappedParams = use(params);
   const slug = unwrappedParams.slug || [];
-  
+
   const [resolvedFilters, setResolvedFilters] = useState<Partial<SearchFilters> | null>(null);
   const [productId, setProductId] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -20,9 +20,9 @@ export default function ElanlarDynamicPage({ params }: { params: Promise<{ slug?
       // 1. Check if the last segment is likely an ID (e.g. numeric or GUID pattern)
       if (slug.length > 0) {
         const lastSegment = slug[slug.length - 1];
-        // common ID patterns: numeric (tap.az) or hex with hyphens (GUID)
+        // common ID patterns: numeric (Elan.az) or hex with hyphens (GUID)
         const isLikelyId = /^[0-9]+$/.test(lastSegment) || /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(lastSegment);
-        
+
         if (isLikelyId) {
           setProductId(lastSegment);
           setIsReady(true);
@@ -60,18 +60,18 @@ export default function ElanlarDynamicPage({ params }: { params: Promise<{ slug?
         if (slug.length >= 2) {
           const cat = tree.find((c: any) => generateSlug(c.name) === slug[0]);
           if (cat) {
-             const sub = (cat.children || []).find((c: any) => generateSlug(c.name) === slug[1]);
-             if (sub) {
-                // If it's a child category (e.g. transport/cars)
-                categoryId = sub.id;
-             } else {
-                // Check if it's a subcategory (Brand/Model)
-                const brands = await adService.getSubCategories(cat.id);
-                const brand = brands.find((b: any) => generateSlug(b.name) === slug[1]);
-                if (brand) {
-                   subCategoryId = brand.id;
-                }
-             }
+            const sub = (cat.children || []).find((c: any) => generateSlug(c.name) === slug[1]);
+            if (sub) {
+              // If it's a child category (e.g. transport/cars)
+              categoryId = sub.id;
+            } else {
+              // Check if it's a subcategory (Brand/Model)
+              const brands = await adService.getSubCategories(cat.id);
+              const brand = brands.find((b: any) => generateSlug(b.name) === slug[1]);
+              if (brand) {
+                subCategoryId = brand.id;
+              }
+            }
           }
         }
 

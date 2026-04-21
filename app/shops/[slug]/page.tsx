@@ -44,8 +44,30 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
     const loadStore = async () => {
       try {
         setIsLoading(true);
-        // Try loading by slug first
-        const data = await storeService.getStoreBySlug(slug);
+        
+        // Check if the current slug parameter is actually a GUID (identity)
+        const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+        let data: StoreDetail;
+
+        try {
+          if (isGuid) {
+            // If it's a GUID format, try fetching by ID first
+            try {
+              data = await storeService.getStore(slug);
+            } catch (err) {
+              // Fallback to slug just in case a slug looks like a GUID
+              data = await storeService.getStoreBySlug(slug);
+            }
+          } else {
+            // Normal slug lookup
+            data = await storeService.getStoreBySlug(slug);
+          }
+        } catch (err) {
+          console.error("Store not found or loading error:", err);
+          setIsLoading(false);
+          return;
+        }
+
         setStore(data);
         setIsFollowing(!!data.isFollowing);
         setFollowerCount(data.followerCount || 0);
@@ -79,8 +101,8 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
         }) as any);
         setAds(mappedAds);
 
-        // Increment view count
-        storeService.incrementStoreView(slug).catch(console.error);
+        // Increment view count - use slug if available, otherwise use id
+        storeService.incrementStoreView(data.slug || data.id).catch(console.error);
       } catch (err) {
         console.error('Error loading store:', err);
       } finally {
@@ -480,6 +502,38 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                 {store.description}
               </p>
             </div>
+
+            {/* Store Gallery Section */}
+            {store.photos && store.photos.length > 0 && (
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="size-10 rounded-xl bg-purple-50 flex items-center justify-center">
+                    <span className="material-symbols-outlined !text-xl text-purple-600 font-bold">collections</span>
+                  </div>
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Mağaza Qalereyası</h2>
+                </div>
+                
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                  {store.photos.map((photo, index) => (
+                    <div 
+                      key={index} 
+                      className="group relative aspect-square rounded-xl bg-gray-50 overflow-hidden cursor-zoom-in transition-all hover:shadow-xl hover:scale-[1.02] border border-gray-100"
+                      onClick={() => window.open(getImageUrl(photo), '_blank')}
+                    >
+                      <Image
+                        src={getImageUrl(photo)}
+                        alt={`${store.storeName} Gallery ${index + 1}`}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+                        <span className="material-symbols-outlined text-white opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100">fullscreen</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Ads Section */}
             <div>

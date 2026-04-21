@@ -36,7 +36,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
   const modalContent = (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer"
         onClick={onClose}
       />
 
@@ -45,7 +45,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
           <h2 className="text-xl font-bold text-gray-900">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined">close</span>
           </button>

@@ -155,11 +155,11 @@ function BusinessPageInner() {
         <div className="flex flex-col lg:flex-row gap-8">
           <UserSidebar />
           <div className="flex-1 min-w-0">
-            <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Biznes Kabineti</h1>
-                <p className="text-slate-500 font-medium mt-1">Paketlərinizi idarə edin və balansınızı izləyin</p>
-              </div>
+              <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Biznes Kabineti</h1>
+                  <p className="text-slate-500 text-xs sm:text-sm font-medium mt-1">Paketlərinizi idarə edin və balansınızı izləyin</p>
+                </div>
               <div className="flex items-center gap-3">
                 <div className="bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
@@ -175,8 +175,8 @@ function BusinessPageInner() {
               </div>
             </div>
 
-            <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden min-h-[600px] flex flex-col">
-              <div className="flex border-b border-slate-100 px-8 pt-6">
+            <div className="bg-white rounded-3xl md:rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden min-h-[600px] flex flex-col">
+              <div className="flex border-b border-slate-100 px-4 sm:px-8 pt-2 sm:pt-6 overflow-x-auto scrollbar-hide no-scrollbar">
                 {[
                   { id: 'packages', label: 'Paketlər', icon: Package },
                   { id: 'balance', label: 'Balans', icon: Wallet },
@@ -185,9 +185,9 @@ function BusinessPageInner() {
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id as TabType)}
-                    className={`flex items-center gap-2 px-8 py-4 font-bold text-sm transition-all relative ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 font-bold text-xs sm:text-sm transition-all relative whitespace-nowrap cursor-pointer ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}
                   >
-                    <tab.icon size={18} />
+                    <tab.icon size={18} className="shrink-0" />
                     {tab.label}
                     {activeTab === tab.id && (
                       <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(var(--primary-rgb),0.5)]"></div>
@@ -196,18 +196,18 @@ function BusinessPageInner() {
                 ))}
               </div>
 
-              <div className="p-8 flex-1">
+              <div className="p-4 sm:p-8 flex-1">
                 {activeTab === 'packages' && (
                   <div className="space-y-12">
                     {myPackages.filter(p => !p.isExpired).length > 0 && (
-                      <section className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-10">
+                      <section className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-white relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-10 hidden sm:block">
                           <Rocket size={160} />
                         </div>
-                        <h3 className="text-amber-400 text-xs font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                        <h3 className="text-amber-400 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] mb-4 sm:mb-6 flex items-center gap-2">
                           <Zap size={14} className="fill-amber-400" /> Aktiv Biznes Paketi
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
                           {myPackages.filter(p => !p.isExpired).map(pkg => (
                             <div key={pkg.id} className="flex flex-col gap-6">
                               <div>
@@ -217,14 +217,14 @@ function BusinessPageInner() {
                                   <span>Bitmə vaxtı: {formatDate(pkg.expireDate)}</span>
                                 </div>
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
-                                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Elan Limiti</p>
-                                  <p className="text-xl font-black text-amber-400">{pkg.adLimit || 0}</p>
+                              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                <div className="bg-white/5 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/10">
+                                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-1">Elan Limiti</p>
+                                  <p className="text-lg sm:text-xl font-black text-amber-400">{pkg.adLimit || 0}</p>
                                 </div>
-                                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
-                                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Xidmət Endirimi</p>
-                                  <p className="text-xl font-black text-blue-400">-{pkg.discount}%</p>
+                                <div className="bg-white/5 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/10">
+                                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-1">Xidmət Endirimi</p>
+                                  <p className="text-lg sm:text-xl font-black text-blue-400">-{pkg.discount}%</p>
                                 </div>
                               </div>
                             </div>
@@ -242,7 +242,7 @@ function BusinessPageInner() {
                           </div>
                           <button
                             onClick={() => router.push('/elanlar/create')}
-                            className="w-full md:w-auto bg-amber-400 text-slate-900 px-10 py-4 rounded-[1.25rem] font-black hover:bg-white hover:scale-105 transition-all shadow-xl shadow-amber-400/20 active:scale-95 flex items-center justify-center gap-2 group"
+                            className="w-full md:w-auto bg-amber-400 text-slate-900 px-10 py-4 rounded-[1.25rem] font-black hover:bg-white hover:scale-105 transition-all shadow-xl shadow-amber-400/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer"
                           >
                             <span>Yeni elan yerləşdir</span>
                             <Rocket size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -254,19 +254,19 @@ function BusinessPageInner() {
                     <div>
                       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                         <div>
-                          <h3 className="text-slate-900 text-2xl font-black tracking-tight">Yeni Paket Seçin</h3>
-                          <p className="text-slate-500 font-medium h-6">Ehtiyacınıza uyğun olan paketi seçərək satışlarınızı artırın</p>
+                          <h3 className="text-slate-900 text-xl sm:text-2xl font-black tracking-tight">Yeni Paket Seçin</h3>
+                          <p className="text-slate-500 text-xs sm:text-sm font-medium h-auto mb-1">Ehtiyacınıza uyğun olan paketi seçərək satışlarınızı artırın</p>
                         </div>
-                        <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center self-start">
+                        <div className="bg-slate-100 p-1 rounded-xl sm:rounded-2xl flex items-center self-start overflow-x-auto scrollbar-hide max-w-full no-scrollbar">
                           {durations.map(days => (
                             <button
                               key={days}
                               onClick={() => setSelectedDuration(days)}
-                              className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all relative ${selectedDuration === days ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                              className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] sm:text-sm transition-all relative whitespace-nowrap cursor-pointer ${selectedDuration === days ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                               {days} gün
                               {days > 30 && (
-                                <div className="absolute -top-3 -right-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black scale-90">-%</div>
+                                <div className="absolute -top-1 -right-1 sm:-top-3 sm:-right-2 bg-green-500 text-white text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full font-black scale-90">-%</div>
                               )}
                             </button>
                           ))}
@@ -290,7 +290,7 @@ function BusinessPageInner() {
                             return (
                               <div
                                 key={pkg.id}
-                                className={`group bg-white rounded-[2.5rem] p-8 flex flex-col border-2 transition-all hover:translate-y-[-8px] hover:shadow-2xl ${isRecommended ? 'border-primary/20 shadow-lg shadow-primary/5 ring-1 ring-primary/5' : 'border-slate-50 hover:border-slate-200'}`}
+                                className={`group bg-white rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-8 flex flex-col border-2 transition-all hover:translate-y-[-8px] hover:shadow-2xl ${isRecommended ? 'border-primary/20 shadow-lg shadow-primary/5 ring-1 ring-primary/5' : 'border-slate-50 hover:border-slate-200'}`}
                               >
                                 {isRecommended && (
                                   <div className="bg-primary text-white text-[10px] font-black uppercase tracking-widest py-1.5 px-4 rounded-full self-start mb-6 -mt-2">
@@ -348,7 +348,7 @@ function BusinessPageInner() {
                                 <button
                                   onClick={() => handleBuy(pkg.id)}
                                   disabled={isProcessing}
-                                  className={`w-full py-4 rounded-2xl font-black text-sm tracking-wide transition-all ${isRecommended ? 'bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 hover:scale-[1.02]' : 'bg-slate-900 text-white hover:bg-slate-800 hover:scale-[1.02]'} disabled:opacity-50 disabled:scale-100`}
+                                  className={`w-full py-4 rounded-2xl font-black text-sm tracking-wide transition-all cursor-pointer ${isRecommended ? 'bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 hover:scale-[1.02]' : 'bg-slate-900 text-white hover:bg-slate-800 hover:scale-[1.02]'} disabled:opacity-50 disabled:scale-100`}
                                 >
                                   {isProcessing ? 'GÖZLƏYİN...' : 'İNDİ AKTİVLƏŞDİR'}
                                 </button>
@@ -363,22 +363,22 @@ function BusinessPageInner() {
 
                 {activeTab === 'balance' && (
                   <div className="space-y-12">
-                    <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white flex flex-col lg:flex-row items-center justify-between gap-10 relative overflow-hidden">
+                    <div className="bg-slate-900 rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-10 text-white flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent pointer-events-none"></div>
-                      <div className="relative z-10 flex-1">
-                        <div className="flex items-center gap-3 mb-4">
+                      <div className="relative z-10 flex-1 text-center lg:text-left">
+                        <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
                           <div className="p-2 bg-primary/20 rounded-lg text-primary">
                             <Wallet size={20} />
                           </div>
-                          <h4 className="text-slate-400 font-bold uppercase tracking-widest text-xs">Hesabın ümumi vəziyyəti</h4>
+                          <h4 className="text-slate-400 font-bold uppercase tracking-widest text-[10px] sm:text-xs">Hesabın ümumi vəziyyəti</h4>
                         </div>
-                        <h2 className="text-5xl font-black tracking-tight mb-2">
-                          {((user?.balance || 0) + (user?.packageBalance || 0) + (user?.bonusBalance || 0)).toFixed(2)} <span className="text-2xl font-bold text-slate-500">₼</span>
+                        <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-2">
+                          {((user?.balance || 0) + (user?.packageBalance || 0) + (user?.bonusBalance || 0)).toFixed(2)} <span className="text-xl sm:text-2xl font-bold text-slate-500">₼</span>
                         </h2>
-                        <p className="text-slate-400 font-medium">Bu məbləğ platformadakı bütün aktiv balanslarınızın cəmidir.</p>
+                        <p className="text-slate-400 text-xs sm:text-sm font-medium">Bu məbləğ platformadakı bütün aktiv balanslarınızın cəmidir.</p>
                       </div>
                       <div className="relative z-10 w-full lg:w-auto">
-                        <button className="bg-white text-slate-900 px-12 py-5 rounded-2xl font-black text-lg hover:bg-primary hover:text-white transition-all shadow-2xl shadow-white/5 active:scale-95 w-full">
+                        <button className="bg-white text-slate-900 px-12 py-5 rounded-2xl font-black text-lg hover:bg-primary hover:text-white transition-all shadow-2xl shadow-white/5 active:scale-95 w-full cursor-pointer">
                           Balansı Artır
                         </button>
                       </div>
@@ -401,14 +401,14 @@ function BusinessPageInner() {
                         </div>
                       ))}
                     </div>
-                    <div className="bg-white border-2 border-slate-100 rounded-[2rem] p-8 flex flex-col md:flex-row items-center gap-8">
-                      <div className="w-20 h-20 rounded-3xl bg-slate-900 flex flex-col items-center justify-center text-white shrink-0">
-                        <p className="text-[10px] font-black opacity-40 uppercase">LİMİT</p>
-                        <p className="text-3xl font-black tracking-tight">{user?.adLimit || 0}</p>
+                    <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center gap-6 sm:gap-8">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-slate-900 flex flex-col items-center justify-center text-white shrink-0">
+                        <p className="text-[8px] sm:text-[10px] font-black opacity-40 uppercase">LİMİT</p>
+                        <p className="text-2xl sm:text-3xl font-black tracking-tight">{user?.adLimit || 0}</p>
                       </div>
-                      <div>
-                        <h4 className="text-xl font-black text-slate-900 mb-2">Qalan Elan Limiti</h4>
-                        <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                      <div className="text-center md:text-left">
+                        <h4 className="text-lg sm:text-xl font-black text-slate-900 mb-2">Qalan Elan Limiti</h4>
+                        <p className="text-slate-500 text-xs sm:text-sm font-medium leading-relaxed">
                           Sizin cari biznes paketiniz üzrə aktiv elan yerləşdirmə limitiniz <strong className="text-slate-900">{user?.adLimit || 0}</strong> ədəddir.
                           Limit bitdikdə yeni paket alaraq və ya balansınızı artıraraq davam edə bilərsiniz.
                         </p>
@@ -424,7 +424,7 @@ function BusinessPageInner() {
                         <button
                           key={status}
                           onClick={() => { setInvoiceTab(status); setInvoicePage(1); }}
-                          className={`px-5 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all ${invoiceTab === status ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                          className={`px-5 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all cursor-pointer ${invoiceTab === status ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                           {status}
                         </button>
@@ -469,10 +469,10 @@ function BusinessPageInner() {
                                     </td>
                                     <td className="px-8 py-5 text-right">
                                       <div className="flex justify-end gap-2">
-                                        <button onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')} className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center" title="PDF Endir">
+                                        <button onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')} className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center cursor-pointer" title="PDF Endir">
                                           <FileText size={18} />
                                         </button>
-                                        <button onClick={() => window.open(`/cabinet/invoices/${inv.id}/print`, '_blank')} className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center" title="Çap et">
+                                        <button onClick={() => window.open(`/cabinet/invoices/${inv.id}/print`, '_blank')} className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center cursor-pointer" title="Çap et">
                                           <Printer size={18} />
                                         </button>
                                       </div>
@@ -500,10 +500,10 @@ function BusinessPageInner() {
                                   <div className="text-lg font-black text-primary">{inv.amount.toFixed(2)} <span className="text-xs uppercase opacity-60">₼</span></div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 mt-6">
-                                  <button onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')} className="flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-bold text-xs">
+                                  <button onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')} className="flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-bold text-xs cursor-pointer">
                                     <FileText size={16} /> PDF Endir
                                   </button>
-                                  <button onClick={() => window.open(`/cabinet/invoices/${inv.id}/print`, '_blank')} className="flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-50 text-blue-600 font-bold text-xs">
+                                  <button onClick={() => window.open(`/cabinet/invoices/${inv.id}/print`, '_blank')} className="flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-50 text-blue-600 font-bold text-xs cursor-pointer">
                                     <Printer size={16} /> Çap et
                                   </button>
                                 </div>
@@ -524,15 +524,15 @@ function BusinessPageInner() {
 
                           {invoiceData && invoiceData.totalPages > 1 && (
                             <div className="p-8 border-t border-slate-50 flex items-center justify-center gap-2">
-                              <button onClick={() => setInvoicePage(p => Math.max(1, p - 1))} disabled={invoicePage === 1} className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all">
+                              <button onClick={() => setInvoicePage(p => Math.max(1, p - 1))} disabled={invoicePage === 1} className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all cursor-pointer">
                                 <ChevronDown size={20} className="rotate-90" />
                               </button>
                               {[...Array(invoiceData.totalPages)].map((_, i) => (
-                                <button key={i} onClick={() => setInvoicePage(i + 1)} className={`w-10 h-10 rounded-xl text-sm font-black transition-all ${invoicePage === i + 1 ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}>
+                                <button key={i} onClick={() => setInvoicePage(i + 1)} className={`w-10 h-10 rounded-xl text-sm font-black transition-all cursor-pointer ${invoicePage === i + 1 ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}>
                                   {i + 1}
                                 </button>
                               ))}
-                              <button onClick={() => setInvoicePage(p => Math.min(invoiceData.totalPages, p + 1))} disabled={invoicePage === invoiceData.totalPages} className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all">
+                              <button onClick={() => setInvoicePage(p => Math.min(invoiceData.totalPages, p + 1))} disabled={invoicePage === invoiceData.totalPages} className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all cursor-pointer">
                                 <ChevronDown size={20} className="-rotate-90" />
                               </button>
                             </div>

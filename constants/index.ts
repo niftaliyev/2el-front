@@ -46,6 +46,7 @@ export const ROUTES = {
   ADMIN_STORE_REQUESTS: '/admin/store-requests',
   ADMIN_BUSINESS_PACKAGES: '/admin/business-packages',
   ADMIN_REPORTS: '/admin/reports',
+  ADMIN_HELP: '/admin/help',
   STORE_DETAIL: (slug: string) => `/shops/${slug}`,
 } as const;
 
@@ -88,6 +89,7 @@ export const ADMIN_NAV_ITEMS = [
   { href: '/admin/store-requests', icon: 'storefront', label: 'Mağaza Sorğuları', filled: false },
   { href: '/admin/business-packages', icon: 'inventory_2', label: 'Biznes Paketləri', filled: false },
   { href: '/admin/reports', icon: 'report', label: 'Şikayətlər', filled: false },
+  { href: '/admin/help', icon: 'help_outline', label: 'Yardım və Səhifələr', filled: false },
 ] as const;
 
 

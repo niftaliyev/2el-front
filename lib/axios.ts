@@ -97,11 +97,15 @@ axiosInstance.interceptors.response.use(
       const data = error.response.data as any;
       let message = 'Bir xəta baş verdi';
 
-      if (typeof data === 'string') {
+      if (data && typeof data === 'object') {
+        if (data.errors) {
+          message = Object.values(data.errors).flat().join(', ');
+          (error as any).validationErrors = data.errors;
+        } else {
+          message = data.message || data.title || 'Bir xəta baş verdi';
+        }
+      } else if (typeof data === 'string') {
         message = data;
-      } else if (data && typeof data === 'object') {
-        // Handle ASP.NET Core ProblemDetails or custom { message: "..." }
-        message = data.message || data.title || (data.errors ? Object.values(data.errors).flat().join(', ') : 'Bir xəta baş verdi');
       }
 
       error.message = message;

@@ -237,6 +237,58 @@ class AdminService {
   async syncSeedData(): Promise<void> {
     await axiosInstance.post('/admin/seed-data/sync');
   }
+
+  // ── Help Management ───────────────────────────────────────────────────────
+
+  async upsertHelpCategory(data: any): Promise<any> {
+    const response = await axiosInstance.post('/admin/help/category', data);
+    return response.data;
+  }
+
+  async deleteHelpCategory(id: string): Promise<void> {
+    await axiosInstance.delete(`/admin/help/category/${id}`);
+  }
+
+  async upsertHelpItem(categoryId: string, data: any): Promise<any> {
+    const response = await axiosInstance.post(`/admin/help/category/${categoryId}/item`, data);
+    return response.data;
+  }
+
+  async deleteHelpItem(id: string): Promise<void> {
+    await axiosInstance.delete(`/admin/help/item/${id}`);
+  }
+
+  // Static Pages
+  async upsertStaticPage(data: any): Promise<any> {
+    const response = await axiosInstance.post('/admin/help/pages', data);
+    return response.data;
+  }
+
+  async deleteStaticPage(id: string): Promise<void> {
+    await axiosInstance.delete(`/admin/help/pages/${id}`);
+  }
+
+  // Legal Policies
+  async upsertLegalPolicy(data: any): Promise<any> {
+    const response = await axiosInstance.post('/admin/help/legal', data);
+    return response.data;
+  }
+
+  async deleteLegalPolicy(id: string): Promise<void> {
+    await axiosInstance.delete(`/admin/help/legal/${id}`);
+  }
+
+  // Privacy Policy
+  async upsertPrivacyPolicy(data: any): Promise<any> {
+    const response = await axiosInstance.post('/admin/help/privacy', data);
+    return response.data;
+  }
+
+  async deletePrivacyPolicy(id: string): Promise<void> {
+    await axiosInstance.delete(`/admin/help/privacy/${id}`);
+  }
 }
+
+
 
 export const adminService = new AdminService();

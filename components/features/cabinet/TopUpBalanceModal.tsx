@@ -76,7 +76,7 @@ export default function TopUpBalanceModal({ isOpen, onClose, onSuccess }: TopUpB
             <h2 className="text-xl font-bold text-gray-900">Balansı Artır</h2>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-gray-500">close</span>
             </button>
@@ -146,14 +146,14 @@ export default function TopUpBalanceModal({ isOpen, onClose, onSuccess }: TopUpB
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 h-12 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 transition-colors"
+                className="flex-1 h-12 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 transition-colors cursor-pointer"
                 disabled={isSubmitting}
               >
                 İmtina
               </button>
               <button
                 type="submit"
-                className="flex-[2] h-12 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                className="flex-[2] h-12 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

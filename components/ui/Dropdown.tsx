@@ -38,7 +38,7 @@ export default function Dropdown({ trigger, items, align = 'right' }: DropdownPr
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <div onClick={() => setIsOpen(!isOpen)}>
+      <div className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
         {trigger}
       </div>
 

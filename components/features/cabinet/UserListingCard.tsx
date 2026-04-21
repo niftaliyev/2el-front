@@ -150,7 +150,7 @@ export default function UserListingCard({
             {listing.status === 'active' && (
               <button
                 onClick={() => onPromote(listing.id)}
-                className="w-full h-9 rounded-xl bg-primary text-white font-bold uppercase tracking-tight text-[10px] sm:text-[11px] hover:bg-primary/90 transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 group/rocket"
+                className="w-full h-9 rounded-xl bg-primary text-white font-bold uppercase tracking-tight text-[10px] sm:text-[11px] hover:bg-primary/90 transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 group/rocket cursor-pointer"
               >
                 <span className="material-symbols-outlined !text-[16px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">rocket_launch</span>
                 <span className="truncate">Önə Çıxar</span>
@@ -160,7 +160,7 @@ export default function UserListingCard({
             {listing.status === 'inactive' && onReactivate && (
               <button
                 onClick={() => onReactivate(listing.id)}
-                className="w-full h-9 rounded-xl bg-emerald-600 text-white font-bold uppercase tracking-tight text-[10px] sm:text-[11px] hover:bg-emerald-700 transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 group/refresh"
+                className="w-full h-9 rounded-xl bg-emerald-600 text-white font-bold uppercase tracking-tight text-[10px] sm:text-[11px] hover:bg-emerald-700 transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 group/refresh cursor-pointer"
               >
                 <span className="material-symbols-outlined !text-[16px] group-hover:rotate-180 transition-transform duration-500">refresh</span>
                 <span className="truncate">Yenilə</span>
@@ -171,7 +171,7 @@ export default function UserListingCard({
           <div className="flex gap-2">
             <button
               onClick={() => onEdit(listing.id)}
-              className="size-9 rounded-xl bg-gray-50 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border border-gray-100 transition-all flex items-center justify-center active:scale-90"
+              className="size-9 rounded-xl bg-gray-50 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border border-gray-100 transition-all flex items-center justify-center active:scale-90 cursor-pointer"
               title="Redaktə et"
             >
               <span className="material-symbols-outlined text-[18px]">edit</span>
@@ -179,7 +179,7 @@ export default function UserListingCard({
 
             <button
               onClick={() => onDelete(listing.id)}
-              className="size-9 rounded-xl bg-gray-50 text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-100 transition-all flex items-center justify-center active:scale-90"
+              className="size-9 rounded-xl bg-gray-50 text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-100 transition-all flex items-center justify-center active:scale-90 cursor-pointer"
               title="Sil"
             >
               <span className="material-symbols-outlined text-[18px]">delete</span>

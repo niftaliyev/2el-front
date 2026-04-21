@@ -83,7 +83,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => setActiveTab('vip')}
-            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 ${activeTab === 'vip' ? 'text-blue-600 border-blue-600 bg-blue-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
+            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 cursor-pointer ${activeTab === 'vip' ? 'text-blue-600 border-blue-600 bg-blue-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
               }`}
           >
             <span className="material-symbols-outlined !text-[20px] font-bold">stars</span>
@@ -91,7 +91,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
           </button>
           <button
             onClick={() => setActiveTab('premium')}
-            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 ${activeTab === 'premium' ? 'text-amber-500 border-amber-500 bg-amber-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
+            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 cursor-pointer ${activeTab === 'premium' ? 'text-amber-500 border-amber-500 bg-amber-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
               }`}
           >
             <span className="material-symbols-outlined !text-[20px] font-bold">workspace_premium</span>
@@ -99,7 +99,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
           </button>
           <button
             onClick={() => setActiveTab('boost')}
-            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 ${activeTab === 'boost' ? 'text-green-600 border-green-600 bg-green-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
+            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 cursor-pointer ${activeTab === 'boost' ? 'text-green-600 border-green-600 bg-green-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
               }`}
           >
             <span className="material-symbols-outlined !text-[20px] font-bold">rocket_launch</span>
@@ -181,7 +181,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
               <button
                 onClick={handleBuy}
                 disabled={!selectedPackage || isSubmitting || packages.length === 0}
-                className="mt-4 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="mt-4 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSubmitting ? 'Gözləyin...' : 'İndi Ödə'}
               </button>
