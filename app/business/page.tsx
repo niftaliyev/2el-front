@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +13,14 @@ import { CATEGORIES } from '@/constants';
 
 
 export default function BusinessLandingPage() {
+    return (
+        <Suspense fallback={null}>
+            <BusinessPageInner />
+        </Suspense>
+    );
+}
+
+function BusinessPageInner() {
     const { user, isAuthenticated } = useAuth();
     const searchParams = useSearchParams();
     const [formData, setFormData] = useState({
