@@ -141,7 +141,23 @@ export default function AdminDashboard() {
         </Link>
 
         <Link
+          href="/admin/help"
+          className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center size-12 bg-sky-50 rounded-lg group-hover:bg-sky-100 transition-colors">
+              <span className="material-symbols-outlined text-sky-600 text-2xl">help_outline</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">Yardım İdarəetməsi</h3>
+              <p className="text-sm text-gray-600">Sual-cavabları idarə et</p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
           href="/admin/seed-data"
+
           className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
         >
           <div className="flex items-center gap-4">

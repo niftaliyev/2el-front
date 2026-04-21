@@ -217,7 +217,7 @@ export default function CabinetPage() {
                         setActiveTab(tab);
                         setPage(1);
                       }}
-                      className={`flex items-center gap-2 pb-4 pt-1 border-b-2 transition-all whitespace-nowrap group ${activeTab === tab ? 'border-primary' : 'border-transparent text-gray-400 hover:text-gray-600'
+                      className={`flex items-center gap-2 pb-4 pt-1 border-b-2 transition-all whitespace-nowrap group cursor-pointer ${activeTab === tab ? 'border-primary' : 'border-transparent text-gray-400 hover:text-gray-600'
                         }`}
                     >
                       <p className={`text-sm font-bold transition-colors ${activeTab === tab ? 'text-primary' : ''
@@ -280,7 +280,7 @@ export default function CabinetPage() {
                       <button
                         onClick={() => setPage(p => Math.max(1, p - 1))}
                         disabled={page === 1}
-                        className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                        className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <span className="material-symbols-outlined">chevron_left</span>
                       </button>
@@ -288,7 +288,7 @@ export default function CabinetPage() {
                         <button
                           key={i}
                           onClick={() => setPage(i + 1)}
-                          className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${page === i + 1
+                          className={`w-10 h-10 rounded-lg text-sm font-bold transition-all cursor-pointer ${page === i + 1
                             ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
                             : 'text-gray-500 hover:bg-gray-100'
                             }`}
@@ -299,7 +299,7 @@ export default function CabinetPage() {
                       <button
                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                         disabled={page === totalPages}
-                        className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                        className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <span className="material-symbols-outlined">chevron_right</span>
                       </button>

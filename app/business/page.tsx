@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { storeService } from '@/services/store.service';
 import { adService } from '@/services/ad.service';
@@ -13,6 +14,7 @@ import { CATEGORIES } from '@/constants';
 
 export default function BusinessLandingPage() {
     const { user, isAuthenticated } = useAuth();
+    const searchParams = useSearchParams();
     const [formData, setFormData] = useState({
         storeName: '',
         fullName: '',
@@ -98,6 +100,13 @@ export default function BusinessLandingPage() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isAuthenticated]);
+
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab === 'packages') {
+            fetchPackages();
+        }
+    }, [searchParams]);
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -446,10 +455,10 @@ export default function BusinessLandingPage() {
                     title="Biznes Paketlərimiz"
                     size="xl"
                 >
-                    <div className="p-4 sm:p-8">
-                        <div className="mb-8 sm:mb-12 text-center px-4">
-                            <h3 className="text-2xl sm:text-3xl font-black text-gray-900 mb-3 sm:mb-4 tracking-tight">Ehtiyacınıza uyğun paketi seçin</h3>
-                            <p className="text-gray-400 font-bold text-sm sm:text-base">Mağaza müraciətiniz təsdiqləndikdən sonra bu paketlərdən birini aktivləşdirə bilərsiniz.</p>
+                    <div className="py-4 md:p-8">
+                        <div className="mb-6 md:mb-12 text-center px-2">
+                            <h3 className="text-xl sm:text-3xl font-black text-gray-900 mb-2 sm:mb-4 tracking-tight leading-tight">Ehtiyacınıza uyğun paketi seçin</h3>
+                            <p className="text-gray-400 font-bold text-xs sm:text-base leading-relaxed">Mağaza müraciətiniz təsdiqləndikdən sonra bu paketlərdən birini aktivləşdirə bilərsiniz.</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 overflow-y-auto max-h-[70vh] sm:max-h-none px-2">
@@ -473,9 +482,9 @@ export default function BusinessLandingPage() {
                                         )}
                                     </div>
 
-                                    <div className="mb-8 sm:mb-10 flex items-baseline gap-2">
-                                        <span className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tighter">{pkg.basePrice}</span>
-                                        <span className="text-gray-400 font-black text-xs sm:text-sm uppercase tracking-widest">₼ / AY</span>
+                                    <div className="mb-6 sm:mb-8 flex items-baseline gap-2">
+                                        <span className="text-3xl sm:text-5xl font-black text-gray-900 tracking-tighter">{pkg.basePrice}</span>
+                                        <span className="text-gray-400 font-black text-[10px] sm:text-sm uppercase tracking-widest">₼ / AY</span>
                                     </div>
 
                                     <div className="space-y-4 sm:space-y-5 mb-8 sm:mb-12 flex-1">
@@ -506,10 +515,10 @@ export default function BusinessLandingPage() {
                                     </div>
 
                                     <button
-                                        disabled
-                                        className="w-full py-4 sm:py-5 rounded-2xl bg-gray-50 text-gray-400 font-black text-xs sm:text-sm uppercase tracking-widest cursor-not-allowed transition-all"
+                                        onClick={() => setShowPackagesModal(false)}
+                                        className="w-full py-4 rounded-2xl bg-primary/10 text-primary font-black text-xs sm:text-sm uppercase tracking-widest hover:bg-primary hover:text-white transition-all active:scale-95 mt-auto"
                                     >
-                                        Tezliklə
+                                        Müraciət et
                                     </button>
                                 </div>
                             )) : (

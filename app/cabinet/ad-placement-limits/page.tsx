@@ -69,7 +69,7 @@ export default function AdPlacementLimitsPage() {
               <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-xl mb-8 w-fit">
                 <button
                   onClick={() => setActiveTab('mine')}
-                  className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'mine'
+                  className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer ${activeTab === 'mine'
                     ? 'bg-white text-primary shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
                     }`}
@@ -78,7 +78,7 @@ export default function AdPlacementLimitsPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('all')}
-                  className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'all'
+                  className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer ${activeTab === 'all'
                     ? 'bg-white text-primary shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
                     }`}
@@ -193,7 +193,7 @@ export default function AdPlacementLimitsPage() {
                   })()}
                 </div>
               ) : (
-                /* Mine Tab (Tap.az Style) */
+                /* Mine Tab (Elan.az Style) */
                 <div className="space-y-4">
                   <div className="mb-6">
                     <h2 className="text-gray-900 font-bold text-lg mb-4">

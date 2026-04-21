@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
@@ -26,6 +27,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
@@ -48,6 +50,10 @@ export default function RegisterPage() {
     } catch (err: any) {
       console.error('Registration error:', err);
       setError(err?.message || 'Qeydiyyat zamanı xəta baş verdi');
+
+      if (err?.validationErrors) {
+        setFieldErrors(err.validationErrors);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -55,133 +61,151 @@ export default function RegisterPage() {
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg sm:p-8">
-            {/* Page Heading */}
-            <div className="mb-6 text-center">
-              <h1 className="text-3xl font-black tracking-tight text-gray-900">
-                Qeydiyyat
-              </h1>
-              <p className="mt-2 text-base text-gray-500">
-                Yeni hesab yaradın
-              </p>
+      <div className="w-full max-w-md">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg sm:p-8">
+          {/* Page Heading */}
+          <div className="mb-6 text-center">
+            <h1 className="text-3xl font-black tracking-tight text-gray-900">
+              Qeydiyyat
+            </h1>
+            <p className="mt-2 text-base text-gray-500">
+              Yeni hesab yaradın
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600 mb-6 border border-red-100">
+              <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-base mt-0.5">error</span>
+                <div className="flex-1">
+                  <p className="font-semibold mb-1">Xəta baş verdi:</p>
+                  {error.includes(',') ? (
+                    <ul className="list-disc list-inside space-y-0.5 text-xs opacity-90">
+                      {error.split(',').map((err, i) => (
+                        <li key={i}>{err.trim()}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>{error}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Registration Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="Ad və Soyad"
+              type="text"
+              placeholder="Ad və soyadınızı daxil edin"
+              value={formData.fullName}
+              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+              disabled={isLoading}
+              required
+              error={fieldErrors['fullName']?.[0] || fieldErrors['FullName']?.[0]}
+            />
+
+            <Input
+              label="Telefon nömrəsi"
+              type="tel"
+              placeholder="Nümunə: 0501234567 və ya +994501234567"
+              value={formData.phoneNumber}
+              onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+              disabled={isLoading}
+              required
+              pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
+              title="Səhv format. Nümunə: 0501234567 və ya +994501234567"
+              error={fieldErrors['phoneNumber']?.[0] || fieldErrors['PhoneNumber']?.[0]}
+            />
+
+            <Input
+              label="E-poçt"
+              type="email"
+              placeholder="nümunə@email.com"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              disabled={isLoading}
+              required
+              error={fieldErrors['email']?.[0] || fieldErrors['Email']?.[0]}
+            />
+
+            <div className="relative">
+              <Input
+                label="Şifrə"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Yeni şifrə yaradın"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                disabled={isLoading}
+                required
+                error={fieldErrors['password']?.[0] || fieldErrors['Password']?.[0]}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <span className="material-symbols-outlined text-xl">
+                  {showPassword ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">
-                {error}
-              </div>
-            )}
-
-            {/* Registration Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="relative">
               <Input
-                label="Ad və Soyad"
-                type="text"
-                placeholder="Ad və soyadınızı daxil edin"
-                value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                label="Şifrənin təkrarı"
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="Şifrənizi təsdiqləyin"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 disabled={isLoading}
                 required
               />
-
-              <Input
-                label="Telefon nömrəsi"
-                type="tel"
-                placeholder="Nümunə: 0501234567 və ya +994501234567"
-                value={formData.phoneNumber}
-                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                disabled={isLoading}
-                required
-                pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
-                title="Səhv format. Nümunə: 0501234567 və ya +994501234567"
-              />
-
-              <Input
-                label="E-poçt"
-                type="email"
-                placeholder="nümunə@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                disabled={isLoading}
-                required
-              />
-
-              <div className="relative">
-                <Input
-                  label="Şifrə"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Yeni şifrə yaradın"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  disabled={isLoading}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-xl">
-                    {showPassword ? 'visibility_off' : 'visibility'}
-                  </span>
-                </button>
-              </div>
-
-              <div className="relative">
-                <Input
-                  label="Şifrənin təkrarı"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Şifrənizi təsdiqləyin"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  disabled={isLoading}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-xl">
-                    {showConfirmPassword ? 'visibility_off' : 'visibility'}
-                  </span>
-                </button>
-              </div>
-
-              <p className="mt-4 text-center text-xs text-gray-500">
-                Qeydiyyatdan keçməklə, saytın{' '}
-                <Link href="#" className="font-medium text-primary hover:underline">
-                  İstifadəçi Razılaşmasını
-                </Link>{' '}
-                qəbul edirsiniz.
-              </p>
-
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full h-12 text-base font-bold"
-                isLoading={isLoading}
-                disabled={isLoading}
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 transition-colors"
               >
-                Qeydiyyatdan keç
-              </Button>
+                <span className="material-symbols-outlined text-xl">
+                  {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
+            </div>
 
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600">
-                  Artıq hesabınız var?{' '}
-                  <Link
-                    href={ROUTES.LOGIN}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    Daxil olun
-                  </Link>
-                </p>
-              </div>
-            </form>
-          </div>
+            <p className="mt-4 text-center text-xs text-gray-500">
+              Qeydiyyatdan keçməklə, saytın{' '}
+              <Link href="#" className="font-medium text-primary hover:underline">
+                İstifadəçi Razılaşmasını
+              </Link>{' '}
+              qəbul edirsiniz.
+            </p>
+
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full h-12 text-base font-bold"
+              isLoading={isLoading}
+              disabled={isLoading}
+            >
+              Qeydiyyatdan keç
+            </Button>
+
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Artıq hesabınız var?{' '}
+                <Link
+                  href={ROUTES.LOGIN}
+                  className="font-medium text-primary hover:underline"
+                >
+                  Daxil olun
+                </Link>
+              </p>
+            </div>
+          </form>
         </div>
-      </main>
+      </div>
+    </main>
   );
 }

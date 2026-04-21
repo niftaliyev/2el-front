@@ -87,7 +87,7 @@ export default function UserSidebar() {
                     <span className="text-gray-900 text-base lg:text-xl font-bold">{user.balance.toFixed(2)} <span className="text-[10px] lg:text-sm font-medium text-gray-400">₼</span></span>
                     <button
                       onClick={() => setIsTopUpModalOpen(true)}
-                      className="size-7 lg:size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all"
+                      className="size-7 lg:size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined !text-[18px] lg:!text-[20px]">add</span>
                     </button>
@@ -102,7 +102,7 @@ export default function UserSidebar() {
                   </div>
                   <button
                     onClick={() => setIsTopUpModalOpen(true)}
-                    className="px-3 h-8 rounded-lg bg-primary text-white text-xs font-bold flex items-center gap-1.5"
+                    className="px-3 h-8 rounded-lg bg-primary text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                   >
                     <span className="material-symbols-outlined !text-[14px]">add</span>
                     <span>Artır</span>
@@ -158,8 +158,8 @@ export default function UserSidebar() {
                     key={item.href}
                     href={item.href}
                     className={`flex items-center gap-3 px-3 lg:px-4 py-2 lg:py-2.5 rounded-xl transition-all whitespace-nowrap ${isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                   >
                     <span
@@ -183,7 +183,7 @@ export default function UserSidebar() {
               <div className="hidden lg:block border-t border-gray-100 pt-4">
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all w-full text-left"
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all w-full text-left cursor-pointer"
                 >
                   <span className="material-symbols-outlined">logout</span>
                   <p className="text-sm font-medium">Çıxış</p>
@@ -192,7 +192,7 @@ export default function UserSidebar() {
 
               <button
                 onClick={handleLogout}
-                className="lg:hidden flex items-center justify-center size-10 rounded-xl bg-gray-50 text-gray-500 flex-shrink-0"
+                className="lg:hidden flex items-center justify-center size-10 rounded-xl bg-gray-50 text-gray-500 flex-shrink-0 cursor-pointer"
               >
                 <span className="material-symbols-outlined">logout</span>
               </button>

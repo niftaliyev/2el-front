@@ -124,7 +124,7 @@ export default function MessagesPage() {
                       <button
                         key={conversation.id}
                         onClick={() => setSelectedConversation(conversation.id)}
-                        className={`w-full p-4 flex items-start gap-3 border-b border-gray-200 hover:bg-gray-50 transition-colors ${
+                        className={`w-full p-4 flex items-start gap-3 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer ${
                           selectedConversation === conversation.id ? 'bg-primary/5' : ''
                         }`}
                       >
@@ -223,7 +223,7 @@ export default function MessagesPage() {
                           />
                           <button
                             onClick={handleSendMessage}
-                            className="bg-primary text-white rounded-lg px-6 py-2 font-semibold hover:bg-primary-dark transition-colors"
+                            className="bg-primary text-white rounded-lg px-6 py-2 font-semibold hover:bg-primary-dark transition-colors cursor-pointer"
                           >
                             Göndər
                           </button>

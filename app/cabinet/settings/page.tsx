@@ -59,6 +59,23 @@ export default function SettingsPage() {
 
   const [showWorkHours, setShowWorkHours] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
+  const [storeGalleryPhotos, setStoreGalleryPhotos] = useState<{ id: string; filePath: string }[]>([]);
+  const [newGalleryPhotos, setNewGalleryPhotos] = useState<File[]>([]);
+  const [photosToRemove, setPhotosToRemove] = useState<string[]>([]);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  const movePhoto = (idx: number, direction: 'left' | 'right') => {
+    const activePhotos = storeGalleryPhotos.filter(p => !photosToRemove.includes(p.id));
+    const targetIdx = direction === 'left' ? idx - 1 : idx + 1;
+    
+    if (targetIdx < 0 || targetIdx >= activePhotos.length) return;
+
+    const newActivePhotos = [...activePhotos];
+    [newActivePhotos[idx], newActivePhotos[targetIdx]] = [newActivePhotos[targetIdx], newActivePhotos[idx]];
+    
+    const removedPhotos = storeGalleryPhotos.filter(p => photosToRemove.includes(p.id));
+    setStoreGalleryPhotos([...newActivePhotos, ...removedPhotos]);
+  };
 
   // Fetch profile data on mount
   useEffect(() => {
@@ -150,6 +167,7 @@ export default function SettingsPage() {
           });
           if (store.logoUrl || store.LogoUrl) setStoreLogo(getImageUrl(store.logoUrl || store.LogoUrl));
           if (store.coverUrl || store.CoverUrl) setStoreCover(getImageUrl(store.coverUrl || store.CoverUrl));
+          setStoreGalleryPhotos(store.galleryPhotos || store.GalleryPhotos || []);
         }
       } catch (err) {
         console.error('Error initializing settings:', err);
@@ -254,13 +272,34 @@ export default function SettingsPage() {
       }));
       formData.append('WorkSchedulesJson', JSON.stringify(schedulesToSend));
 
-      if (storeLogoFile) formData.append('logo', storeLogoFile);
       if (storeCoverFile) formData.append('cover', storeCoverFile);
+
+      newGalleryPhotos.forEach(file => {
+        formData.append('GalleryPhotos', file);
+      });
+
+      photosToRemove.forEach(id => {
+        formData.append('PhotosToRemove', id);
+      });
+
+      const orderedIds = storeGalleryPhotos
+        .filter(p => !photosToRemove.includes(p.id))
+        .map(p => p.id);
+        
+      orderedIds.forEach(id => {
+        formData.append('OrderedPhotoIds', id);
+      });
 
       await storeService.updateStore(formData);
       setSuccess('Mağaza məlumatları uğurla yeniləndi!');
       setStoreLogoFile(null);
       setStoreCoverFile(null);
+      setNewGalleryPhotos([]);
+      setPhotosToRemove([]);
+      
+      // Refresh data
+      const updatedStore = await storeService.getMyStore();
+      setStoreGalleryPhotos(updatedStore.galleryPhotos || updatedStore.GalleryPhotos || []);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Xəta baş verdi');
     } finally {
@@ -340,14 +379,14 @@ export default function SettingsPage() {
                 <div className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar -mx-1 px-1">
                   <button
                     onClick={() => setActiveTab('profile')}
-                    className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${activeTab === 'profile' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap cursor-pointer ${activeTab === 'profile' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
                   >
                     Profil Ayarları
                     {activeTab === 'profile' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />}
                   </button>
                   <button
                     onClick={() => setActiveTab('security')}
-                    className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${activeTab === 'security' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap cursor-pointer ${activeTab === 'security' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
                   >
                     Təhlükəsizlik
                     {activeTab === 'security' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />}
@@ -355,7 +394,7 @@ export default function SettingsPage() {
                   {hasStore && (
                     <button
                       onClick={() => setActiveTab('store')}
-                      className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${activeTab === 'store' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap cursor-pointer ${activeTab === 'store' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       Mağaza Ayarları
                       {activeTab === 'store' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />}
@@ -408,7 +447,7 @@ export default function SettingsPage() {
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="text-primary text-xs font-bold uppercase tracking-wider hover:underline"
+                          className="text-primary text-xs font-bold uppercase tracking-wider hover:underline cursor-pointer"
                         >
                           Şəkli Dəyiş
                         </button>
@@ -471,7 +510,7 @@ export default function SettingsPage() {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full sm:w-auto min-w-[200px] h-14 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                      className="w-full sm:w-auto min-w-[200px] h-14 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
                     >
                       {isLoading ? 'Yadda saxlanılır...' : 'Yadda saxla'}
                     </button>
@@ -512,7 +551,7 @@ export default function SettingsPage() {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full sm:w-auto min-w-[200px] h-14 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                      className="w-full sm:w-auto min-w-[200px] h-14 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
                     >
                       {isLoading ? 'Gözləyin...' : 'Şifrəni Yenilə'}
                     </button>
@@ -698,7 +737,7 @@ export default function SettingsPage() {
                         <button
                           type="button"
                           onClick={() => setShowWorkHours(!showWorkHours)}
-                          className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-all group"
+                          className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-all group cursor-pointer"
                         >
                           <div className="flex items-center gap-3">
                             <span className="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">schedule</span>
@@ -824,16 +863,131 @@ export default function SettingsPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Store Gallery Section */}
+                      <div className="space-y-4 pt-4">
+                        <div className="flex items-center justify-between px-1">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-gray-400 !text-xl">collections</span>
+                            <label className="block text-gray-900 text-[11px] font-black uppercase tracking-widest">Mağaza Qalereyası</label>
+                          </div>
+                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Maksimum 10 şəkil</span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                          {/* Existing Photos */}
+                          {storeGalleryPhotos.filter(p => !photosToRemove.includes(p.id)).map((photo, index, arr) => (
+                            <div key={photo.id} className="relative aspect-square rounded-2xl bg-gray-100 overflow-hidden group border-2 border-transparent hover:border-primary/20 transition-all shadow-sm">
+                              <img src={getImageUrl(photo.filePath)} className="size-full object-cover" alt="Gallery" />
+                              
+                              {/* Overlay for controls */}
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex flex-col justify-between p-2">
+                                <div className="flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => setPhotosToRemove(prev => [...prev, photo.id])}
+                                    className="size-8 rounded-xl bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-all shadow-lg"
+                                    title="Sil"
+                                  >
+                                    <span className="material-symbols-outlined !text-lg">delete</span>
+                                  </button>
+                                </div>
+                                
+                                <div className="flex justify-center gap-2">
+                                  {index > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => movePhoto(index, 'left')}
+                                      className="size-8 rounded-xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/40 hover:scale-110 transition-all shadow-sm"
+                                      title="Sola çək"
+                                    >
+                                      <span className="material-symbols-outlined !text-lg">arrow_back</span>
+                                    </button>
+                                  )}
+                                  {index < arr.length - 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => movePhoto(index, 'right')}
+                                      className="size-8 rounded-xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/40 hover:scale-110 transition-all shadow-sm"
+                                      title="Sağa çək"
+                                    >
+                                      <span className="material-symbols-outlined !text-lg">arrow_forward</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="absolute bottom-2 left-2 size-5 rounded-lg bg-black/40 backdrop-blur-md text-white text-[10px] font-bold flex items-center justify-center">
+                                {index + 1}
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* New Photos Previews */}
+                          {newGalleryPhotos.map((file, idx) => (
+                            <div key={idx} className="relative aspect-square rounded-2xl bg-gray-100 overflow-hidden group border-2 border-primary/20 shadow-md transition-all">
+                              <img src={URL.createObjectURL(file)} className="size-full object-cover" alt="New Gallery" />
+                              <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-primary text-white text-[8px] font-black uppercase tracking-widest shadow-lg">YENİ</div>
+                              <button
+                                type="button"
+                                onClick={() => setNewGalleryPhotos(prev => prev.filter((_, i) => i !== idx))}
+                                className="absolute top-2 right-2 size-8 rounded-xl bg-red-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg backdrop-blur-sm"
+                              >
+                                <span className="material-symbols-outlined !text-lg">close</span>
+                              </button>
+                            </div>
+                          ))}
+
+                          {/* Upload Button */}
+                          {(storeGalleryPhotos.length - photosToRemove.length + newGalleryPhotos.length) < 10 && (
+                            <button
+                              type="button"
+                              onClick={() => galleryInputRef.current?.click()}
+                              className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-3 hover:bg-gray-100 hover:border-primary/30 transition-all group"
+                            >
+                              <div className="size-12 rounded-2xl bg-white flex items-center justify-center text-gray-400 group-hover:text-primary shadow-sm transition-colors ring-1 ring-gray-100">
+                                <span className="material-symbols-outlined !text-2xl">add_photo_alternate</span>
+                              </div>
+                              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-primary transition-colors text-center px-2">Şəkil Əlavə Et</span>
+                            </button>
+                          )}
+                        </div>
+
+                        <input
+                          type="file"
+                          ref={galleryInputRef}
+                          multiple
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            const currentCount = storeGalleryPhotos.length - photosToRemove.length + newGalleryPhotos.length;
+                            const remaining = 10 - currentCount;
+                            const slicedFiles = files.slice(0, remaining);
+                            setNewGalleryPhotos(prev => [...prev, ...slicedFiles]);
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-gray-100">
+                  <div className="pt-10 border-t border-gray-100">
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full sm:w-auto min-w-[200px] h-14 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                      className="w-full sm:w-auto min-w-[220px] h-16 rounded-2xl bg-primary text-white font-black uppercase tracking-[0.1em] text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-3"
                     >
-                      {isLoading ? 'Yadda saxlanılır...' : 'Mağaza Məlumatlarını Yenilə'}
+                      {isLoading ? (
+                        <>
+                          <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin" />
+                          <span>Yadda saxlanılır...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined !text-[20px]">check_circle</span>
+                          <span>Mağazanı Yenilə</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>

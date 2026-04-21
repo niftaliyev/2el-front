@@ -87,7 +87,7 @@ export default function FavoritesPage() {
                 <div className="flex gap-8 overflow-x-auto scrollbar-hide">
                   <button
                     onClick={() => setActiveTab('ads')}
-                    className={`pb-4 px-1 text-sm sm:text-base font-bold transition-all relative whitespace-nowrap ${activeTab === 'ads' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
+                    className={`pb-4 px-1 text-sm sm:text-base font-bold transition-all relative whitespace-nowrap cursor-pointer ${activeTab === 'ads' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
                       }`}
                   >
                     Elanlar ({favorites.length})
@@ -95,7 +95,7 @@ export default function FavoritesPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab('stores')}
-                    className={`pb-4 px-1 text-sm sm:text-base font-bold transition-all relative whitespace-nowrap ${activeTab === 'stores' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
+                    className={`pb-4 px-1 text-sm sm:text-base font-bold transition-all relative whitespace-nowrap cursor-pointer ${activeTab === 'stores' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
                       }`}
                   >
                     Mağazalar ({followedStores.length})
@@ -179,7 +179,7 @@ export default function FavoritesPage() {
                               e.stopPropagation();
                               handleRemoveFavorite(ad.id);
                             }}
-                            className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-white/90 backdrop-blur-md rounded-lg sm:rounded-xl size-7 sm:size-9 shadow-lg hover:bg-red-600 hover:text-white transition-all flex items-center justify-center group/btn z-20 border border-white active:scale-95"
+                            className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-white/90 backdrop-blur-md rounded-lg sm:rounded-xl size-7 sm:size-9 shadow-lg hover:bg-red-600 hover:text-white transition-all flex items-center justify-center group/btn z-20 border border-white active:scale-95 cursor-pointer"
                             aria-label="Seçilmişlərdən sil"
                           >
                             <span className="material-symbols-outlined !text-base sm:!text-xl font-bold transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -204,7 +204,7 @@ export default function FavoritesPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                     {followedStores.map(store => (
                       <div key={store.id} className="relative group/card bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-all">
-                        <Link href={ROUTES.STORE_DETAIL(store.slug || '')} className="flex items-center gap-4">
+                        <Link href={ROUTES.STORE_DETAIL(store.slug || store.id)} className="flex items-center gap-4">
                           <div className="size-16 rounded-xl overflow-hidden border border-gray-100 bg-gray-50 flex-shrink-0 relative">
                             {store.storeLogoUrl ? (
                               <Image src={getImageUrl(store.storeLogoUrl)} alt={store.storeName} fill className="object-contain p-2" />
@@ -223,7 +223,7 @@ export default function FavoritesPage() {
                         </Link>
                         <button
                           onClick={() => handleUnfollowStore(store.id)}
-                          className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors"
+                          className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
                           title="İzləməyi dayandır"
                         >
                           <span className="material-symbols-outlined font-bold">person_remove</span>

@@ -198,8 +198,8 @@ export default function PaymentsPage() {
                     <div 
                       onClick={() => setStep2Open(!step2Open)}
                       className={cn(
-                        "px-5 sm:px-6 py-4 flex items-center justify-between cursor-pointer transition-colors group",
-                        step2Open ? "bg-primary/5" : "bg-white hover:bg-gray-50"
+                         "px-5 sm:px-6 py-4 flex items-center justify-between cursor-pointer transition-colors group",
+                         step2Open ? "bg-primary/5" : "bg-white hover:bg-gray-50"
                       )}
                     >
                       <div className="flex items-center gap-4">
@@ -290,7 +290,7 @@ export default function PaymentsPage() {
 
                             <button
                               type="submit"
-                              className="w-full h-16 rounded-2xl bg-primary text-white font-black uppercase tracking-[0.2em] text-xs sm:text-sm hover:bg-primary-dark hover:shadow-2xl hover:shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4 group"
+                              className="w-full h-16 rounded-2xl bg-primary text-white font-black uppercase tracking-[0.2em] text-xs sm:text-sm hover:bg-primary-dark hover:shadow-2xl hover:shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4 group cursor-pointer"
                               disabled={isSubmitting}
                             >
                               {isSubmitting ? (

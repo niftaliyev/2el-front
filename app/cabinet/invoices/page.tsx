@@ -57,7 +57,7 @@ export default function InvoicesPage() {
                         setActiveTab(tab);
                         setPage(1);
                       }}
-                      className={`pb-3 text-sm font-bold transition-all relative ${activeTab === tab
+                      className={`pb-3 text-sm font-bold transition-all relative cursor-pointer ${activeTab === tab
                           ? 'text-[#607afb] after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#607afb]'
                           : 'text-gray-400 hover:text-gray-900'
                         }`}
@@ -121,14 +121,14 @@ export default function InvoicesPage() {
                                 <div className="flex justify-end gap-3">
                                   <button
                                     onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')}
-                                    className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-bold text-[11px] uppercase tracking-wider transition-colors"
+                                    className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-bold text-[11px] uppercase tracking-wider transition-colors cursor-pointer"
                                   >
                                     <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                                     PDF
                                   </button>
                                   <button
                                     onClick={() => window.open(`/cabinet/invoices/${inv.id}/print`, '_blank')}
-                                    className="inline-flex items-center gap-1.5 text-[#607afb] hover:text-[#4d62c9] font-bold text-[11px] uppercase tracking-wider transition-colors"
+                                    className="inline-flex items-center gap-1.5 text-[#607afb] hover:text-[#4d62c9] font-bold text-[11px] uppercase tracking-wider transition-colors cursor-pointer"
                                   >
                                     <span className="material-symbols-outlined text-[18px]">print</span>
                                     Çap et
@@ -158,14 +158,14 @@ export default function InvoicesPage() {
                           <div className="flex gap-2 mt-4">
                             <button
                               onClick={() => window.open(inv.pdfUrl || accountService.getInvoiceDownloadUrl(inv.id), '_blank')}
-                              className="flex-1 py-2 border border-emerald-100 rounded-lg flex items-center justify-center gap-2 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 font-bold text-[11px] uppercase tracking-wider transition-all"
+                              className="flex-1 py-2 border border-emerald-100 rounded-lg flex items-center justify-center gap-2 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 font-bold text-[11px] uppercase tracking-wider transition-all cursor-pointer"
                             >
                               <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                               PDF Endir
                             </button>
                             <button
                               onClick={() => window.open(`/cabinet/invoices/${inv.id}/print`, '_blank')}
-                              className="flex-1 py-2 border border-blue-100 rounded-lg flex items-center justify-center gap-2 text-[#607afb] bg-blue-50/50 hover:bg-blue-50 font-bold text-[11px] uppercase tracking-wider transition-all"
+                              className="flex-1 py-2 border border-blue-100 rounded-lg flex items-center justify-center gap-2 text-[#607afb] bg-blue-50/50 hover:bg-blue-50 font-bold text-[11px] uppercase tracking-wider transition-all cursor-pointer"
                             >
                               <span className="material-symbols-outlined text-[18px]">print</span>
                               Çap et
@@ -181,7 +181,7 @@ export default function InvoicesPage() {
                         <button
                           onClick={() => setPage(p => Math.max(1, p - 1))}
                           disabled={page === 1}
-                          className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50"
+                          className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 cursor-pointer"
                         >
                           <span className="material-symbols-outlined">chevron_left</span>
                         </button>
@@ -189,7 +189,7 @@ export default function InvoicesPage() {
                           <button
                             key={i}
                             onClick={() => setPage(i + 1)}
-                            className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
+                            className={`w-10 h-10 rounded-lg text-sm font-bold transition-all cursor-pointer ${
                               page === i + 1 
                                 ? 'bg-[#607afb] text-white shadow-md' 
                                 : 'text-gray-500 hover:bg-gray-100'
@@ -201,7 +201,7 @@ export default function InvoicesPage() {
                         <button
                           onClick={() => setPage(p => Math.min(data.totalPages, p + 1))}
                           disabled={page === data.totalPages}
-                          className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50"
+                          className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 cursor-pointer"
                         >
                           <span className="material-symbols-outlined">chevron_right</span>
                         </button>
