@@ -7,7 +7,12 @@ interface CategoryCardProps {
   category: Category;
 }
 
+import { useLanguage } from '@/contexts/LanguageContext';
+
 export default function CategoryCard({ category }: CategoryCardProps) {
+  const { language } = useLanguage();
+  const displayName = language === 'ru' && category.nameRu ? category.nameRu : category.name;
+
   return (
     <Link
       href={category.slug ? ROUTES.CATEGORY(category.slug) : ROUTES.CATEGORY(category.id)}
@@ -19,7 +24,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
           {category.image ? (
             <img
               src={category.image}
-              alt={category.name}
+              alt={displayName}
               className="w-full h-full object-contain object-right-bottom scale-[1.3] sm:scale-[1.5] -translate-x-6 sm:-translate-x-7 -translate-y-4 sm:-translate-y-6 group-hover:scale-[1.4] sm:group-hover:scale-[1.6] transition-all duration-500"
             />
           ) : (
@@ -34,7 +39,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
 
       {/* Label (Responsive and Line-clamped) */}
       <span className="text-[11px] sm:text-[14px] font-semibold text-gray-800 leading-tight px-1 line-clamp-2 min-h-[32px] sm:min-h-[40px] group-hover:text-primary transition-colors duration-300">
-        {category.name}
+        {displayName}
       </span>
     </Link>
   );

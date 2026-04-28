@@ -7,10 +7,12 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { ROUTES } from '@/constants';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
+  const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +33,7 @@ export default function RegisterPage() {
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setError('Şifrələr uyğun gəlmir');
+      setError(t('auth.passwordsNotMatch'));
       return;
     }
 
@@ -49,7 +51,7 @@ export default function RegisterPage() {
       router.push(ROUTES.HOME);
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError(err?.message || 'Qeydiyyat zamanı xəta baş verdi');
+      setError(err?.message || t('auth.registrationError'));
 
       if (err?.validationErrors) {
         setFieldErrors(err.validationErrors);
@@ -66,10 +68,10 @@ export default function RegisterPage() {
           {/* Page Heading */}
           <div className="mb-6 text-center">
             <h1 className="text-3xl font-black tracking-tight text-gray-900">
-              Qeydiyyat
+              {t('auth.registration')}
             </h1>
             <p className="mt-2 text-base text-gray-500">
-              Yeni hesab yaradın
+              {t('auth.createAccount')}
             </p>
           </div>
 
@@ -79,7 +81,7 @@ export default function RegisterPage() {
               <div className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-base mt-0.5">error</span>
                 <div className="flex-1">
-                  <p className="font-semibold mb-1">Xəta baş verdi:</p>
+                  <p className="font-semibold mb-1">{t('auth.errorOccurred')}</p>
                   {error.includes(',') ? (
                     <ul className="list-disc list-inside space-y-0.5 text-xs opacity-90">
                       {error.split(',').map((err, i) => (
@@ -97,9 +99,9 @@ export default function RegisterPage() {
           {/* Registration Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Ad və Soyad"
+              label={t('auth.fullName')}
               type="text"
-              placeholder="Ad və soyadınızı daxil edin"
+              placeholder={t('auth.fullNamePlaceholder')}
               value={formData.fullName}
               onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
               disabled={isLoading}
@@ -108,22 +110,22 @@ export default function RegisterPage() {
             />
 
             <Input
-              label="Telefon nömrəsi"
+              label={t('auth.phoneNumber')}
               type="tel"
-              placeholder="Nümunə: 0501234567 və ya +994501234567"
+              placeholder={t('auth.phonePlaceholder')}
               value={formData.phoneNumber}
               onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
               disabled={isLoading}
               required
               pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
-              title="Səhv format. Nümunə: 0501234567 və ya +994501234567"
+              title={t('auth.phoneError')}
               error={fieldErrors['phoneNumber']?.[0] || fieldErrors['PhoneNumber']?.[0]}
             />
 
             <Input
-              label="E-poçt"
+              label={t('auth.email')}
               type="email"
-              placeholder="nümunə@email.com"
+              placeholder={t('auth.emailPlaceholder')}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               disabled={isLoading}
@@ -133,9 +135,9 @@ export default function RegisterPage() {
 
             <div className="relative">
               <Input
-                label="Şifrə"
+                label={t('auth.password')}
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Yeni şifrə yaradın"
+                placeholder={t('auth.newPassword')}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 disabled={isLoading}
@@ -155,9 +157,9 @@ export default function RegisterPage() {
 
             <div className="relative">
               <Input
-                label="Şifrənin təkrarı"
+                label={t('auth.confirmPassword')}
                 type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Şifrənizi təsdiqləyin"
+                placeholder={t('auth.confirmPasswordPlaceholder')}
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 disabled={isLoading}
@@ -175,11 +177,11 @@ export default function RegisterPage() {
             </div>
 
             <p className="mt-4 text-center text-xs text-gray-500">
-              Qeydiyyatdan keçməklə, saytın{' '}
+              {t('auth.agreeTerms')}{' '}
               <Link href="#" className="font-medium text-primary hover:underline">
-                İstifadəçi Razılaşmasını
+                {t('auth.userAgreement')}
               </Link>{' '}
-              qəbul edirsiniz.
+              {t('auth.agreeTermsEnd')}
             </p>
 
             <Button
@@ -189,17 +191,17 @@ export default function RegisterPage() {
               isLoading={isLoading}
               disabled={isLoading}
             >
-              Qeydiyyatdan keç
+              {t('auth.registerButton')}
             </Button>
 
             <div className="mt-4 text-center">
               <p className="text-sm text-gray-600">
-                Artıq hesabınız var?{' '}
+                {t('auth.alreadyHaveAccount')}{' '}
                 <Link
                   href={ROUTES.LOGIN}
                   className="font-medium text-primary hover:underline"
                 >
-                  Daxil olun
+                  {t('auth.loginLink')}
                 </Link>
               </p>
             </div>

@@ -1,6 +1,7 @@
 import { Product } from '@/types';
 import ProductCard from './ProductCard';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProductGridProps {
   products: Product[];
@@ -12,7 +13,9 @@ interface ProductGridProps {
   titleLight?: boolean;
 }
 
-export default function ProductGrid({ products, emptyMessage = 'No products found', title, description, viewAllLink, viewAllText, titleLight }: ProductGridProps) {
+export default function ProductGrid({ products, emptyMessage, title, description, viewAllLink, viewAllText, titleLight }: ProductGridProps) {
+  const { t } = useLanguage();
+  
   if (products.length === 0) {
     return (
       <div className="text-center py-12 bg-white rounded-xl border border-gray-100 shadow-sm">
@@ -21,8 +24,8 @@ export default function ProductGrid({ products, emptyMessage = 'No products foun
             inventory_2
           </span>
         </div>
-        <h3 className="text-lg font-bold text-gray-900 mb-2">Heç nə tapılmadı</h3>
-        <p className="text-gray-500">{emptyMessage}</p>
+        <h3 className="text-lg font-bold text-gray-900 mb-2">{t('storeDetail.noAds')}</h3>
+        <p className="text-gray-500">{emptyMessage || t('storeDetail.noAdsDesc')}</p>
       </div>
     );
   }
@@ -41,7 +44,7 @@ export default function ProductGrid({ products, emptyMessage = 'No products foun
           </div>
           {viewAllLink && (
             <Link href={viewAllLink} className="text-primary hover:underline text-[14px] font-medium whitespace-nowrap">
-              {viewAllText || 'Hamısına bax'}
+              {viewAllText || t('product.showAll')}
             </Link>
           )}
         </div>

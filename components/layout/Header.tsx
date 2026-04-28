@@ -11,6 +11,7 @@ import BurgerMenu from './BurgerMenu';
 import SearchAutocomplete from '@/components/features/search/SearchAutocomplete';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Header() {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
@@ -18,6 +19,7 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const isVisible = useScrollDirection();
+  const { t } = useLanguage();
 
   const isHome = pathname === '/';
 
@@ -40,17 +42,17 @@ export default function Header() {
       } catch (error: any) {
         if (error.name !== 'AbortError') {
           console.error('Error sharing:', error);
-          toast.error('Paylaşım zamanı xəta yarandı');
+          toast.error(t('product.shareError'));
         }
       }
     } else {
       if (navigator.clipboard && window.isSecureContext) {
         try {
           await navigator.clipboard.writeText(url);
-          toast.success('Link kopyalandı!');
+          toast.success(t('product.linkCopied'));
         } catch (error) {
           console.error('Error copying link:', error);
-          toast.error('Linki kopyalamaq mümkün olmadı');
+          toast.error(t('product.copyError'));
         }
       } else {
         // HTTP mühitləri üçün (Köhnə üsul)
@@ -68,13 +70,13 @@ export default function Header() {
           document.body.removeChild(textArea);
 
           if (successful) {
-            toast.success('Link kopyalandı!');
+            toast.success(t('product.linkCopied'));
           } else {
-            toast.error('Linki kopyalamaq mümkün olmadı');
+            toast.error(t('product.copyError'));
           }
         } catch (err) {
           console.error('Fallback copying failed', err);
-          toast.error('Linki kopyalamaq mümkün olmadı');
+          toast.error(t('product.copyError'));
         }
       }
     }
@@ -124,15 +126,15 @@ export default function Header() {
                 <span className="material-symbols-outlined font-bold text-[22px]">
                   {isCatalogOpen ? 'close' : 'menu'}
                 </span>
-                <span className="tracking-wide hidden lg:inline">Kataloq</span>
+                <span className="tracking-wide hidden lg:inline">{t('nav.catalog')}</span>
               </button>
             </div>
 
             {/* Search bar — SearchAutocomplete ilə əvəz edildi */}
             <div className="flex-1">
               <SearchAutocomplete
-                placeholder="Əşya və ya xidmət axtarışı"
-                buttonLabel="Axtar"
+                placeholder={t('nav.searchPlaceholder')}
+                buttonLabel={t('common.search')}
               />
             </div>
           </div>
@@ -140,10 +142,10 @@ export default function Header() {
           {/* Right side nav links - desktop only */}
           <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-700 flex-shrink-0">
             <Link href={ROUTES.LISTINGS} className="hover:text-primary transition-colors whitespace-nowrap">
-              Bütün elanlar
+              {t('nav.allListings')}
             </Link>
             <Link href="/shops" className="hover:text-primary transition-colors whitespace-nowrap">
-              Mağazalar
+              {t('nav.shops')}
             </Link>
           </div>
 
@@ -153,8 +155,8 @@ export default function Header() {
             <Link href={isAuthenticated ? ROUTES.CREATE_LISTING : ROUTES.LOGIN} className="hidden sm:block">
               <button className="flex cursor-pointer items-center justify-center rounded-xl h-10 px-4 bg-primary text-white text-[14px] font-bold leading-normal hover:bg-primary-dark transition-colors shadow-sm whitespace-nowrap active:scale-95">
                 <span className="material-symbols-outlined !text-[20px] mr-1.5">add_circle</span>
-                <span className="hidden lg:inline">Elan yerləşdir</span>
-                <span className="lg:hidden">Yeni elan</span>
+                <span className="hidden lg:inline">{t('nav.addListing')}</span>
+                <span className="lg:hidden">{t('nav.newListing')}</span>
               </button>
             </Link>
 
@@ -202,7 +204,7 @@ export default function Header() {
                 <>
                   <Link href={ROUTES.LOGIN} className="hidden sm:block">
                     <button className="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-5 bg-primary text-white text-[14px] font-bold leading-normal hover:bg-primary-dark transition-colors shadow-sm active:scale-95">
-                      Daxil ol
+                      {t('nav.login')}
                     </button>
                   </Link>
                   <Link href={ROUTES.LOGIN} className="sm:hidden">
@@ -220,7 +222,7 @@ export default function Header() {
         {/* ─── Mobile Search Row ─── */}
         <div className="md:hidden px-3 pb-3">
           <SearchAutocomplete
-            placeholder="Əşya və ya xidmət axtarışı"
+            placeholder={t('nav.searchPlaceholder')}
             buttonLabel={<span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>}
           />
         </div>

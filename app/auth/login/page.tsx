@@ -7,10 +7,12 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { ROUTES } from '@/constants';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -34,7 +36,7 @@ export default function LoginPage() {
       router.push(ROUTES.HOME);
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err?.message || 'Daxil olma zamanı xəta baş verdi');
+      setError(err?.message || t('auth.loginError'));
     } finally {
       setIsLoading(false);
     }
@@ -47,10 +49,10 @@ export default function LoginPage() {
           {/* Page Heading */}
           <div className="mb-6 text-center">
             <h1 className="text-3xl font-black tracking-tight text-gray-900">
-              Xoş Gəlmisiniz!
+              {t('auth.welcomeBack')}
             </h1>
             <p className="mt-2 text-base text-gray-500">
-              Hesabınıza daxil olun
+              {t('auth.loginToAccount')}
             </p>
           </div>
 
@@ -64,9 +66,9 @@ export default function LoginPage() {
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="E-poçt"
+              label={t('auth.email')}
               type="text"
-              placeholder="nümunə@email.com"
+              placeholder={t('auth.emailPlaceholder')}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               disabled={isLoading}
@@ -75,9 +77,9 @@ export default function LoginPage() {
 
             <div className="relative">
               <Input
-                label="Şifrə"
+                label={t('auth.password')}
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Şifrənizi daxil edin"
+                placeholder={t('auth.enterPassword')}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 disabled={isLoading}
@@ -99,7 +101,7 @@ export default function LoginPage() {
                 href="#"
                 className="text-sm font-medium text-primary hover:underline"
               >
-                Şifrəni unutmusunuz?
+                {t('auth.forgotPassword')}
               </Link>
             </div>
 
@@ -110,17 +112,17 @@ export default function LoginPage() {
               isLoading={isLoading}
               disabled={isLoading}
             >
-              Daxil ol
+              {t('auth.login')}
             </Button>
 
             <div className="mt-4 text-center">
               <p className="text-sm text-gray-600">
-                Hesabınız yoxdur?{' '}
+                {t('auth.noAccount')}{' '}
                 <Link
                   href={ROUTES.REGISTER}
                   className="font-medium text-primary hover:underline"
                 >
-                  Qeydiyyatdan keçin
+                  {t('auth.register')}
                 </Link>
               </p>
             </div>

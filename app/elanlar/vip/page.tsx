@@ -7,8 +7,10 @@ import { Product } from '@/types';
 import { adService } from '@/services/ad.service';
 import { AdListItem } from '@/types/api';
 import { getImageUrl } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function VipListingsContent() {
+  const { t, language } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -46,9 +48,9 @@ function VipListingsContent() {
           price: item.price,
           currency: '₼',
           images: item.image ? [getImageUrl(item.image)] : [],
-          category: { id: item.categoryId ?? '0', name: item.category ?? 'Unknown', slug: 'unknown' },
-          location: { id: '0', city: item.city ?? 'Bakı', region: '', country: 'Azerbaijan' },
-          seller: { id: '0', name: item.fullName ?? 'User', email: item.email ?? '', createdAt: new Date(), isVerified: false },
+          category: { id: item.categoryId ?? '0', name: (language === 'ru' && item.categoryRu ? item.categoryRu : item.category) ?? t('common.unknown'), slug: 'unknown' },
+          location: { id: '0', city: item.city ?? 'Bakı', cityRu: item.cityRu, region: '', country: 'Azerbaijan' },
+          seller: { id: '0', name: item.fullName ?? t('common.user'), email: item.email ?? '', createdAt: new Date(), isVerified: false },
           condition: item.isNew ? 'new' : 'used',
           status: (item.status ?? 'active').toLowerCase() as any,
           viewCount: item.viewCount ?? 0,
@@ -61,7 +63,7 @@ function VipListingsContent() {
           isFavourite: item.isFavourite,
           store: item.isStore ? {
             id: '0',
-            name: item.storeName || item.fullName || 'Mağaza',
+            name: item.storeName || item.fullName || t('common.store'),
             logo: item.storeLogoUrl ? getImageUrl(item.storeLogoUrl) : undefined,
             slug: item.storeSlug
           } : undefined
@@ -92,7 +94,7 @@ function VipListingsContent() {
         <Container>
           <div className="py-4">
             <h1 className="text-[20px] font-bold text-[#212121] tracking-tight">
-              Bütün VIP elanlar <span className="text-[#999] font-normal text-[15px] ml-1">({totalItems})</span>
+              {t('vipListings.title')} <span className="text-[#999] font-normal text-[15px] ml-1">({totalItems})</span>
             </h1>
           </div>
         </Container>
@@ -104,7 +106,7 @@ function VipListingsContent() {
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-24 pt-8">
               <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-purple-200">
-                <p className="text-sm text-gray-500 text-center font-medium">Reklam sahəsi</p>
+                <p className="text-sm text-gray-500 text-center font-medium">{t('home.adSpace')}</p>
               </div>
             </div>
           </aside>
@@ -118,7 +120,7 @@ function VipListingsContent() {
               </div>
             ) : (
               <>
-                <ProductGrid products={products} title="" emptyMessage="Heç bir VIP elan tapılmadı" />
+                <ProductGrid products={products} title="" emptyMessage={t('vipListings.emptyMessage')} />
                 <div ref={lastElementRef} className="h-10 mt-8" />
                 {loadingMore && (
                   <div className="flex justify-center items-center py-8">
@@ -126,7 +128,7 @@ function VipListingsContent() {
                   </div>
                 )}
                 {!hasMore && products.length > 0 && (
-                  <p className="text-center text-gray-500 py-8 font-medium">Bütün VIP elanlar yükləndi.</p>
+                  <p className="text-center text-gray-500 py-8 font-medium">{t('vipListings.allLoaded')}</p>
                 )}
               </>
             )}
@@ -136,7 +138,7 @@ function VipListingsContent() {
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-24 pt-8">
               <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-blue-200">
-                <p className="text-sm text-gray-500 text-center font-medium">Reklam sahəsi</p>
+                <p className="text-sm text-gray-500 text-center font-medium">{t('home.adSpace')}</p>
               </div>
             </div>
           </aside>

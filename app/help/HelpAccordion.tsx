@@ -3,15 +3,20 @@
 import { HelpItem } from '@/types/help';
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface HelpAccordionProps {
   item: HelpItem;
 }
 
 export default function HelpAccordion({ item }: HelpAccordionProps) {
+  const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<string | number>(0);
+
+  const displayQuestion = (language === 'ru' ? (item.questionRu || item.QuestionRu) : item.question) || item.question || '';
+  const displayAnswer = (language === 'ru' ? (item.answerRu || item.AnswerRu) : item.answer) || item.answer || '';
 
   useEffect(() => {
     if (isOpen) {
@@ -31,7 +36,7 @@ export default function HelpAccordion({ item }: HelpAccordionProps) {
           "text-lg font-semibold transition-colors duration-300",
           isOpen ? "text-primary" : "text-gray-800 group-hover:text-black"
         )}>
-          {item.question}
+          {displayQuestion}
         </span>
         <span className={cn(
           "material-symbols-outlined transition-transform duration-300 !text-[24px]",
@@ -45,12 +50,12 @@ export default function HelpAccordion({ item }: HelpAccordionProps) {
         className="transition-all duration-300 ease-in-out overflow-hidden"
         style={{ height }}
       >
-        <div 
+        <div
           ref={contentRef}
           className="px-6 pb-6 pt-2 text-gray-600 leading-relaxed text-base border-l-4 border-primary ml-[1px]"
         >
-          <div 
-            dangerouslySetInnerHTML={{ __html: item.answer }} 
+          <div
+            dangerouslySetInnerHTML={{ __html: displayAnswer }}
             className="prose prose-sm max-w-none prose-primary"
           />
         </div>

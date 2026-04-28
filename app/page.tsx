@@ -7,6 +7,7 @@ import { Category, Product } from '@/types';
 import { adService } from '@/services/ad.service';
 import { AdListItem } from '@/types/api';
 import { getImageUrl, generateSlug } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Mock data - replace with actual API calls
 import { CATEGORIES } from '@/constants';
@@ -15,6 +16,7 @@ export default function Home() {
   const [premiumProducts, setPremiumProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>(CATEGORIES as any);
   const [isLoading, setIsLoading] = useState(true);
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     const ICONS: Record<string, string> = {
@@ -54,19 +56,19 @@ export default function Home() {
         if (tree && tree.length > 0) {
           const dynamicCategories: Category[] = tree.map((cat: any) => ({
             id: cat.id,
-            name: cat.name,
+            name: language === 'ru' && cat.nameRu ? cat.nameRu : cat.name,
             slug: generateSlug(cat.name),
             icon: ICONS[cat.name] || 'category',
             image: LOCAL_IMAGES[cat.name] || getImageUrl(cat.imageUrl),
             description: '',
             children: cat.children?.map((child: any) => ({
               id: child.id,
-              name: child.name,
+              name: language === 'ru' && child.nameRu ? child.nameRu : child.name,
               slug: generateSlug(child.name),
               image: getImageUrl(child.imageUrl),
               subCategories: child.subCategories?.map((sc: any) => ({
                 id: sc.id,
-                name: sc.name,
+                name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
                 slug: generateSlug(sc.name),
                 image: getImageUrl(sc.imageUrl)
               })) || []
@@ -79,7 +81,7 @@ export default function Home() {
       }
     };
     fetchCategories();
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     const fetchPremiumAds = async () => {
@@ -97,7 +99,7 @@ export default function Home() {
             images: imageUrl ? [imageUrl] : [],
             category: {
               id: ad.categoryId ?? '1',
-              name: ad.category ?? '',
+              name: language === 'ru' && ad.categoryRu ? ad.categoryRu : (ad.category ?? ''),
               slug: ad.parentCategorySlug || (ad.category ? generateSlug(ad.category) : '')
             },
             subCategory: ad.childCategorySlug ? {
@@ -105,7 +107,7 @@ export default function Home() {
               name: '',
               slug: ad.childCategorySlug
             } : undefined,
-            location: { id: '1', city: ad.city ?? '', region: '', country: 'Azerbaijan' },
+            location: { id: '1', city: ad.city ?? '', cityRu: ad.cityRu, region: '', country: 'Azerbaijan' },
             seller: { id: '1', name: '', email: '', createdAt: new Date(), isVerified: false },
             condition: ad.isNew ? 'new' : 'used',
             status: 'active',
@@ -139,7 +141,7 @@ export default function Home() {
     // Random rotation every 5 minutes
     const interval = setInterval(fetchPremiumAds, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [language]);
 
   return (
     <main className="bg-gray-50 flex-1">
@@ -149,7 +151,7 @@ export default function Home() {
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-20 pt-4">
               <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-purple-200">
-                <p className="text-sm text-gray-500 text-center">Reklam sahəsi</p>
+                <p className="text-sm text-gray-500 text-center">{t('home.adSpace')}</p>
               </div>
             </div>
           </aside>
@@ -164,7 +166,7 @@ export default function Home() {
               {isLoading ? (
                 <div className="flex flex-col gap-6">
                   <div className="flex items-center justify-between">
-                    <h1 className="text-lg sm:text-xl font-bold text-gray-900">Premium Elanlar</h1>
+                    <h1 className="text-lg sm:text-xl font-bold text-gray-900">{t('home.premiumAds')}</h1>
                   </div>
                   <div className="flex items-center justify-center py-12">
                     <svg
@@ -192,10 +194,10 @@ export default function Home() {
               ) : (
                 <ProductGrid
                   products={premiumProducts}
-                  title="Premium elanlar"
+                  title={t('home.premiumAds')}
                   viewAllLink="/elanlar"
-                  viewAllText="Son elanlar"
-                  emptyMessage="Premium elan tapılmadı"
+                  viewAllText={t('home.latestAds')}
+                  emptyMessage={t('home.premiumAdsNotFound')}
                 />
               )}
             </div>
@@ -205,7 +207,7 @@ export default function Home() {
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-20 pt-4">
               <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-blue-200">
-                <p className="text-sm text-gray-500 text-center">Reklam sahəsi</p>
+                <p className="text-sm text-gray-500 text-center">{t('home.adSpace')}</p>
               </div>
             </div>
           </aside>

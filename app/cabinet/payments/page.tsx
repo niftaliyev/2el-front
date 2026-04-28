@@ -5,9 +5,11 @@ import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import { accountService } from '@/services/account.service';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function PaymentsPage() {
   const { user, refreshUser } = useAuth();
+  const { t } = useLanguage();
   const [amount, setAmount] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export default function PaymentsPage() {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (selectedFile.size > 5 * 1024 * 1024) {
-        setError('Şəkil ölçüsü 5MB-dan çox olmamalıdır');
+        setError(t('cabinet.payments.errorSize'));
         return;
       }
       setFile(selectedFile);
@@ -49,11 +51,11 @@ export default function PaymentsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || parseFloat(amount) <= 0) {
-      setError('Zəhmət olmasa düzgün məbləğ daxil edin');
+      setError(t('cabinet.payments.errorAmount'));
       return;
     }
     if (!file) {
-      setError('Zəhmət olmasa ödəniş qəbzinin şəklini yükləyin');
+      setError(t('cabinet.payments.errorFile'));
       return;
     }
 
@@ -65,9 +67,9 @@ export default function PaymentsPage() {
       const formData = new FormData();
       formData.append('amount', amount);
       formData.append('image', file);
-      
+
       await accountService.topUpBalance(formData);
-      
+
       setSuccess(true);
       setAmount('');
       setFile(null);
@@ -75,7 +77,7 @@ export default function PaymentsPage() {
       refreshUser();
     } catch (err: any) {
       console.error('Top-up failed:', err);
-      setError(err.response?.data?.message || err.message || 'Sorğu göndərilərkən xəta baş verdi');
+      setError(err.response?.data?.message || err.message || t('cabinet.payments.errorSubmit'));
     } finally {
       setIsSubmitting(false);
     }
@@ -93,14 +95,14 @@ export default function PaymentsPage() {
               <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-gray-50 pb-8">
                 <div>
                   <h1 className="text-gray-900 text-2xl sm:text-4xl font-black leading-tight tracking-tight mb-2">
-                    Balans artırılması
+                    {t('cabinet.payments.title')}
                   </h1>
                   <p className="text-gray-500 text-[11px] sm:text-sm font-medium">
-                    Hesabınızı bank köçürməsi vasitəsilə sürətli artırın
+                    {t('cabinet.payments.subtitle')}
                   </p>
                 </div>
                 <div className="bg-primary/5 px-5 py-3 rounded-2xl border border-primary/10 flex flex-col items-center sm:items-end justify-center">
-                  <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.1em] mb-1">Cari Balans</p>
+                  <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.1em] mb-1">{t('cabinet.payments.currentBalance')}</p>
                   <div className="flex items-baseline gap-1">
                     <span className="text-primary font-black text-2xl sm:text-3xl tabular-nums leading-none">
                       {user?.balance?.toFixed(2) || '0.00'}
@@ -117,9 +119,9 @@ export default function PaymentsPage() {
                       <span className="material-symbols-outlined !text-xl font-bold">check_circle</span>
                     </div>
                     <div>
-                      <h3 className="text-emerald-900 font-bold text-lg">Sorğu uğurla göndərildi!</h3>
+                      <h3 className="text-emerald-900 font-bold text-lg">{t('cabinet.payments.successTitle')}</h3>
                       <p className="text-emerald-700/80 text-sm mt-1 font-medium leading-relaxed">
-                        Ödəniş qəbziniz yoxlanılması üçün moderatorlarımıza göndərildi. Təsdiq edildikdən sonra məbləğ balansınıza əlavə olunacaq.
+                        {t('cabinet.payments.successDesc')}
                       </p>
                     </div>
                   </div>
@@ -132,7 +134,7 @@ export default function PaymentsPage() {
                       "bg-white rounded-2xl border transition-all duration-300 overflow-hidden",
                       step1Open ? "border-primary shadow-lg ring-1 ring-primary/10" : "border-gray-100 shadow-sm"
                     )}>
-                      <div 
+                      <div
                         onClick={() => setStep1Open(!step1Open)}
                         className={cn(
                           "px-5 sm:px-6 py-4 flex items-center justify-between cursor-pointer transition-colors group",
@@ -147,42 +149,42 @@ export default function PaymentsPage() {
                             <span className="text-sm font-black">1</span>
                           </div>
                           <div>
-                            <h3 className="text-gray-900 font-black text-xs sm:text-sm tracking-tight mb-0.5">ÖDƏNİŞ MƏLUMATLARI</h3>
-                            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest opacity-70">Pul köçürməsi üçün rekvizitlər</p>
+                            <h3 className="text-gray-900 font-black text-xs sm:text-sm tracking-tight mb-0.5">{t('cabinet.payments.paymentInfo')}</h3>
+                            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest opacity-70">{t('cabinet.payments.paymentInfoDesc')}</p>
                           </div>
                         </div>
                         <span className={`material-symbols-outlined text-primary font-bold transition-transform duration-500 ${step1Open ? 'rotate-180' : ''}`}>
                           expand_more
                         </span>
                       </div>
-                      
+
                       <div className={`transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden ${step1Open ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'}`}>
                         <div className="p-5 sm:p-8 border-t border-primary/5 bg-gradient-to-b from-primary/[0.02] to-transparent">
                           <div className="flex flex-col xl:flex-row gap-8">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-4">
                                 <span className="material-symbols-outlined text-primary !text-lg">account_balance</span>
-                                <h4 className="text-gray-900 text-[11px] font-black uppercase tracking-[0.15em]">Bank Rekvizitləri</h4>
+                                <h4 className="text-gray-900 text-[11px] font-black uppercase tracking-[0.15em]">{t('cabinet.payments.bankDetails')}</h4>
                               </div>
-                              <div 
+                              <div
                                 className="text-gray-800 text-[13px] sm:text-base font-medium whitespace-pre-wrap leading-relaxed bg-white p-5 sm:p-7 rounded-2xl border border-gray-100/80 shadow-inner translate-y-0 hover:-translate-y-1 transition-transform"
                                 dangerouslySetInnerHTML={{ __html: paymentDetail.replace(/\n/g, '<br />') }}
                               />
                             </div>
                             <div className="xl:w-64 bg-amber-50/30 rounded-2xl p-6 border border-amber-100/50 flex flex-col gap-4">
-                               <div className="flex items-start gap-2">
-                                  <span className="material-symbols-outlined text-amber-600 !text-xl">warning</span>
-                                  <div>
-                                     <h5 className="text-amber-900 font-black text-[10px] uppercase tracking-wider mb-1">Mühüm Qeyd</h5>
-                                     <p className="text-amber-700/70 text-[11px] font-medium leading-relaxed">
-                                        Ödənişi tamaladıqdan sonra qəbzin şəklini mütləq 2-ci addımda bizə göndərin. Balansınız moderator tərəfindən yoxlanıldıqdan sonra artırılacaq.
-                                     </p>
-                                  </div>
-                               </div>
-                               <div className="mt-auto pt-4 border-t border-amber-100/50">
-                                  <p className="text-[9px] text-amber-600 font-black uppercase tracking-widest">Dəstək</p>
-                                  <p className="text-[11px] text-gray-500 font-bold">+994 50 216 00 00</p>
-                               </div>
+                              <div className="flex items-start gap-2">
+                                <span className="material-symbols-outlined text-amber-600 !text-xl">warning</span>
+                                <div>
+                                  <h5 className="text-amber-900 font-black text-[10px] uppercase tracking-wider mb-1">{t('cabinet.payments.importantNote')}</h5>
+                                  <p className="text-amber-700/70 text-[11px] font-medium leading-relaxed">
+                                    {t('cabinet.payments.importantNoteText')}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-auto pt-4 border-t border-amber-100/50">
+                                <p className="text-[9px] text-amber-600 font-black uppercase tracking-widest">{t('cabinet.payments.support')}</p>
+                                <p className="text-[11px] text-gray-500 font-bold">+994 50 216 00 00</p>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -195,11 +197,11 @@ export default function PaymentsPage() {
                     "bg-white rounded-2xl border transition-all duration-300 overflow-hidden",
                     step2Open ? "border-primary shadow-lg ring-1 ring-primary/10" : "border-gray-100 shadow-sm"
                   )}>
-                    <div 
+                    <div
                       onClick={() => setStep2Open(!step2Open)}
                       className={cn(
-                         "px-5 sm:px-6 py-4 flex items-center justify-between cursor-pointer transition-colors group",
-                         step2Open ? "bg-primary/5" : "bg-white hover:bg-gray-50"
+                        "px-5 sm:px-6 py-4 flex items-center justify-between cursor-pointer transition-colors group",
+                        step2Open ? "bg-primary/5" : "bg-white hover:bg-gray-50"
                       )}
                     >
                       <div className="flex items-center gap-4">
@@ -210,8 +212,8 @@ export default function PaymentsPage() {
                           <span className="text-sm font-black">2</span>
                         </div>
                         <div>
-                          <h3 className="text-gray-900 font-black text-xs sm:text-sm tracking-tight mb-0.5">QƏBZİ TƏQDİM EDİN</h3>
-                          <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest opacity-70">Ödənişi təsdiqlənməsi üçün</p>
+                          <h3 className="text-gray-900 font-black text-xs sm:text-sm tracking-tight mb-0.5">{t('cabinet.payments.submitReceipt')}</h3>
+                          <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest opacity-70">{t('cabinet.payments.submitReceiptDesc')}</p>
                         </div>
                       </div>
                       <span className={`material-symbols-outlined text-primary font-bold transition-transform duration-500 ${step2Open ? 'rotate-180' : ''}`}>
@@ -225,7 +227,7 @@ export default function PaymentsPage() {
                           {/* Form Side */}
                           <form onSubmit={handleSubmit} className="xl:col-span-7 space-y-8">
                             <div className="space-y-3">
-                              <label className="block text-gray-500 text-[11px] font-black uppercase tracking-[0.2em] px-1">Məbləğ</label>
+                              <label className="block text-gray-500 text-[11px] font-black uppercase tracking-[0.2em] px-1">{t('cabinet.payments.amount')}</label>
                               <div className="relative group">
                                 <div className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/40 font-black text-xl">₼</div>
                                 <input
@@ -243,14 +245,13 @@ export default function PaymentsPage() {
                             </div>
 
                             <div className="space-y-3">
-                              <label className="block text-gray-500 text-[11px] font-black uppercase tracking-[0.2em] px-1">Təsdiqedici Sənəd (Qəbz)</label>
+                              <label className="block text-gray-500 text-[11px] font-black uppercase tracking-[0.2em] px-1">{t('cabinet.payments.receipt')}</label>
                               <div
                                 onClick={() => fileInputRef.current?.click()}
-                                className={`relative aspect-video sm:aspect-[16/7] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${
-                                  preview 
-                                  ? 'border-primary bg-white shadow-xl scale-[1.01]' 
-                                  : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-primary/50'
-                                }`}
+                                className={`relative aspect-video sm:aspect-[16/7] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${preview
+                                    ? 'border-primary bg-white shadow-xl scale-[1.01]'
+                                    : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-primary/50'
+                                  }`}
                               >
                                 {preview ? (
                                   <>
@@ -259,7 +260,7 @@ export default function PaymentsPage() {
                                       <div className="size-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
                                         <span className="material-symbols-outlined !text-2xl animate-spin-slow">cached</span>
                                       </div>
-                                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Dəyişmək üçün klikləyin</span>
+                                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('cabinet.payments.changeClick')}</span>
                                     </div>
                                   </>
                                 ) : (
@@ -267,7 +268,7 @@ export default function PaymentsPage() {
                                     <div className="size-16 rounded-3xl bg-white border border-gray-100 flex items-center justify-center mb-4 mx-auto shadow-sm group-hover:scale-110 transition-transform">
                                       <span className="material-symbols-outlined text-primary !text-4xl">cloud_upload</span>
                                     </div>
-                                    <p className="text-gray-900 font-black text-sm tracking-tight">Qəbz şəklini yükləyin</p>
+                                    <p className="text-gray-900 font-black text-sm tracking-tight">{t('cabinet.payments.uploadReceipt')}</p>
                                     <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1 opacity-60">PNG, JPG, PDF (MAKS. 5MB)</p>
                                   </div>
                                 )}
@@ -296,12 +297,12 @@ export default function PaymentsPage() {
                               {isSubmitting ? (
                                 <>
                                   <div className="animate-spin h-5 w-5 border-2 border-white/30 border-t-white rounded-full" />
-                                  <span>GÖNDƏRİLİR...</span>
+                                  <span>{t('cabinet.payments.sending')}</span>
                                 </>
                               ) : (
                                 <>
                                   <span className="material-symbols-outlined !text-xl group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">send</span>
-                                  <span>SORĞUNU GÖNDƏR</span>
+                                  <span>{t('cabinet.payments.sendRequest')}</span>
                                 </>
                               )}
                             </button>
@@ -312,40 +313,40 @@ export default function PaymentsPage() {
                             <div className="bg-gray-50/80 rounded-3xl p-6 sm:p-8 border border-gray-100/50 h-full flex flex-col">
                               <h3 className="text-gray-400 text-[9px] font-black uppercase tracking-[0.3em] mb-10 flex items-center gap-2">
                                 <span className="w-4 h-0.5 bg-primary/30" />
-                                Necə işləyir?
+                                {t('cabinet.payments.howItWorks')}
                               </h3>
-                              
+
                               <div className="space-y-10 relative flex-1">
                                 <div className="absolute left-[13px] top-6 bottom-6 w-[1.5px] bg-gradient-to-b from-primary/5 via-primary/50 to-primary/5" />
-                                
+
                                 <div className="relative flex gap-6">
                                   <div className="size-7 bg-white border-2 border-primary/20 rounded-xl flex items-center justify-center flex-shrink-0 z-10 shadow-sm font-black text-[10px] text-primary group hover:bg-primary hover:text-white transition-colors">01</div>
                                   <div className="pt-0.5">
-                                    <p className="text-gray-900 text-sm font-black tracking-tight mb-1">Transferi Edin</p>
-                                    <p className="text-gray-500 text-[11px] font-medium leading-relaxed">Addım 1-dəki rekvizitlərə istənilən bankdan köçürmə edin.</p>
+                                    <p className="text-gray-900 text-sm font-black tracking-tight mb-1">{t('cabinet.payments.step1Title')}</p>
+                                    <p className="text-gray-500 text-[11px] font-medium leading-relaxed">{t('cabinet.payments.step1Desc')}</p>
                                   </div>
                                 </div>
 
                                 <div className="relative flex gap-6">
                                   <div className="size-7 bg-white border-2 border-primary/20 rounded-xl flex items-center justify-center flex-shrink-0 z-10 shadow-sm font-black text-[10px] text-primary">02</div>
                                   <div className="pt-0.5">
-                                    <p className="text-gray-900 text-sm font-black tracking-tight mb-1">Qəbzi Yükləyin</p>
-                                    <p className="text-gray-500 text-[11px] font-medium leading-relaxed">Ödəniş qəbzini və ya ekran görüntüsünü (screenshot) bizə göndərin.</p>
+                                    <p className="text-gray-900 text-sm font-black tracking-tight mb-1">{t('cabinet.payments.step2Title')}</p>
+                                    <p className="text-gray-500 text-[11px] font-medium leading-relaxed">{t('cabinet.payments.step2Desc')}</p>
                                   </div>
                                 </div>
 
                                 <div className="relative flex gap-6">
                                   <div className="size-7 bg-primary rounded-xl flex items-center justify-center flex-shrink-0 z-10 shadow-lg font-black text-[10px] text-white animate-bounce-slow">03</div>
                                   <div className="pt-0.5">
-                                    <p className="text-primary text-sm font-black tracking-tight mb-1">Balans Artacaq</p>
-                                    <p className="text-gray-500 text-[11px] font-medium leading-relaxed">Moderator yoxlamasından sonra (adətən 5-15 dəq) balansınız artacaq.</p>
+                                    <p className="text-primary text-sm font-black tracking-tight mb-1">{t('cabinet.payments.step3Title')}</p>
+                                    <p className="text-gray-500 text-[11px] font-medium leading-relaxed">{t('cabinet.payments.step3Desc')}</p>
                                   </div>
                                 </div>
                               </div>
 
                               <div className="mt-12 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4 transform hover:scale-[1.02] transition-transform">
                                 <div className="size-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 flex-shrink-0">
-                                   <span className="material-symbols-outlined !text-xl animate-pulse">verified_user</span>
+                                  <span className="material-symbols-outlined !text-xl animate-pulse">verified_user</span>
                                 </div>
                                 <p className="text-[10px] text-gray-400 font-bold leading-relaxed uppercase tracking-widest">
                                   Bütün əməliyyatlar rəsmi rekvizitlərlə təhlükəsiz şəkildə həyata keçirilir.

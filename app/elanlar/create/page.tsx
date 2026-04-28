@@ -12,12 +12,14 @@ import { CategoryDto, CategoryFieldDto, LookupItem, PackageItem } from '@/types/
 import { parseCurrency } from '@/lib/utils';
 import PromotionPackages from '@/components/listings/PromotionPackages';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // cityOptions removed - now fetched from API
 
 export default function CreateListingPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [formData, setFormData] = useState({
     categoryId: '',
     subcategoryId: '',
@@ -80,11 +82,13 @@ export default function CreateListingPage() {
         const categories = await adService.getCategories();
         const options: SelectOption[] = categories.map(cat => ({
           value: cat.id.toString(),
-          label: cat.name,
+          label: language === 'ru' && cat.nameRu ? cat.nameRu : cat.name,
+          nameAz: cat.name,
+          slug: cat.slug,
         }));
         setParentCategories(options);
       } catch (err: any) {
-        setError('Kateqoriyaları yükləmək mümkün olmadı');
+        setError(t('createAd.errors.fetchCategories'));
         console.error('Error fetching categories:', err);
       } finally {
         setIsLoadingCategories(false);
@@ -120,11 +124,12 @@ export default function CreateListingPage() {
         const types = await adService.getAdTypes();
         const options: SelectOption[] = types.map(type => ({
           value: type.id.toString(),
-          label: type.name,
+          label: language === 'ru' && type.nameRu ? type.nameRu : type.name,
+          nameAz: type.name,
         }));
         setAdTypes(options);
       } catch (err: any) {
-        setError('Elan növlərini yükləmək mümkün olmadı');
+        setError(t('createAd.errors.fetchAdTypes'));
         console.error('Error fetching ad types:', err);
       } finally {
         setIsLoadingAdTypes(false);
@@ -142,7 +147,7 @@ export default function CreateListingPage() {
         const categories = await adService.getCities();
         const options: SelectOption[] = categories.map(city => ({
           value: city.id.toString(),
-          label: city.name,
+          label: language === 'ru' && city.nameRu ? city.nameRu : city.name,
         }));
         setCities(options);
       } catch (err: any) {
@@ -184,11 +189,13 @@ export default function CreateListingPage() {
           const categories = await adService.getCategories(formData.categoryId || undefined);
           const options: SelectOption[] = categories.map(cat => ({
             value: cat.id.toString(),
-            label: cat.name,
+            label: language === 'ru' && cat.nameRu ? cat.nameRu : cat.name,
+            nameAz: cat.name,
+            slug: cat.slug,
           }));
           setSubCategories(options);
         } catch (err: any) {
-          setError('Alt kateqoriyaları yükləmək mümkün olmadı');
+          setError(t('createAd.errors.fetchSubCategories'));
           console.error('Error fetching subcategories:', err);
         } finally {
           setIsLoadingSubCategories(false);
@@ -246,7 +253,8 @@ export default function CreateListingPage() {
   }, [formData.subcategoryId, formData.categoryId, subCategories]);
 
   // Special logic for "Tanışlıq" category
-  const isDatingAd = subCategories.find(s => s.value === formData.subcategoryId)?.label === 'Tanışlıq';
+  const isDatingAd = subCategories.find(s => s.value === formData.subcategoryId)?.nameAz === 'Tanışlıq' ||
+    subCategories.find(s => s.value === formData.subcategoryId)?.slug === 'tanisliq';
 
   // Force defaults for dating category
   useEffect(() => {
@@ -273,7 +281,8 @@ export default function CreateListingPage() {
           if (fetchedBrands && fetchedBrands.length > 0) {
             const options: SelectOption[] = fetchedBrands.map(b => ({
               value: b.id.toString(),
-              label: b.name,
+              label: language === 'ru' && b.nameRu ? b.nameRu : b.name,
+              nameAz: b.name,
             }));
             setBrands(options);
             setShowBrands(true);
@@ -437,13 +446,13 @@ export default function CreateListingPage() {
       const categoryId = formData.subcategoryId || formData.categoryId;
 
       if (!categoryId) {
-        setError('Zəhmət olmasa kateqoriya seçin');
+        setError(t('createAd.selectCategory'));
         setIsSubmitting(false);
         return;
       }
 
       if (images.length === 0) {
-        setError('Zəhmət olmasa ən azı bir şəkil yükləyin');
+        setError(t('createAd.errors.imagesRequired') || 'Zəhmət olmasa ən azı bir şəkil yükləyin');
         setIsSubmitting(false);
         return;
       }
@@ -471,7 +480,7 @@ export default function CreateListingPage() {
       // Redirect to home page on success
       router.push(ROUTES.HOME);
     } catch (err: any) {
-      let errorMessage = 'Elan yerləşdirilərkən xəta baş verdi';
+      let errorMessage = t('createAd.errors.submitFailed');
       let isLimitError = false;
 
       if (err.message) {
@@ -495,7 +504,7 @@ export default function CreateListingPage() {
         <div className="flex flex-col gap-2">
           <span>{errorMessage}</span>
           <Link href="/cabinet" className="text-white underline font-bold mt-1">
-            Balansı artırmaq üçün şəxsi kabinetə keçin →
+            {t('createAd.errors.topUpBalanceLink')}
           </Link>
         </div>
       ) : errorMessage);
@@ -512,16 +521,16 @@ export default function CreateListingPage() {
         <div className="mb-6">
           <div className="flex flex-wrap gap-2">
             <Link href={ROUTES.HOME} className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors">
-              Ana Səhifə
+              {t('nav.home')}
             </Link>
             <span className="text-gray-500 text-sm font-medium leading-normal">/</span>
-            <span className="text-gray-900 text-sm font-medium leading-normal">Yeni elan</span>
+            <span className="text-gray-900 text-sm font-medium leading-normal">{t('nav.newListing')}</span>
           </div>
         </div>
 
         {/* Page Title */}
         <h1 className="text-gray-900 text-3xl sm:text-4xl font-black leading-tight tracking-[-0.033em] mb-8">
-          Yeni elan yerləşdirin
+          {t('createAd.title')}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -533,16 +542,16 @@ export default function CreateListingPage() {
           )}
           {/* Section 1: Basic Information */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-gray-900 text-xl font-bold mb-6">Əsas Məlumatlar</h2>
+            <h2 className="text-gray-900 text-xl font-bold mb-6">{t('createAd.basicInfo')}</h2>
 
             <div className="space-y-4">
               {/* Category */}
               <Select
-                label="Kateqoriya"
+                label={t('createAd.category')}
                 options={parentCategories}
                 value={parentCategories.find(option => option.value === formData.categoryId)}
                 onChange={(option) => setFormData(prev => ({ ...prev, categoryId: option?.value || '' }))}
-                placeholder={isLoadingCategories ? 'Yüklənir...' : 'Kateqoriya seçin'}
+                placeholder={isLoadingCategories ? t('common.loading') : t('createAd.selectCategory')}
                 isClearable
                 required
                 isLoading={isLoadingCategories}
@@ -551,11 +560,11 @@ export default function CreateListingPage() {
               {/* Subcategory - Hidden until parent category is selected */}
               {showSubcategory && (
                 <Select
-                  label="Alt kateqoriya"
+                  label={t('createAd.subcategory')}
                   options={subCategories}
                   value={subCategories.find(option => option.value === formData.subcategoryId)}
                   onChange={(option) => setFormData(prev => ({ ...prev, subcategoryId: option?.value || '' }))}
-                  placeholder={isLoadingSubCategories ? 'Yüklənir...' : 'Alt kateqoriya seçin'}
+                  placeholder={isLoadingSubCategories ? t('common.loading') : t('createAd.selectSubcategory')}
                   isClearable
                   isLoading={isLoadingSubCategories}
                 />
@@ -564,11 +573,11 @@ export default function CreateListingPage() {
               {/* Brand/Type - Hidden until child category is selected and has brands */}
               {showBrands && (
                 <Select
-                  label="Marka / Çeşid / Tip / Sahə"
+                  label={t('createAd.brand')}
                   options={brands}
                   value={brands.find(option => option.value === formData.brandId)}
                   onChange={(option) => setFormData(prev => ({ ...prev, brandId: option?.value || '' }))}
-                  placeholder={isLoadingBrands ? 'Yüklənir...' : 'Marka / Çeşid / Tip / Sahə seçin'}
+                  placeholder={isLoadingBrands ? t('common.loading') : t('createAd.selectBrand')}
                   isClearable
                   isLoading={isLoadingBrands}
                 />
@@ -577,11 +586,11 @@ export default function CreateListingPage() {
               {/* Ad Type */}
               {!isDatingAd && (
                 <Select
-                  label="Elan növü"
+                  label={t('createAd.adType')}
                   options={adTypes}
                   value={adTypes.find(option => option.value === formData.adTypeId)}
                   onChange={(option) => setFormData(prev => ({ ...prev, adTypeId: option?.value || '' }))}
-                  placeholder={isLoadingAdTypes ? 'Yüklənir...' : 'Elan növü seçin'}
+                  placeholder={isLoadingAdTypes ? t('common.loading') : t('createAd.selectAdType')}
                   isClearable
                   required
                   isLoading={isLoadingAdTypes}
@@ -593,31 +602,29 @@ export default function CreateListingPage() {
                 <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex items-start gap-3">
                   <span className="material-symbols-outlined text-blue-600 !text-2xl mt-0.5">info</span>
                   <div className="flex-1">
-                    <p className="text-gray-900 text-sm font-semibold">Kateqoriya məlumatı</p>
+                    <p className="text-gray-900 text-sm font-semibold">{t('createAd.categoryInfo')}</p>
                     <div className="text-gray-600 text-xs mt-1 leading-relaxed">
                       {selectedCategory.freeLimit > 0 ? (
-                        <>Bu bölmədə pulsuz elan limiti: <span className="font-bold text-gray-900">{selectedCategory.freeLimit}</span></>
+                        <>{t('createAd.freeLimit', { count: selectedCategory.freeLimit })}</>
                       ) : (
-                        <span className="text-amber-700 font-bold">Bu bölmədə bütün elanlar ödənişlidir.</span>
+                        <span className="text-amber-700 font-bold">{t('createAd.paidCategory')}</span>
                       )}
 
                       {categoryUsage !== null && (
                         <div className="mt-1 text-gray-500 italic">
-                          Mövcud istifadə: <span className={`font-bold ${categoryUsage >= selectedCategory.freeLimit ? 'text-error' : 'text-emerald-600'}`}>
-                            {categoryUsage} / {selectedCategory.freeLimit}
-                          </span> (son 30 gündə)
+                          {t('createAd.currentUsage', { used: categoryUsage, limit: selectedCategory.freeLimit })}
                         </div>
                       )}
 
                       {selectedCategory.paidPrice1 > 0 && (
                         <div className="mt-1 border-t border-blue-100/50 pt-1">
-                          Qiymət: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} ₼</span>
+                          {t('createAd.priceLabel')}: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} ₼</span>
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-4 mt-2">
                       <Link href="/pages/limits_by_category" className="text-primary text-[10px] font-bold uppercase tracking-wider hover:underline">
-                        Bütün limitlərə bax
+                        {t('createAd.viewAllLimits')}
                       </Link>
                     </div>
                   </div>
@@ -626,11 +633,11 @@ export default function CreateListingPage() {
 
               {/* City */}
               <Select
-                label="Şəhər"
+                label={t('listings.city')}
                 options={cities}
                 value={cities.find(option => option.value === formData.cityId)}
                 onChange={(option) => setFormData(prev => ({ ...prev, cityId: option?.value || '' }))}
-                placeholder={isLoadingCities ? 'Yüklənir...' : 'Şəhər seçin'}
+                placeholder={isLoadingCities ? t('common.loading') : t('listings.selectCity')}
                 isClearable
                 required
                 isLoading={isLoadingCities}
@@ -638,29 +645,29 @@ export default function CreateListingPage() {
 
               {/* Title */}
               <Input
-                label="Elanın başlığı"
+                label={t('createAd.adTitle')}
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                placeholder="Məsələn: iPhone 13 Pro Max 256GB"
+                placeholder={t('createAd.titlePlaceholder')}
                 required
               />
 
               {/* Description */}
               <Textarea
-                label="Təsvir"
+                label={t('createAd.description')}
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={6}
-                placeholder="Məhsul haqqında ətraflı məlumat yazın..."
+                placeholder={t('createAd.descPlaceholder')}
                 required
               />
 
               {/* Price */}
               {!isDatingAd && (
                 <Input
-                  label="Qiymət (₼)"
+                  label={t('createAd.priceLabel') + ' (₼)'}
                   type="text"
                   name="price"
                   value={formData.price}
@@ -671,7 +678,7 @@ export default function CreateListingPage() {
               )}
 
               {/* Checkboxes - Hidden for service/job/dating categories */}
-              {!isDatingAd && !['Xidmətlər və biznes', 'İş elanları', 'Daşınmaz əmlak'].some(cat => parentCategories.find(p => p.value === formData.categoryId)?.label?.toLowerCase() === cat.toLowerCase()) && (
+              {!isDatingAd && !['Xidmətlər və biznes', 'İş elanları', 'Daşınmaz əmlak'].some(cat => parentCategories.find(p => p.value === formData.categoryId)?.nameAz?.toLowerCase() === cat.toLowerCase()) && (
                 <div className="flex flex-col gap-3">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
@@ -680,7 +687,7 @@ export default function CreateListingPage() {
                       onChange={(e) => setFormData(prev => ({ ...prev, isNew: e.target.checked }))}
                       className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
                     />
-                    <span className="text-gray-900 text-sm font-medium">Yeni məhsul</span>
+                    <span className="text-gray-900 text-sm font-medium">{t('createAd.isNew')}</span>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
@@ -689,7 +696,7 @@ export default function CreateListingPage() {
                       onChange={(e) => setFormData(prev => ({ ...prev, isDeliverable: e.target.checked }))}
                       className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
                     />
-                    <span className="text-gray-900 text-sm font-medium">Çatdırılma mümkündür</span>
+                    <span className="text-gray-900 text-sm font-medium">{t('createAd.isDeliverable')}</span>
                   </label>
                 </div>
               )}
@@ -697,26 +704,29 @@ export default function CreateListingPage() {
               {/* Dynamic Category Fields */}
               {categoryFields.length > 0 && (
                 <div className="space-y-4 pt-4 border-t border-gray-100">
-                  <h3 className="text-gray-700 text-sm font-semibold">Kateqoriyaya aid məlumatlar</h3>
+                  <h3 className="text-gray-700 text-sm font-semibold">{t('createAd.dynamicInfo')}</h3>
                   {categoryFields.map((field) => {
                     if (field.fieldType === 'select' || field.fieldType === 'dependent_select') {
                       let parsedOptions: string[] = [];
+                      let azOptions: string[] = [];
+                      let ruOptions: string[] = [];
+                      const isRu = language === 'ru';
+
                       try {
-                        const parsed = field.optionsJson ? JSON.parse(field.optionsJson) : [];
+                        const rawJson = isRu && field.optionsJsonRu ? field.optionsJsonRu : field.optionsJson;
+                        const parsed = rawJson ? JSON.parse(rawJson) : [];
+                        azOptions = field.optionsJson ? JSON.parse(field.optionsJson) : [];
+                        ruOptions = field.optionsJsonRu ? JSON.parse(field.optionsJsonRu) : [];
 
                         if (Array.isArray(parsed)) {
                           parsedOptions = parsed;
                         } else if (parsed && typeof parsed === 'object' && field.fieldType === 'dependent_select') {
                           // Handle dependent select (e.g. Model depends on Brand)
-                          // Check for selected brand label first
-                          const selectedBrandLabel = brands.find(b => b.value === formData.brandId)?.label;
-                          if (selectedBrandLabel && Array.isArray(parsed[selectedBrandLabel])) {
-                            parsedOptions = parsed[selectedBrandLabel];
-                          } else {
-                            // Try by ID as fallback
-                            if (formData.brandId && Array.isArray(parsed[formData.brandId])) {
-                              parsedOptions = parsed[formData.brandId];
-                            }
+                          const selectedBrand = brands.find(b => b.value === formData.brandId);
+                          const brandKey = isRu ? selectedBrand?.label : selectedBrand?.nameAz || selectedBrand?.label;
+
+                          if (brandKey && Array.isArray(parsed[brandKey])) {
+                            parsedOptions = parsed[brandKey];
                           }
                         }
                       } catch (e) {
@@ -724,14 +734,37 @@ export default function CreateListingPage() {
                       }
 
                       const options: SelectOption[] = parsedOptions.map((opt: string) => ({ value: opt, label: opt }));
+
+                      // Handle bi-directional translation for the selected value
+                      // We always store the Azerbaijani value as the "source of truth" in dynamicFieldValues
+                      const currentValue = dynamicFieldValues[field.id] || '';
+                      let displayValue = currentValue;
+
+                      if (isRu && azOptions.length > 0 && ruOptions.length > 0) {
+                        const idx = azOptions.indexOf(currentValue);
+                        if (idx !== -1 && ruOptions[idx]) {
+                          displayValue = ruOptions[idx];
+                        }
+                      }
+
                       return (
                         <Select
                           key={field.id}
-                          label={field.name + (field.isRequired ? ' *' : '')}
+                          label={(isRu && field.nameRu ? field.nameRu : field.name) + (field.isRequired ? ' *' : '')}
                           options={options}
-                          value={options.find(o => o.value === dynamicFieldValues[field.id])}
-                          onChange={(opt) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: opt?.value || '' }))}
-                          placeholder={`${field.name} seçin`}
+                          value={options.find(o => o.value === displayValue)}
+                          onChange={(opt) => {
+                            let valueToStore = opt?.value || '';
+                            // If we're in Russian, convert the selected value back to Azerbaijani for storage
+                            if (isRu && azOptions.length > 0 && ruOptions.length > 0) {
+                              const idx = ruOptions.indexOf(valueToStore);
+                              if (idx !== -1 && azOptions[idx]) {
+                                valueToStore = azOptions[idx];
+                              }
+                            }
+                            setDynamicFieldValues(prev => ({ ...prev, [field.id]: valueToStore }));
+                          }}
+                          placeholder={t('common.select_placeholder', { name: isRu && field.nameRu ? field.nameRu : field.name })}
                           isClearable
                         />
                       );
@@ -740,11 +773,11 @@ export default function CreateListingPage() {
                       return (
                         <Input
                           key={field.id}
-                          label={field.name + (field.isRequired ? ' *' : '')}
+                          label={(language === 'ru' && field.nameRu ? field.nameRu : field.name) + (field.isRequired ? ' *' : '')}
                           type="number"
                           value={dynamicFieldValues[field.id] || ''}
                           onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                          placeholder={field.name}
+                          placeholder={language === 'ru' && field.nameRu ? field.nameRu : field.name}
                         />
                       );
                     }
@@ -757,7 +790,7 @@ export default function CreateListingPage() {
                             onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.checked.toString() }))}
                             className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
                           />
-                          <span className="text-gray-900 text-sm font-medium">{field.name}</span>
+                          <span className="text-gray-900 text-sm font-medium">{language === 'ru' && field.nameRu ? field.nameRu : field.name}</span>
                         </label>
                       );
                     }
@@ -765,11 +798,11 @@ export default function CreateListingPage() {
                     return (
                       <Input
                         key={field.id}
-                        label={field.name + (field.isRequired ? ' *' : '')}
+                        label={(language === 'ru' && field.nameRu ? field.nameRu : field.name) + (field.isRequired ? ' *' : '')}
                         type="text"
                         value={dynamicFieldValues[field.id] || ''}
                         onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                        placeholder={field.name}
+                        placeholder={language === 'ru' && field.nameRu ? field.nameRu : field.name}
                       />
                     );
                   })}
@@ -780,7 +813,7 @@ export default function CreateListingPage() {
 
           {/* Section 2: Images */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-gray-900 text-xl font-bold mb-6">Şəkillər</h2>
+            <h2 className="text-gray-900 text-xl font-bold mb-6">{t('createAd.images')}</h2>
 
             {/* Upload Area */}
             <div
@@ -802,14 +835,14 @@ export default function CreateListingPage() {
                 </div>
                 <div>
                   <p className="text-gray-900 font-medium mb-1">
-                    Şəkilləri yükləyin
+                    {t('createAd.uploadImages')}
                   </p>
                   <p className="text-sm text-gray-500">
-                    və ya bu sahəyə sürüşdürün
+                    {t('createAd.dragAndDrop')}
                   </p>
                 </div>
                 <p className="text-xs text-gray-400">
-                  PNG, JPG, JPEG (Maks. 10 MB)
+                  {t('createAd.maxImageSize')}
                 </p>
               </div>
               <input
@@ -867,7 +900,7 @@ export default function CreateListingPage() {
 
                       {index === 0 && (
                         <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2 py-1 rounded">
-                          Əsas
+                          {t('createAd.mainImage')}
                         </div>
                       )}
                     </div>
@@ -889,17 +922,17 @@ export default function CreateListingPage() {
 
           {/* Section 5: Contact Information */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-gray-900 text-xl font-bold mb-6">Əlaqə Məlumatları</h2>
+            <h2 className="text-gray-900 text-xl font-bold mb-6">{t('createAd.contactInfo')}</h2>
 
             <div className="space-y-4">
               {/* Name */}
               <Input
-                label="Ad, Soyad"
+                label={t('createAd.fullName')}
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                placeholder="Ad və soyadınızı daxil edin"
+                placeholder={t('auth.fullNamePlaceholder')}
                 required
               />
 
@@ -916,7 +949,7 @@ export default function CreateListingPage() {
 
               {/* Phone */}
               <Input
-                label="Telefon"
+                label={t('createAd.phone')}
                 type="tel"
                 name="phone"
                 value={formData.phone}
@@ -942,7 +975,7 @@ export default function CreateListingPage() {
                 disabled={isSubmitting}
                 className="w-full sm:w-auto px-6 h-12 rounded-lg border border-gray-300 bg-white text-gray-900 font-bold hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                İmtina et
+                {t('createAd.cancel')}
               </button>
             </Link>
             <button
@@ -950,7 +983,7 @@ export default function CreateListingPage() {
               disabled={isSubmitting}
               className="w-full sm:w-auto px-6 h-12 rounded-lg bg-primary text-white font-bold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Yüklənir...' : 'Elanı Dərc Et'}
+              {isSubmitting ? t('common.loading') : t('createAd.submit')}
             </button>
           </div>
         </form>

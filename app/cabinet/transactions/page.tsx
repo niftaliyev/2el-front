@@ -5,6 +5,8 @@ import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import { accountService, Transaction } from '@/services/account.service';
 import { PaginatedResponse } from '@/types/api';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { translateCabinetService } from '@/lib/utils';
 
 type Tab = 'PersonalAccount' | 'PaidPlacements';
 
@@ -15,6 +17,7 @@ export default function TransactionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const pageSize = 10;
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -25,7 +28,7 @@ export default function TransactionsPage() {
         setData(result);
       } catch (err) {
         console.error('Error fetching transactions:', err);
-        setError('Əməliyyat tarixçəsini yükləmək mümkün olmadı');
+        setError(t('cabinet.transactions.loadError'));
       } finally {
         setIsLoading(false);
       }
@@ -52,29 +55,27 @@ export default function TransactionsPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-0 sm:p-8 overflow-hidden">
               
               <div className="p-5 sm:p-0">
-                <h1 className="text-gray-900 text-2xl sm:text-3xl font-bold mb-6">Əməliyyatlar</h1>
+                <h1 className="text-gray-900 text-2xl sm:text-3xl font-bold mb-6">{t('cabinet.transactions.title')}</h1>
 
                 {/* Sub Tabs */}
-                 <div className="flex items-center gap-2 mb-8 bg-gray-100/50 p-1 rounded-xl w-fit border border-gray-100">
+                <div className="flex bg-gray-100/50 p-1 rounded-xl border border-gray-100 mb-8 overflow-x-auto scrollbar-hide sm:w-fit">
                   <button
                     onClick={() => handleTabChange('PersonalAccount')}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
-                      activeTab === 'PersonalAccount'
+                    className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${activeTab === 'PersonalAccount'
                         ? 'bg-[#607afb] text-white shadow-lg shadow-[#607afb]/20'
                         : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
-                    Şəxsi hesab
+                    {t('cabinet.transactions.personalAccount')}
                   </button>
                   <button
                     onClick={() => handleTabChange('PaidPlacements')}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
-                      activeTab === 'PaidPlacements'
+                    className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${activeTab === 'PaidPlacements'
                         ? 'bg-[#607afb] text-white shadow-lg shadow-[#607afb]/20'
                         : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
-                    Pullu yerləşdirmələr
+                    {t('cabinet.transactions.paidPlacements')}
                   </button>
                 </div>
               </div>
@@ -89,65 +90,100 @@ export default function TransactionsPage() {
                 </div>
               ) : transactions.length > 0 ? (
                 <>
-                  <div className="overflow-x-auto">
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[700px]">
                       <thead>
                         <tr className="bg-gray-50/30 border-y border-gray-100">
-                          <th className="py-4 px-6 text-gray-400 text-[11px] font-bold uppercase tracking-wider">Elan</th>
-                          <th className="py-4 px-6 text-gray-400 text-[11px] font-bold uppercase tracking-wider">Elanın adı</th>
-                          <th className="py-4 px-6 text-gray-400 text-[11px] font-bold uppercase tracking-wider">Xidmət</th>
-                          <th className="py-4 px-6 text-gray-400 text-[11px] font-bold uppercase tracking-wider">Məbləğ</th>
-                          <th className="py-4 px-6 text-gray-400 text-[11px] font-bold uppercase tracking-wider">Mənbə</th>
-                          <th className="py-4 px-4 text-gray-400 text-[11px] font-bold uppercase tracking-wider">Tarix / Saat</th>
+                          <th className="py-4 px-6 text-gray-400 text-[11px] font-bold uppercase tracking-wider">{t('cabinet.transactions.adLabel')}</th>
+                          <th className="py-4 px-6 text-gray-400 text-[11px] font-bold uppercase tracking-wider">{t('cabinet.transactions.adName')}</th>
+                          <th className="py-4 px-6 text-gray-400 text-[11px] font-bold uppercase tracking-wider">{t('cabinet.transactions.service')}</th>
+                          <th className="py-4 px-6 text-gray-400 text-[11px] font-bold uppercase tracking-wider">{t('cabinet.transactions.amount')}</th>
+                          <th className="py-4 px-6 text-gray-400 text-[11px] font-bold uppercase tracking-wider">{t('cabinet.transactions.source')}</th>
+                          <th className="py-4 px-4 text-gray-400 text-[11px] font-bold uppercase tracking-wider">{t('cabinet.transactions.dateTime')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50">
-                        {transactions.map((t) => (
-                          <tr key={t.id} className="hover:bg-gray-50/40 transition-all border-b border-gray-50 last:border-0">
+                        {transactions.map((tItem) => (
+                          <tr key={tItem.id} className="hover:bg-gray-50/40 transition-all border-b border-gray-50 last:border-0">
                             <td className="py-5 px-6">
                               <span className="text-gray-400 font-medium text-sm">
-                                {t.adId ? `#${t.adId.substring(0, 8)}` : '-'}
+                                {tItem.adId ? `#${tItem.adId.substring(0, 8)}` : '-'}
                               </span>
                             </td>
                             <td className="py-5 px-6">
-                              {t.adId ? (
-                                <Link 
-                                  href={`/elanlar/${t.adId}`} 
+                              {tItem.adId ? (
+                                <Link
+                                  href={`/elanlar/${tItem.adId}`}
                                   className="text-blue-600 hover:underline font-semibold text-sm line-clamp-1"
                                 >
-                                  {t.adTitle || 'Elan'}
+                                  {tItem.adTitle || 'Elan'}
                                 </Link>
                               ) : (
                                 <span className="text-gray-400 text-sm">-</span>
                               )}
                             </td>
                             <td className="py-5 px-6">
-                              <span className={`text-sm font-medium ${t.type === 'Deposit' ? 'text-emerald-600' : 'text-gray-700'}`}>
-                                {t.title}
+                              <span className={`text-sm font-medium ${tItem.type === 'Deposit' ? 'text-emerald-600' : 'text-gray-700'}`}>
+                                {translateCabinetService(language === 'ru' && tItem.titleRu ? tItem.titleRu : tItem.title, language)}
                               </span>
                             </td>
                             <td className="py-5 px-6 whitespace-nowrap">
-                              <div className={`text-sm font-bold flex items-center gap-1 ${['Deposit', 'Refund'].includes(t.type) ? 'text-emerald-600' : 'text-gray-900'}`}>
-                                {['Deposit', 'Refund'].includes(t.type) ? (
+                              <div className={`text-sm font-bold flex items-center gap-1 ${['Deposit', 'Refund'].includes(tItem.type) ? 'text-emerald-600' : 'text-gray-900'}`}>
+                                {['Deposit', 'Refund'].includes(tItem.type) ? (
                                   <span className="material-symbols-outlined !text-[16px] transform rotate-180">arrow_downward</span>
                                 ) : (
                                   <span className="material-symbols-outlined !text-[16px]">arrow_upward</span>
                                 )}
-                                {['Deposit', 'Refund'].includes(t.type) ? '+' : '-'}{t.amount.toFixed(2)} ₼
+                                {['Deposit', 'Refund'].includes(tItem.type) ? '+' : '-'}{tItem.amount.toFixed(2)} ₼
                               </div>
                             </td>
                             <td className="py-5 px-6">
-                               <span className="text-gray-700 text-sm font-medium">Şəxsi hesab</span>
+                              <span className="text-gray-700 text-sm font-medium">{t('cabinet.transactions.sourcePersonal')}</span>
                             </td>
                             <td className="py-5 px-4 whitespace-nowrap">
                               <div className="text-xs text-gray-500 font-medium">
-                                {new Date(t.date).toLocaleDateString('az-AZ')} {new Date(t.date).toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' })}
+                                {new Date(tItem.date).toLocaleDateString(language === 'az' ? 'az-AZ' : 'ru-RU')} {new Date(tItem.date).toLocaleTimeString(language === 'az' ? 'az-AZ' : 'ru-RU', { hour: '2-digit', minute: '2-digit' })}
                               </div>
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden space-y-4 px-5 pb-5">
+                    {transactions.map((tItem) => (
+                      <div key={tItem.id} className="bg-gray-50/50 border border-gray-100 rounded-2xl p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex flex-col">
+                            <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider block mb-0.5">{t('cabinet.transactions.service')}</span>
+                            <span className={`text-xs font-bold ${tItem.type === 'Deposit' ? 'text-emerald-600' : 'text-gray-900'}`}>{translateCabinetService(language === 'ru' && tItem.titleRu ? tItem.titleRu : tItem.title, language)}</span>
+                          </div>
+                          <div className={`text-sm font-black flex items-center gap-1 ${['Deposit', 'Refund'].includes(tItem.type) ? 'text-emerald-600' : 'text-gray-900'}`}>
+                            {['Deposit', 'Refund'].includes(tItem.type) ? '+' : '-'}{tItem.amount.toFixed(2)} ₼
+                          </div>
+                        </div>
+
+                        {tItem.adTitle && (
+                          <div className="mb-3">
+                            <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider block mb-0.5">{t('cabinet.transactions.adLabel')}</span>
+                            <Link href={`/elanlar/${tItem.adId}`} className="text-blue-600 text-xs font-semibold line-clamp-1">{tItem.adTitle}</Link>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-end pt-3 border-t border-gray-100/50">
+                          <div className="flex flex-col">
+                            <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">{t('cabinet.transactions.date')}</span>
+                            <span className="text-[10px] text-gray-500 font-medium">
+                                {new Date(tItem.date).toLocaleDateString(language === 'az' ? 'az-AZ' : 'ru-RU')} {new Date(tItem.date).toLocaleTimeString(language === 'az' ? 'az-AZ' : 'ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">#{tItem.adId?.substring(0, 8) || '00000'}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   {/* Pagination */}
@@ -188,8 +224,8 @@ export default function TransactionsPage() {
                   <div className="size-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                     <span className="material-symbols-outlined text-gray-300 text-4xl">history</span>
                   </div>
-                  <h3 className="text-gray-900 text-lg font-bold">Heç bir əməliyyat yoxdur</h3>
-                  <p className="text-gray-500 text-sm mt-1">Bu bölmə üzrə hələ ki əməliyyat qeydə alınmayıb.</p>
+                  <h3 className="text-gray-900 text-lg font-bold">{t('cabinet.transactions.noTransactions')}</h3>
+                  <p className="text-gray-500 text-sm mt-1">{t('cabinet.transactions.noTransactionsDesc')}</p>
                 </div>
               )}
             </div>

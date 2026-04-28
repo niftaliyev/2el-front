@@ -3,6 +3,7 @@
 import Modal from './Modal';
 import Button from './Button';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -22,11 +23,15 @@ export default function ConfirmDialog({
   onConfirm,
   title,
   description,
-  confirmText = 'Təsdiq et',
-  cancelText = 'İmtina',
+  confirmText,
+  cancelText,
   isDestructive = false,
   isLoading = false,
 }: ConfirmDialogProps) {
+  const { t } = useLanguage();
+
+  const finalConfirmText = confirmText || t('common.confirm');
+  const finalCancelText = cancelText || t('common.cancel');
   return (
     <Modal
       isOpen={isOpen}
@@ -41,7 +46,7 @@ export default function ConfirmDialog({
             className="flex-1 rounded-xl h-11"
             disabled={isLoading}
           >
-            {cancelText}
+            {finalCancelText}
           </Button>
           <Button
             variant={isDestructive ? 'danger' : 'primary'}
@@ -49,7 +54,7 @@ export default function ConfirmDialog({
             className="flex-1 rounded-xl h-11"
             isLoading={isLoading}
           >
-            {confirmText}
+            {finalConfirmText}
           </Button>
         </div>
       }

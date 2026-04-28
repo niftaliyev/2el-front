@@ -15,9 +15,11 @@ import { getImageUrl, generateSlug } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
 import { Button } from '@/components/ui';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ListingsContent({ initialFilters }: { initialFilters?: Partial<SearchFilters> }) {
   const router = useRouter();
+  const { t, language } = useLanguage();
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [vipProducts, setVipProducts] = useState<Product[]>([]);
@@ -155,7 +157,6 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
         setCategoriesLoading(true);
         const tree = await adService.getCategoryTree();
         if (tree && tree.length > 0) {
-          // ... (ICONS and mapping logic)
           const ICONS: Record<string, string> = {
             'Elektronika': 'devices',
             'Nəqliyyat': 'directions_car',
@@ -171,29 +172,63 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             'Məktəblilər üçün': 'school',
             'Mağazalar': 'store',
           };
+
+          const LOCAL_IMAGES: Record<string, string> = {
+            'Elektronika': '/category-images/elektronika_cat.png',
+            'Nəqliyyat': '/category-images/neqliyyat_cat.png',
+            'Ev və bağ üçün': '/category-images/ev_ve_bag_ucun_cat.png',
+            'Daşınmaz əmlak': '/category-images/dasinmaz_emlak_cat.png',
+            'Xidmətlər və biznes': '/category-images/xidmetler_ve_biznes_cat.png',
+            'Şəxsi əşyalar': '/category-images/sexsi_esyalar_cat.png',
+            'Hobbi və asudə': '/category-images/hobbi_ve_asude_cat.png',
+            'Uşaq aləmi': '/category-images/usaq_alemi_cat.png',
+            'Heyvanlar': '/category-images/heyvanlar_cat.png',
+            'İş elanları': '/category-images/is_elanlari_cat.png',
+            'Ehtiyat hissələri və aksesuarlar (avto)': '/category-images/ehtiyyat_hisseleri_ve_aksesuarlar_avto_cat.png',
+            'Məktəblilər üçün': '/category-images/mektebliler_ucun_cat.png'
+          };
+
           const mapped = tree.map((cat: any) => ({
             id: cat.id,
-            name: cat.name,
+            name: language === 'ru' && cat.nameRu ? cat.nameRu : cat.name,
             icon: ICONS[cat.name] || 'category',
+            image: LOCAL_IMAGES[cat.name] || getImageUrl(cat.imageUrl),
             slug: generateSlug(cat.name),
             categoryFields: cat.categoryFields || [],
-            subCategories: cat.subCategories?.map((sc: any) => ({ ...sc, parentSlug: generateSlug(cat.name) })) || [],
+            subCategories: cat.subCategories?.map((sc: any) => ({
+              ...sc,
+              name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
+              parentSlug: generateSlug(cat.name),
+              image: getImageUrl(sc.imageUrl)
+            })) || [],
             children: cat.children?.map((child: any) => ({
               id: child.id,
-              name: child.name,
+              name: language === 'ru' && child.nameRu ? child.nameRu : child.name,
               slug: generateSlug(child.name),
+              image: getImageUrl(child.imageUrl),
               parentId: cat.id,
               parentSlug: generateSlug(cat.name),
               categoryFields: child.categoryFields || [],
-              subCategories: child.subCategories?.map((sc: any) => ({ ...sc, parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}` })) || [],
+              subCategories: child.subCategories?.map((sc: any) => ({
+                ...sc,
+                name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
+                parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}`,
+                image: getImageUrl(sc.imageUrl)
+              })) || [],
               children: child.children?.map((gc: any) => ({
                 id: gc.id,
-                name: gc.name,
+                name: language === 'ru' && gc.nameRu ? gc.nameRu : gc.name,
                 slug: generateSlug(gc.name),
+                image: getImageUrl(gc.imageUrl),
                 parentId: child.id,
                 parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}`,
                 categoryFields: gc.categoryFields || [],
-                subCategories: gc.subCategories?.map((sc: any) => ({ ...sc, parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}/${generateSlug(gc.name)}` })) || []
+                subCategories: gc.subCategories?.map((sc: any) => ({
+                  ...sc,
+                  name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
+                  parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}/${generateSlug(gc.name)}`,
+                  image: getImageUrl(sc.imageUrl)
+                })) || []
               })) || []
             })) || []
           }));
@@ -205,7 +240,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       }
     };
     fetchCategories();
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     const fetchVipAds = async () => {
@@ -234,7 +269,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           images: item.image ? [getImageUrl(item.image)] : [],
           category: {
             id: item.categoryId ?? '0',
-            name: item.category ?? 'Unknown',
+            name: language === 'ru' && item.categoryRu ? item.categoryRu : (item.category ?? 'Unknown'),
             slug: item.parentCategorySlug || (item.category ? generateSlug(item.category) : 'unknown')
           },
           subCategory: item.childCategorySlug ? {
@@ -242,7 +277,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             name: '',
             slug: item.childCategorySlug
           } : undefined,
-          location: { id: '0', city: item.city ?? 'Bakı', region: '', country: 'Azerbaijan' },
+          location: { id: '0', city: item.city ?? 'Bakı', cityRu: item.cityRu, region: '', country: 'Azerbaijan' },
           seller: { id: '0', name: item.fullName ?? 'User', email: item.email ?? '', createdAt: new Date(), isVerified: false },
           condition: item.isNew ? 'new' : 'used',
           status: (item.status ?? 'active').toLowerCase() as any,
@@ -267,7 +302,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       }
     };
     fetchVipAds();
-  }, [filters]);
+  }, [filters, language]);
 
   useEffect(() => {
     const fetchAds = async () => {
@@ -305,7 +340,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           images: item.image ? [getImageUrl(item.image)] : [],
           category: {
             id: item.categoryId ?? '0',
-            name: item.category ?? 'Unknown',
+            name: language === 'ru' && item.categoryRu ? item.categoryRu : (item.category ?? 'Unknown'),
             slug: item.parentCategorySlug || (item.category ? generateSlug(item.category) : 'unknown')
           },
           subCategory: item.childCategorySlug ? {
@@ -313,7 +348,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             name: '',
             slug: item.childCategorySlug
           } : undefined,
-          location: { id: '0', city: item.city ?? 'Bakı', region: '', country: 'Azerbaijan' },
+          location: { id: '0', city: item.city ?? 'Bakı', cityRu: item.cityRu, region: '', country: 'Azerbaijan' },
           seller: { id: '0', name: item.fullName ?? 'User', email: item.email ?? '', createdAt: new Date(), isVerified: false },
           condition: item.isNew ? 'new' : 'used',
           status: (item.status ?? 'active').toLowerCase() as any,
@@ -349,7 +384,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
     };
 
     fetchAds();
-  }, [filters, page]);
+  }, [filters, page, language]);
 
   const handleFilterChange = (newFilters: SearchFilters) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -400,19 +435,20 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       } catch (e) { }
     };
     fetchCities();
-  }, []);
+  }, [language]);
 
   const getCityLabel = () => {
-    if (!filters.cityId) return 'Şəhər';
+    if (!filters.cityId) return t('listings.city');
     const cityIdStr = filters.cityId.toString();
-    return cities.find(c => c.id.toString() === cityIdStr)?.name || 'Şəhər';
+    const city = cities.find(c => c.id.toString() === cityIdStr);
+    return (language === 'ru' && city?.nameRu ? city.nameRu : city?.name) || t('listings.city');
   };
 
   const getPriceLabel = () => {
-    if (!filters.minPrice && !filters.maxPrice) return 'Qiymət';
+    if (!filters.minPrice && !filters.maxPrice) return t('listings.price');
     if (filters.minPrice && filters.maxPrice) return `${filters.minPrice} - ${filters.maxPrice} ₼`;
-    if (filters.minPrice) return `min. ${filters.minPrice} ₼`;
-    return `maks. ${filters.maxPrice} ₼`;
+    if (filters.minPrice) return `${t('listings.minPrice')} ${filters.minPrice} ₼`;
+    return `${t('listings.maxPrice')} ${filters.maxPrice} ₼`;
   };
 
   return (
@@ -421,7 +457,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
         <div className="mb-3 sm:mb-4">
           <div className="flex items-center justify-between mb-3 sm:mb-6">
             <h1 className="text-[17px] sm:text-[20px] font-bold text-[#212121] tracking-tight">
-              Bütün kateqoriyalar <span className="text-[#999] font-normal text-[13px] sm:text-[15px] ml-1">({totalElements})</span>
+              {t('listings.allCategories')} <span className="text-[#999] font-normal text-[13px] sm:text-[15px] ml-1">({totalElements})</span>
             </h1>
             {/* Mobile Filter Toggle Button */}
             <button
@@ -429,23 +465,22 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
               className="lg:hidden flex items-center gap-1.5 px-3 py-2 bg-gray-100 rounded-xl text-[13px] font-medium text-gray-700 hover:bg-gray-200 transition-colors"
             >
               <span className="material-symbols-outlined !text-[18px]">tune</span>
-              Filtr
+              {t('listings.filter')}
             </button>
           </div>
         </div>
 
         {/* STICKY MOBILE BAR */}
         <div className={`z-[91] bg-white/95 backdrop-blur-md sticky lg:relative transition-all duration-300 ease-in-out -mx-3 px-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 pt-2 pb-2 mb-2 top-[112px] sm:top-[116px] lg:top-auto lg:!translate-y-0 lg:!opacity-100 lg:!pointer-events-auto ${isHeaderVisible
-            ? 'translate-y-0 opacity-100 pointer-events-auto'
-            : '-translate-y-[150px] opacity-0 pointer-events-none'
+          ? 'translate-y-0 opacity-100 pointer-events-auto'
+          : '-translate-y-[150px] opacity-0 pointer-events-none'
           }`}>
           <div className="relative group lg:mb-0 mb-3">
             {showLeftScroll && (
               <button
                 onClick={() => scrollCarousel('left')}
                 className="absolute left-0 top-11 -translate-y-1/2 z-10 hidden lg:flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md border border-gray-100 hover:bg-gray-50 transition-colors"
-                aria-label="Sola sürüşdür"
-              >
+                aria-label={t('listings.slideLeft')}>
                 <span className="material-symbols-outlined !text-[#212121]">chevron_left</span>
               </button>
             )}
@@ -527,7 +562,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                             </span>
                           </div>
                           <span className="text-[13px] text-[#212121] text-center leading-[1.3] px-1">
-                            Geri
+                            {t('listings.back')}
                           </span>
                         </Link>
                       )}
@@ -555,7 +590,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                                 <img
                                   src={item.image}
                                   alt={item.name}
-                                  className="w-full h-full object-contain p-2"
+                                  className="w-full h-full object-contain scale-[1.4] -translate-x-5 translate-y-0 transition-all duration-500 group-hover:scale-[1.5]"
                                 />
                               ) : (
                                 <span className={`material-symbols-outlined !text-[32px] transition-colors ${isActive ? 'text-[#607afb]' : 'text-[#212121]'}`}>
@@ -579,8 +614,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
               <button
                 onClick={() => scrollCarousel('right')}
                 className="absolute right-0 top-11 -translate-y-1/2 z-10 hidden lg:flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md border border-gray-100 hover:bg-gray-50 transition-colors"
-                aria-label="Sağa sürüşdür"
-              >
+                aria-label={t('listings.slideRight')}>
                 <span className="material-symbols-outlined !text-[#212121]">chevron_right</span>
               </button>
             )}
@@ -594,7 +628,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                 }`}
             >
               <span className="material-symbols-outlined !text-[18px]">sort</span>
-              <span>{filters.sortBy === 'cheap' ? 'Öncə ucuz' : filters.sortBy === 'expensive' ? 'Öncə baha' : 'Tarix üzrə'}</span>
+              <span>{filters.sortBy === 'cheap' ? t('listings.sortByCheap') : filters.sortBy === 'expensive' ? t('listings.sortByExpensive') : t('listings.sortByDate')}</span>
               <span className="material-symbols-outlined !text-[18px]">expand_more</span>
             </button>
 
@@ -622,7 +656,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
         {isMobileFilterOpen && (
           <div className="lg:hidden mb-4 bg-gray-50 rounded-2xl p-4 border border-gray-200 animate-in slide-in-from-top-2">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-[#212121]">Filtrlər</h3>
+              <h3 className="font-bold text-[#212121]">{t('listings.filters')}</h3>
               <button
                 onClick={() => setIsMobileFilterOpen(false)}
                 className="text-gray-500 hover:text-gray-700 p-1"
@@ -637,7 +671,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-8 gap-y-8 items-start mt-2 sm:mt-6">
           <aside className="lg:col-span-1 hidden lg:block sticky top-24 w-full pr-2 pb-8 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="mb-6">
-              <h3 className="text-[#212121] font-bold text-[15px] mb-3">Bütün kateqoriyalar</h3>
+              <h3 className="text-[#212121] font-bold text-[15px] mb-3">{t('listings.allCategories')}</h3>
               <ul className="space-y-[10px] pl-2">
                 {categoriesLoading ? (
                   Array.from({ length: 8 }).map((_, i) => (
@@ -700,7 +734,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                     sort
                   </span>
                   <span className="pt-px">
-                    {filters.sortBy === 'cheap' ? 'Öncə ucuz' : filters.sortBy === 'expensive' ? 'Öncə baha' : 'Tarix üzrə'}
+                    {filters.sortBy === 'cheap' ? t('listings.sortByCheap') : filters.sortBy === 'expensive' ? t('listings.sortByExpensive') : t('listings.sortByDate')}
                   </span>
                   <span className={`material-symbols-outlined !text-[18px] text-gray-400 transition-transform ${isSortOpen ? 'rotate-180' : ''}`}>
                     expand_more
@@ -713,21 +747,21 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                       onClick={() => { handleFilterChange({ ...filters, sortBy: 'latest' }); setIsSortOpen(false); }}
                       className={`w-full text-left px-4 py-2.5 hover:bg-[#f1f2f4] text-[14px] transition-colors flex items-center justify-between ${filters.sortBy === 'latest' || filters.sortBy === undefined ? 'text-[#607afb] font-medium' : 'text-[#212121]'}`}
                     >
-                      Tarix üzrə
+                      {t('listings.sortByDate')}
                       {(filters.sortBy === 'latest' || filters.sortBy === undefined) && <span className="material-symbols-outlined !text-[18px]">check</span>}
                     </button>
                     <button
                       onClick={() => { handleFilterChange({ ...filters, sortBy: 'cheap' }); setIsSortOpen(false); }}
                       className={`w-full text-left px-4 py-2.5 hover:bg-[#f1f2f4] text-[14px] transition-colors flex items-center justify-between ${filters.sortBy === 'cheap' ? 'text-[#607afb] font-medium' : 'text-[#212121]'}`}
                     >
-                      Öncə ucuz
+                      {t('listings.sortByCheap')}
                       {filters.sortBy === 'cheap' && <span className="material-symbols-outlined !text-[18px]">check</span>}
                     </button>
                     <button
                       onClick={() => { handleFilterChange({ ...filters, sortBy: 'expensive' }); setIsSortOpen(false); }}
                       className={`w-full text-left px-4 py-2.5 hover:bg-[#f1f2f4] text-[14px] transition-colors flex items-center justify-between ${filters.sortBy === 'expensive' ? 'text-[#607afb] font-medium' : 'text-[#212121]'}`}
                     >
-                      Öncə baha
+                      {t('listings.sortByExpensive')}
                       {filters.sortBy === 'expensive' && <span className="material-symbols-outlined !text-[18px]">check</span>}
                     </button>
                   </div>
@@ -738,9 +772,9 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             {vipProducts.length > 0 && page === 1 && (
               <div className="mb-10">
                 <div className="flex items-end justify-between mb-[14px]">
-                  <h2 className="text-[16px] text-[#212121] font-normal">VIP elanlar</h2>
+                  <h2 className="text-[16px] text-[#212121] font-normal">{t('listings.vipAds')}</h2>
                   <Link href="/elanlar/vip" className="text-[14px] text-[#0057e6] hover:underline">
-                    Hamısı
+                    {t('listings.allAds')}
                   </Link>
                 </div>
                 <ProductGrid
@@ -757,7 +791,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             ) : (
               <>
                 <div className="mb-[14px]">
-                  <h2 className="text-[16px] text-[#212121] font-normal">Elanlar</h2>
+                  <h2 className="text-[16px] text-[#212121] font-normal">{t('listings.ads')}</h2>
                 </div>
                 <ProductGrid products={products} />
                 <div ref={lastElementRef} className="h-10 mt-8" />
@@ -766,9 +800,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#607afb]"></div>
                   </div>
                 )}
-                {!hasMore && products.length > 0 && (
-                  <p className="text-center text-gray-500 py-8">Bütün elanlar yükləndi.</p>
-                )}
+                {/* End of list message removed as per user request */}
               </>
             )}
           </div>
@@ -779,25 +811,25 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       <Modal
         isOpen={isPriceModalOpen}
         onClose={() => setIsPriceModalOpen(false)}
-        title="Qiymət"
+        title={t('listings.price')}
       >
         <div className="p-4 sm:p-0">
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-gray-500 ml-1">Minimum</label>
+              <label className="text-xs font-medium text-gray-500 ml-1">{t('listings.minimum')}</label>
               <input
                 type="number"
-                placeholder="min."
+                placeholder={t('listings.minPrice')}
                 value={filters.minPrice || ''}
                 onChange={(e) => handleFilterChange({ ...filters, minPrice: e.target.value ? Number(e.target.value) : undefined })}
                 className="w-full h-12 px-4 bg-gray-50 rounded-xl outline-none border border-transparent focus:border-primary/20 focus:bg-white transition-all"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-gray-500 ml-1">Maksimum</label>
+              <label className="text-xs font-medium text-gray-500 ml-1">{t('listings.maximum')}</label>
               <input
                 type="number"
-                placeholder="maks."
+                placeholder={t('listings.maxPrice')}
                 value={filters.maxPrice || ''}
                 onChange={(e) => handleFilterChange({ ...filters, maxPrice: e.target.value ? Number(e.target.value) : undefined })}
                 className="w-full h-12 px-4 bg-gray-50 rounded-xl outline-none border border-transparent focus:border-primary/20 focus:bg-white transition-all"
@@ -808,7 +840,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             className="w-full h-12 rounded-xl font-bold"
             onClick={() => setIsPriceModalOpen(false)}
           >
-            Nəticələri göstər
+            {t('listings.showResults')}
           </Button>
         </div>
       </Modal>
@@ -817,14 +849,14 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       <Modal
         isOpen={isCityModalOpen}
         onClose={() => setIsCityModalOpen(false)}
-        title="Şəhər"
+        title={t('listings.city')}
       >
         <div className="flex-1 overflow-y-auto p-4 sm:p-0 space-y-1">
           <button
             onClick={() => { handleFilterChange({ ...filters, cityId: undefined }); setIsCityModalOpen(false); }}
             className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${!filters.cityId ? 'bg-primary/5 text-primary font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
           >
-            Bütün şəhərlər
+            {t('listings.allCities')}
           </button>
           {cities.map(city => (
             <button
@@ -832,7 +864,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
               onClick={() => { handleFilterChange({ ...filters, cityId: city.id.toString() }); setIsCityModalOpen(false); }}
               className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${filters.cityId?.toString() === city.id.toString() ? 'bg-primary/5 text-primary font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
             >
-              {city.name}
+              {language === 'ru' && city.nameRu ? city.nameRu : city.name}
             </button>
           ))}
         </div>
@@ -842,26 +874,26 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       <Modal
         isOpen={isSortModalOpen}
         onClose={() => setIsSortModalOpen(false)}
-        title="Sort"
+        title={t('listings.sort')}
       >
         <div className="p-4 sm:p-0 space-y-1">
           <button
             onClick={() => { handleFilterChange({ ...filters, sortBy: 'latest' }); setIsSortModalOpen(false); }}
             className={`w-full text-left px-4 py-4 rounded-xl transition-colors ${filters.sortBy === 'latest' || !filters.sortBy ? 'bg-primary/5 text-primary font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
           >
-            Tarix üzrə
+            {t('listings.sortByDate')}
           </button>
           <button
             onClick={() => { handleFilterChange({ ...filters, sortBy: 'cheap' }); setIsSortModalOpen(false); }}
             className={`w-full text-left px-4 py-4 rounded-xl transition-colors ${filters.sortBy === 'cheap' ? 'bg-primary/5 text-primary font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
           >
-            Öncə ucuz
+            {t('listings.sortByCheap')}
           </button>
           <button
             onClick={() => { handleFilterChange({ ...filters, sortBy: 'expensive' }); setIsSortModalOpen(false); }}
             className={`w-full text-left px-4 py-4 rounded-xl transition-colors ${filters.sortBy === 'expensive' ? 'bg-primary/5 text-primary font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
           >
-            Öncə baha
+            {t('listings.sortByExpensive')}
           </button>
         </div>
       </Modal>

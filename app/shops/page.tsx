@@ -7,6 +7,7 @@ import { storeService } from '@/services/store.service';
 import { adService } from '@/services/ad.service';
 import { StoreListItem } from '@/types/api';
 import { getImageUrl } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const getCategoryColor = (colorCode: number) => {
   const colors = [
@@ -29,6 +30,7 @@ const getCategoryColor = (colorCode: number) => {
 const ITEMS_PER_PAGE = 8;
 
 export default function StoresPage() {
+  const { t, language } = useLanguage();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -108,8 +110,8 @@ export default function StoresPage() {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Mağazalar</h1>
-            <p className="text-gray-500 text-sm font-medium mt-1">Keyfiyyətli məhsullar və etibarlı satıcılar</p>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('shops.title')}</h1>
+            <p className="text-gray-500 text-sm font-medium mt-1">{t('shops.subtitle')}</p>
           </div>
 
           <div className="w-full lg:w-auto flex flex-col sm:flex-row items-center gap-3">
@@ -118,7 +120,7 @@ export default function StoresPage() {
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors !text-[20px]">search</span>
               <input
                 type="text"
-                placeholder="Axtarış..."
+                placeholder={t('shops.search')}
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-100 bg-white text-sm font-medium focus:border-primary transition-all outline-none"
@@ -129,7 +131,7 @@ export default function StoresPage() {
             <div className="flex bg-gray-50 p-1 rounded-xl shrink-0">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`flex items-center justify-center size-9 rounded-lg transition-all ${
+                className={`flex items-center justify-center size-9 rounded-lg transition-all cursor-pointer ${
                   viewMode === 'grid' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
@@ -137,7 +139,7 @@ export default function StoresPage() {
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`flex items-center justify-center size-9 rounded-lg transition-all ${
+                className={`flex items-center justify-center size-9 rounded-lg transition-all cursor-pointer ${
                   viewMode === 'list' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
@@ -156,10 +158,10 @@ export default function StoresPage() {
                <div className="relative" onClick={(e) => e.stopPropagation()}>
                  <button 
                    onClick={() => { setIsCityDropdownOpen(!isCityDropdownOpen); setIsSortDropdownOpen(false); }}
-                   className="w-full h-11 px-4 rounded-xl bg-gray-50 text-sm font-bold text-gray-700 flex items-center justify-between hover:bg-gray-100 transition-colors min-w-0"
+                   className="w-full h-11 px-4 rounded-xl bg-gray-50 text-sm font-bold text-gray-700 flex items-center justify-between hover:bg-gray-100 transition-colors min-w-0 cursor-pointer"
                    disabled={isLoading}
                  >
-                   <span className="truncate">{selectedCityId ? cities.find(c => c.id === selectedCityId)?.name : 'Bütün şəhərlər'}</span>
+                   <span className="truncate">{selectedCityId ? (language === 'ru' && cities.find(c => c.id === selectedCityId)?.nameRu ? cities.find(c => c.id === selectedCityId)?.nameRu : cities.find(c => c.id === selectedCityId)?.name) : t('shops.allCities')}</span>
                    <span className={`material-symbols-outlined !text-[18px] text-gray-400 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
                  </button>
                    {isCityDropdownOpen && (
@@ -168,7 +170,7 @@ export default function StoresPage() {
                        className={`px-5 py-3 text-sm font-semibold cursor-pointer transition-all ${!selectedCityId ? 'text-primary bg-primary/5' : 'text-gray-600 hover:bg-gray-50 hover:pl-6'}`}
                        onClick={() => { setSelectedCityId(null); setCurrentPage(1); setIsCityDropdownOpen(false); }}
                      >
-                       Bütün şəhərlər
+                       {t('shops.allCities')}
                      </div>
                      {cities.map(city => (
                        <div 
@@ -176,7 +178,7 @@ export default function StoresPage() {
                          className={`px-5 py-3 text-sm font-semibold cursor-pointer transition-all ${selectedCityId === city.id ? 'text-primary bg-primary/5' : 'text-gray-600 hover:bg-gray-50 hover:pl-6'}`}
                          onClick={() => { setSelectedCityId(city.id); setCurrentPage(1); setIsCityDropdownOpen(false); }}
                        >
-                         {city.name}
+                         {language === 'ru' && city.nameRu ? city.nameRu : city.name}
                        </div>
                      ))}
                    </div>
@@ -187,15 +189,15 @@ export default function StoresPage() {
                <div className="relative" onClick={(e) => e.stopPropagation()}>
                  <button 
                    onClick={() => { setIsSortDropdownOpen(!isSortDropdownOpen); setIsCityDropdownOpen(false); }}
-                   className="w-full h-11 px-4 rounded-xl bg-gray-50 text-sm font-bold text-gray-700 flex items-center justify-between hover:bg-gray-100 transition-colors min-w-0"
+                   className="w-full h-11 px-4 rounded-xl bg-gray-50 text-sm font-bold text-gray-700 flex items-center justify-between hover:bg-gray-100 transition-colors min-w-0 cursor-pointer"
                    disabled={isLoading}
                  >
                    <span className="truncate">
-                      {sortOrder === 'default' && 'Sıralama'}
-                      {sortOrder === 'popularity' && 'Populyarlıq'}
-                      {sortOrder === 'ads' && 'Elan sayı'}
-                      {sortOrder === 'az' && 'Ad (A-Z)'}
-                      {sortOrder === 'za' && 'Ad (Z-A)'}
+                      {sortOrder === 'default' && t('shops.sortDefault')}
+                      {sortOrder === 'popularity' && t('shops.sortPopularity')}
+                      {sortOrder === 'ads' && t('shops.sortAdCount')}
+                      {sortOrder === 'az' && t('shops.sortAZ')}
+                      {sortOrder === 'za' && t('shops.sortZA')}
                    </span>
                    <span className={`material-symbols-outlined !text-[18px] text-gray-400 transition-transform ${isSortDropdownOpen ? 'rotate-180 text-primary' : ''}`}>swap_vert</span>
                  </button>
@@ -203,11 +205,11 @@ export default function StoresPage() {
                  {isSortDropdownOpen && (
                    <div className="absolute top-[calc(100%+8px)] left-0 w-full min-w-[180px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-[100] py-2 animate-in fade-in slide-in-from-top-2 duration-300">
                      {[
-                       { id: 'default', label: 'Sıralama' },
-                       { id: 'popularity', label: 'Populyarlıq' },
-                       { id: 'ads', label: 'Elan sayı' },
-                       { id: 'az', label: 'Ad (A-Z)' },
-                       { id: 'za', label: 'Ad (Z-A)' }
+                       { id: 'default', label: t('shops.sortDefault') },
+                       { id: 'popularity', label: t('shops.sortPopularity') },
+                       { id: 'ads', label: t('shops.sortAdCount') },
+                       { id: 'az', label: t('shops.sortAZ') },
+                       { id: 'za', label: t('shops.sortZA') }
                      ].map(opt => (
                        <div 
                          key={opt.id}
@@ -236,25 +238,25 @@ export default function StoresPage() {
                  <>
                    <button
                      onClick={() => handleCategoryChange(null)}
-                     className={`px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                     className={`px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                        selectedCategory === null
                          ? 'bg-primary text-white shadow-sm'
                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                      }`}
                    >
-                     Bütün
+                     {t('shops.allCategories')}
                    </button>
                    {categories.map((cat) => (
                      <button
                        key={cat.id}
                        onClick={() => handleCategoryChange(cat.name)}
-                       className={`px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                       className={`px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                          selectedCategory === cat.name
                            ? 'bg-primary text-white shadow-sm'
                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                        }`}
                      >
-                       {cat.name}
+                       {language === 'ru' && cat.nameRu ? cat.nameRu : cat.name}
                      </button>
                    ))}
                  </>
@@ -319,7 +321,7 @@ export default function StoresPage() {
                       <div className="absolute top-2 right-2 z-10">
                         {store.cityName && (
                           <div className="bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-lg shadow-sm border border-gray-100">
-                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-tight">{store.cityName}</span>
+                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-tight">{language === 'ru' && store.cityNameRu ? store.cityNameRu : store.cityName}</span>
                           </div>
                         )}
                       </div>
@@ -346,19 +348,19 @@ export default function StoresPage() {
                           <span className="material-symbols-outlined text-blue-500 !text-[14px]">verified</span>
                         </h3>
                         <p className="text-[11px] font-semibold text-[#8D94AD] truncate h-3 mt-1">
-                          {store.headline || store.categories?.[0] || 'Mağaza'}
+                          {(language === 'ru' ? store.headlineRu : store.headline) || (language === 'ru' ? store.categoriesRu?.[0] : store.categories?.[0]) || t('shops.shop')}
                         </p>
                       </div>
 
                       <div className="mt-4 w-full pt-3 border-t border-gray-50 flex items-center justify-center gap-4">
                         <div className="flex flex-col items-center">
                            <span className="text-xs font-black text-gray-900">{store.adCount || 0}</span>
-                           <span className="text-[9px] font-bold text-gray-400">Elan</span>
+                           <span className="text-[9px] font-bold text-gray-400">{t('shops.ads')}</span>
                         </div>
                         <div className="w-px h-5 bg-gray-50" />
                         <div className="flex flex-col items-center">
                            <span className="text-xs font-black text-gray-900">{store.viewCount || 0}</span>
-                           <span className="text-[9px] font-bold text-gray-400">Baxış</span>
+                           <span className="text-[9px] font-bold text-gray-400">{t('shops.views')}</span>
                         </div>
                       </div>
                     </div>
@@ -389,21 +391,21 @@ export default function StoresPage() {
                         </h3>
                         {store.cityName && (
                            <div className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100 self-start sm:self-auto">
-                             <span className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-tighter">{store.cityName}</span>
+                             <span className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-tighter">{language === 'ru' && store.cityNameRu ? store.cityNameRu : store.cityName}</span>
                            </div>
                         )}
                       </div>
                       
-                      <p className="text-[11px] sm:text-sm font-semibold text-gray-500 mb-2 sm:mb-4 line-clamp-1">{store.headline || store.categories?.[0] || 'Mağaza'}</p>
+                      <p className="text-[11px] sm:text-sm font-semibold text-gray-500 mb-2 sm:mb-4 line-clamp-1">{(language === 'ru' ? store.headlineRu : store.headline) || (language === 'ru' ? store.categoriesRu?.[0] : store.categories?.[0]) || t('shops.shop')}</p>
                       
                       <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                         <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold bg-gray-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
                           <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] text-primary">ads_click</span>
-                          {store.adCount || 0} <span className="hidden sm:inline">elan</span>
+                          {store.adCount || 0} <span className="hidden sm:inline">{t('shops.ads')}</span>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold bg-gray-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
                           <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] text-blue-500">visibility</span>
-                          {store.viewCount || 0} <span className="hidden sm:inline">baxış</span>
+                          {store.viewCount || 0} <span className="hidden sm:inline">{t('shops.views')}</span>
                         </div>
                       </div>
                     </div>
@@ -427,7 +429,7 @@ export default function StoresPage() {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="flex items-center justify-center size-9 rounded-xl border border-gray-200 bg-white text-gray-500 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="flex items-center justify-center size-9 rounded-xl border border-gray-200 bg-white text-gray-500 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined !text-[18px]">chevron_left</span>
             </button>
@@ -437,7 +439,7 @@ export default function StoresPage() {
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`flex items-center justify-center size-9 rounded-xl text-xs font-black transition-all ${
+                  className={`flex items-center justify-center size-9 rounded-xl text-xs font-black transition-all cursor-pointer ${
                     currentPage === page
                       ? 'bg-primary text-white shadow-md'
                       : 'bg-white text-gray-500 hover:bg-gray-50'
@@ -451,7 +453,7 @@ export default function StoresPage() {
             <button
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="flex items-center justify-center size-9 rounded-xl border border-gray-200 bg-white text-gray-500 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="flex items-center justify-center size-9 rounded-xl border border-gray-200 bg-white text-gray-500 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined !text-[18px]">chevron_right</span>
             </button>
@@ -464,8 +466,8 @@ export default function StoresPage() {
             <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-gray-300 !text-3xl">storefront</span>
             </div>
-            <h3 className="text-base font-black text-gray-900">Mağaza tapılmadı</h3>
-            <p className="text-sm text-gray-500 mt-1">Axtarış kriteriyalarınızı dəyişdirin.</p>
+            <h3 className="text-base font-black text-gray-900">{t('shops.noStores')}</h3>
+            <p className="text-sm text-gray-500 mt-1">{t('shops.noStoresDesc')}</p>
           </div>
         )}
       </div>

@@ -14,6 +14,7 @@ import { ROUTES } from '@/constants';
 import ProductGrid from '@/components/features/products/ProductGrid';
 import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
 import ReportModal from '@/components/features/ReportModal';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -36,6 +37,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const { t, language } = useLanguage();
 
   const formatBooleanValue = (name: string, value: string | boolean) => {
     const strVal = String(value).toLowerCase();
@@ -44,10 +46,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     const isTrue = strVal === 'true';
     const lowerName = name.toLowerCase();
 
-    if (lowerName.includes('kredit') || lowerName.includes('barter') || lowerName.includes('çatdırılma') || lowerName.includes('zəmanət')) {
-      return isTrue ? 'Var' : 'Yoxdur';
+    // Check for common boolean field types that use "Var/Yoxdur" in AZ
+    const varYoxdurFields = ['kredit', 'barter', 'çatdırılma', 'zəmanət', 'kupça', 'ipoteka'];
+    const shouldShowVarYoxdur = varYoxdurFields.some(f => lowerName.includes(f));
+
+    if (shouldShowVarYoxdur) {
+      return isTrue ? t('common.yes_exists') : t('common.no_exists');
     }
-    return isTrue ? 'Bəli' : 'Xeyir';
+    return isTrue ? t('common.yes') : t('common.no');
   };
 
   useEffect(() => {
@@ -107,7 +113,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         }
       } catch (err: any) {
         console.error('Error fetching product:', err);
-        setError('Elanı yükləyərkən xəta baş verdi');
+        setError(t('product.loadError') || 'Elanı yükləyərkən xəta baş verdi');
       } finally {
         setLoading(false);
       }
@@ -127,8 +133,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   if (error || !product) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen gap-4">
-        <p className="text-xl font-bold text-gray-800">{error || 'Elan tapılmadı'}</p>
-        <a href="/" className="text-primary hover:underline">Ana səhifəyə qayıt</a>
+        <p className="text-xl font-bold text-gray-800">{error || t('product.notFound')}</p>
+        <a href="/" className="text-primary hover:underline">{t('product.goHome')}</a>
       </div>
     );
   }
@@ -159,7 +165,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-24 pt-4">
               <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-purple-200">
-                <p className="text-sm text-gray-500 text-center">Reklam sahəsi</p>
+                <p className="text-sm text-gray-500 text-center">{t('product.adSpace')}</p>
               </div>
             </div>
           </aside>
@@ -170,13 +176,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               {/* Breadcrumb */}
               <div>
                 <div className="flex flex-wrap gap-1.5 items-center">
-                  <Link className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/">Ana Səhifə</Link>
+                  <Link className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/">{t('common.home')}</Link>
                   <span className="text-gray-400 text-sm font-medium leading-normal">/</span>
                   <Link
                     className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors"
                     href={`${ROUTES.LISTINGS}?categoryId=${product.categoryId}`}
                   >
-                    {product.category || 'Bütün elanlar'}
+                    {(language === 'ru' && product.parentCategoryNameRu ? product.parentCategoryNameRu : product.category) || t('common.allAds')}
                   </Link>
                   {product.subCategory && (
                     <>
@@ -185,7 +191,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                         className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors"
                         href={`${ROUTES.LISTINGS}?categoryId=${product.categoryId}&subCategoryId=${product.subCategoryId}`}
                       >
-                        {product.subCategory}
+                        {language === 'ru' && product.subCategoryRu ? product.subCategoryRu : product.subCategory}
                       </Link>
                     </>
                   )}
@@ -332,8 +338,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
                         {/* Static Fields */}
                         <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                          <span className="text-[#8D94AD] text-[15px]">Şəhər</span>
-                          <span className="text-[#212121] text-[15px] font-medium">{product.city || 'Göstərilməyib'}</span>
+                          <span className="text-[#8D94AD] text-[15px]">{t('product.city')}</span>
+                          <span className="text-[#212121] text-[15px] font-medium">{(language === 'ru' && product.cityRu ? product.cityRu : product.city) || t('product.notShown')}</span>
                         </div>
                         {/* Hide product-specific fields for service/job categories */}
                         {(() => {
@@ -365,30 +371,35 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                           return (
                             <>
                               <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                                <span className="text-[#8D94AD] text-[15px]">Vəziyyət</span>
-                                <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{product.isNew ? 'Yeni' : 'İşlənmiş'}</span>
+                                <span className="text-[#8D94AD] text-[15px]">{t('product.condition')}</span>
+                                <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{product.isNew ? t('product.conditionNew') : t('product.conditionUsed')}</span>
                               </div>
                               <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                                <span className="text-[#8D94AD] text-[15px]">Çatdırılma</span>
-                                <span className="text-[#212121] text-[15px] font-medium">{product.isDeliverable ? 'Var' : 'Yoxdur'}</span>
+                                <span className="text-[#8D94AD] text-[15px]">{t('product.delivery')}</span>
+                                <span className="text-[#212121] text-[15px] font-medium">{product.isDeliverable ? t('product.available') : t('product.notAvailable')}</span>
                               </div>
                               <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                                <span className="text-[#8D94AD] text-[15px]">Malın növü</span>
-                                <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{product.adType || 'Göstərilməyib'}</span>
+                                <span className="text-[#8D94AD] text-[15px]">{t('product.productType')}</span>
+                                <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{(language === 'ru' && product.adTypeRu ? product.adTypeRu : product.adType) || t('product.notShown')}</span>
                               </div>
                             </>
                           );
                         })()}
 
                         {/* Dynamic Fields */}
-                        {product.dynamicFields && product.dynamicFields.map((field, idx) => (
-                          <div key={idx} className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                            <span className="text-[#8D94AD] text-[15px]">{field.name}</span>
-                            <span className="text-[#212121] text-[15px] font-medium min-w-0 max-w-[60%] text-right truncate">
-                              {formatBooleanValue(field.name, field.value)}
-                            </span>
-                          </div>
-                        ))}
+                        {product.dynamicFields && product.dynamicFields.map((field, idx) => {
+                          const displayName = language === 'ru' && field.nameRu ? field.nameRu : field.name;
+                          const displayValue = language === 'ru' && field.valueRu ? field.valueRu : field.value;
+
+                          return (
+                            <div key={idx} className="flex justify-between items-center py-2.5 border-b border-gray-100">
+                              <span className="text-[#8D94AD] text-[15px]">{displayName}</span>
+                              <span className="text-[#212121] text-[15px] font-medium min-w-0 max-w-[60%] text-right truncate">
+                                {formatBooleanValue(displayName, displayValue)}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -396,7 +407,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   {/* Description */}
                   <div className="bg-white rounded-xl shadow-sm p-4 md:p-5 space-y-4 border border-gray-100">
                     <div className="border-b border-gray-100 pb-3">
-                      <h3 className="text-gray-900 font-bold text-xl">Təsvir</h3>
+                      <h3 className="text-gray-900 font-bold text-xl">{t('product.description')}</h3>
                     </div>
                     <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
                       {product.description}
@@ -405,15 +416,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500">
                         <div className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-sm">tag</span>
-                          <span>Elan №: <span className="text-gray-900 font-semibold">{product.id.slice(0, 8)}</span></span>
+                          <span>{t('product.adNumber')}: <span className="text-gray-900 font-semibold">{product.id.slice(0, 8)}</span></span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-sm">visibility</span>
-                          <span>Baxış sayı: <span className="text-gray-900 font-semibold">{product.viewCount}</span></span>
+                          <span>{t('product.views')}: <span className="text-gray-900 font-semibold">{product.viewCount}</span></span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-sm">update</span>
-                          <span>Yeniləndi: <span className="text-gray-900 font-semibold">{formatRelativeTime(product.createdDate)}</span></span>
+                          <span>{t('product.updated')}: <span className="text-gray-900 font-semibold">{formatRelativeTime(product.createdDate)}</span></span>
                         </div>
                       </div>
                       <button
@@ -421,7 +432,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                         className="flex items-center gap-2 px-6 py-2.5 bg-[#e8effd] hover:bg-[#d8e4f9] text-[#4a7ecb] rounded-xl transition-all font-semibold active:scale-[0.98]"
                       >
                         <span className="material-symbols-outlined !text-[20px]">monitoring</span>
-                        Reklam et
+                        {t('product.advertise')}
                       </button>
                     </div>
                   </div>
@@ -435,7 +446,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       <div className="flex items-center justify-between">
                         {!(product.subCategory?.toLowerCase().includes('tanışlıq') || product.category?.toLowerCase().includes('tanışlıq')) ? (
                           <div>
-                            <p className="text-sm text-[#8D94AD] mb-1">Qiymət</p>
+                            <p className="text-sm text-[#8D94AD] mb-1">{t('product.price')}</p>
                             <h3 className="text-3xl font-bold text-gray-900 tracking-tight">
                               {formatPrice(product.price)}
                             </h3>
@@ -458,7 +469,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                           <button
                             onClick={() => setIsReportModalOpen(true)}
                             className="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl size-12 bg-gray-50 text-gray-500 border border-gray-100 hover:bg-gray-100 transition-all shadow-sm"
-                            title="Şikayət et"
+                            title={t('product.report')}
                           >
                             <span className="material-symbols-outlined">flag</span>
                           </button>
@@ -476,9 +487,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                         </div>
                         <div className="min-w-0">
                           <p className="text-gray-900 font-bold text-lg truncate">{product.fullName}</p>
+                          {product.isStore && (
+                            <p className="text-xs font-semibold text-[#8D94AD] truncate mt-0.5">
+                              {(language === 'ru' && product.storeHeadlineRu ? product.storeHeadlineRu : product.storeHeadline) || t('product.officialStore')}
+                            </p>
+                          )}
                           <div className="flex items-center gap-1 text-xs text-gray-500">
                             <span className="material-symbols-outlined text-xs text-green-500">verified_user</span>
-                            <span>Doğrulanmış istifadəçi</span>
+                            <span>{t('product.verified')}</span>
                           </div>
                         </div>
                       </div>
@@ -492,7 +508,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                         >
                           <span className="material-symbols-outlined !text-[22px] text-primary/70 mt-0.5">location_on</span>
                           <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Mağaza adresi</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{t('product.storeAddress')}</span>
                             <span className="text-[12px] font-bold text-gray-700 leading-snug truncate group-hover:text-primary transition-colors">
                               {product.storeAddress}
                             </span>
@@ -507,7 +523,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                             <span className="material-symbols-outlined">call</span>
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-xs text-gray-400">Telefon nömrəsi</span>
+                            <span className="text-xs text-gray-400">{t('product.phone')}</span>
                             <span className="text-gray-900 font-bold text-lg">
                               {showFullPhone
                                 ? product.phoneNumber
@@ -519,14 +535,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                               onClick={() => setShowFullPhone(true)}
                               className="ml-auto bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-all shadow-sm"
                             >
-                              Göstər
+                              {t('product.show')}
                             </button>
                           )}
                         </div>
 
                         <button className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-primary text-white text-[15px] font-bold leading-normal tracking-[0.015em] gap-2 hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/30 active:scale-[0.98]">
                           <span className="material-symbols-outlined !text-[20px]">chat</span>
-                          <span className="truncate">Mesaj yaz</span>
+                          <span className="truncate">{t('product.sendMessage')}</span>
                         </button>
 
                         <a
@@ -546,10 +562,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       <div className="bg-[#FFF9E6] rounded-2xl p-4 border border-[#FFE7A3] space-y-2">
                         <div className="flex items-center gap-2 text-[#856404]">
                           <span className="material-symbols-outlined !text-[18px]">warning</span>
-                          <h4 className="font-bold text-[13px]">Diqqət:</h4>
+                          <h4 className="font-bold text-[13px]">{t('product.safetyNote')}</h4>
                         </div>
                         <div className="text-[12px] text-[#856404] leading-relaxed">
-                          Qiymət çox aşağıdırsa ehtiyatlı olun və şübhəli elanlar haqqında dərhal elanı report edin.
+                          {t('product.safetyText')}
                         </div>
                       </div>
                     )}
@@ -562,14 +578,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             {(similarVipProducts.length > 0 || similarNormalProducts.length > 0) && (
               <div className="mt-10 pt-6 border-t border-gray-200">
                 <div className="flex justify-between items-center mb-5">
-                  <h2 className="text-xl font-bold text-gray-900">Bənzər elanlar</h2>
+                  <h2 className="text-xl font-bold text-gray-900">{t('product.similarAds')}</h2>
                   <Link
                     href={product.childCategorySlug && product.childCategorySlug !== product.parentCategorySlug
                       ? ROUTES.SUBCATEGORY(product.parentCategorySlug || '', product.childCategorySlug)
                       : ROUTES.CATEGORY(product.parentCategorySlug || '')}
                     className="text-primary text-sm font-bold hover:underline flex items-center gap-1"
                   >
-                    Hamısını göstər
+                    {t('product.showAll')}
                     <span className="material-symbols-outlined !text-[18px]">chevron_right</span>
                   </Link>
                 </div>
@@ -599,7 +615,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-24 pt-4">
               <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-blue-200">
-                <p className="text-sm text-gray-500 text-center">Reklam sahəsi</p>
+                <p className="text-sm text-gray-500 text-center">{t('product.adSpace')}</p>
               </div>
             </div>
           </aside>

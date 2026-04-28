@@ -1,13 +1,14 @@
-export const metadata = {
-  title: 'Pullu xidmətlər - ElanAz',
-  description: 'Saytın təqdim etdiyi ödənişli xidmətlər (VIP, Premium, Boost) haqqında ətraflı məlumat.',
-};
+'use client';
+
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ServicesAndPackagesPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-10">
       <h1 className="text-3xl font-extrabold text-gray-900 border-b pb-4">
-        Ödənişli xidmətlər
+        {t('burgerMenu.paidServices')}
       </h1>
 
       <div className="space-y-12">
@@ -18,16 +19,16 @@ export default function ServicesAndPackagesPage() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-2">
-              VIP elanlar
+              {t('listings.vipAds')}
               <span className="bg-red-500 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">VIP</span>
             </h2>
             <p className="text-gray-600 leading-relaxed font-medium mb-4">
-              VIP elanlar saytın ana səhifəsində xüsusi VIP blokunda təsadüfi şəkildə göstərilir. Onlayn olan alıcıların birbaşa diqqətini cəlb etdiyi üçün, adi elanlara nisbətən 20 dəfə daha çox baxış və müraciət qazanır.
+              {t('paidServices.vip.desc')}
             </p>
             <ul className="list-disc list-inside text-gray-500 space-y-1 font-medium text-sm">
-              <li>Ana səhifədə prioritet nümayiş</li>
-              <li>Tez və asan müştəri tapmaq imkanı</li>
-              <li>Axtarış nəticələrində fərqləndirilmə</li>
+              <li>{t('paidServices.vip.benefit1')}</li>
+              <li>{t('paidServices.vip.benefit2')}</li>
+              <li>{t('paidServices.vip.benefit3')}</li>
             </ul>
           </div>
         </section>
@@ -41,16 +42,16 @@ export default function ServicesAndPackagesPage() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-2">
-              Premium elanlar
+              {t('promoteModal.premium')}
               <span className="bg-yellow-500 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">Premıum</span>
             </h2>
             <p className="text-gray-600 leading-relaxed font-medium mb-4">
-              Premium elanlar xüsusi rənglə axtarış nəticələrinin ən üstündə bərkidilir və yeni pulsuz elanlar onları aşağı sala bilmir. Bu sizin elanınızın uzun müddət eyni reytinqdə qalmasını təmin edir.
+              {t('paidServices.premium.desc')}
             </p>
             <ul className="list-disc list-inside text-gray-500 space-y-1 font-medium text-sm">
-              <li>Axtarışın ilk səhifəsində premium seqmentdə göstərilir</li>
-              <li>Standart rəngdən fərqli, parlaq fonda çıxır</li>
-              <li>Adətən 3, 7, 15 günlük təklif olunur</li>
+              <li>{t('paidServices.premium.benefit1')}</li>
+              <li>{t('paidServices.premium.benefit2')}</li>
+              <li>{t('paidServices.premium.benefit3')}</li>
             </ul>
           </div>
         </section>
@@ -64,15 +65,15 @@ export default function ServicesAndPackagesPage() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
-              İrəli çək (Boost)
+              {t('promoteModal.boost')} (Boost)
             </h2>
             <p className="text-gray-600 leading-relaxed font-medium mb-4">
-              Elanınız siyahıda aşağıya düşübsə, onu təkrar pulsuz və axtarış siyahısının ən üstünə qaytarmaq üçün istifadə edilir.
+              {t('paidServices.boost.desc')}
             </p>
             <ul className="list-disc list-inside text-gray-500 space-y-1 font-medium text-sm">
-              <li>Elanın tarixi yenilənir</li>
-              <li>Axtarışda dərhal ən üst sıralara çıxarılır</li>
-              <li>Gündə avtomatik irəli çəkilmə paketi ilə də birləşdirilə bilər</li>
+              <li>{t('paidServices.boost.benefit1')}</li>
+              <li>{t('paidServices.boost.benefit2')}</li>
+              <li>{t('paidServices.boost.benefit3')}</li>
             </ul>
           </div>
         </section>
@@ -86,14 +87,14 @@ export default function ServicesAndPackagesPage() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
-              Biznes Paketləri (Mağaza)
+              {t('paidServices.business.title')}
             </h2>
             <p className="text-gray-600 leading-relaxed font-medium mb-4">
-              Mağazalar üçün təqdim edilən xüsusi abunə paketləridir. Eyni anda çox sayda məhsul satanlar üçün daha uyğun və sərfəlidir. Hər paketdə əlavə xidmət balansı mövcuddur.
+              {t('paidServices.business.desc')}
             </p>
             <div className="mb-4">
-              <a href="/cabinet/business/packages" className="text-primary font-bold hover:underline text-sm flex items-center gap-1">
-                Paketlərlə tanış olun <span className="material-symbols-outlined !text-sm">arrow_forward</span>
+              <a href="/business" className="text-primary font-bold hover:underline text-sm flex items-center gap-1">
+                {t('paidServices.business.link')} <span className="material-symbols-outlined !text-sm">arrow_forward</span>
               </a>
             </div>
           </div>

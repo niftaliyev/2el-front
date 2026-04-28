@@ -5,6 +5,7 @@ import { Modal, Select, Textarea, Button } from '@/components/ui';
 import { reportService } from '@/services/report.service';
 import { ReportReason, ReportReasonLookup } from '@/types/api';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -13,17 +14,8 @@ interface ReportModalProps {
   type: 'ad' | 'store';
 }
 
-const reasonTranslations: Record<string, string> = {
-  FalseInformation: 'Yanlış məlumat',
-  Fraud: 'Dələduzluq',
-  OffensiveContent: 'Təhqiredici məzmun',
-  Duplicate: 'Təkrar elan',
-  WrongCategory: 'Yanlış kateqoriya',
-  IllegalItem: 'Qadağan olunmuş məhsul',
-  Other: 'Digər'
-};
-
 const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, targetId, type }) => {
+  const { t } = useLanguage();
   const [reasons, setReasons] = useState<ReportReasonLookup[]>([]);
   const [selectedReason, setSelectedReason] = useState<number | null>(null);
   const [note, setNote] = useState('');
@@ -45,7 +37,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, targetId, ty
 
   const handleSubmit = async () => {
     if (!selectedReason) {
-      toast.error('Zəhmət olmasa şikayət səbəbini seçin');
+      toast.error(t('report.selectReasonError'));
       return;
     }
 
@@ -64,13 +56,13 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, targetId, ty
           note
         });
       }
-      toast.success('Şikayətiniz uğurla göndərildi');
+      toast.success(t('report.successMessage'));
       onClose();
       // Reset form
       setSelectedReason(null);
       setNote('');
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Xəta baş verdi';
+      const message = error.response?.data?.message || t('common.errorOccurred');
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -79,37 +71,37 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, targetId, ty
 
   const options = reasons.map(r => ({
     value: r.value.toString(),
-    label: reasonTranslations[r.name] || r.name
+    label: t(`report.reasons.${r.name}`) || r.name
   }));
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={type === 'ad' ? 'Elan üçün şikayət' : 'Mağaza üçün şikayət'}
+      title={type === 'ad' ? t('report.adTitle') : t('report.storeTitle')}
     >
       <div className="space-y-4 pt-2 pb-4">
         <Select
-          label="Şikayət səbəbi"
-          placeholder="Səbəb seçin"
+          label={t('report.reasonLabel')}
+          placeholder={t('report.reasonPlaceholder')}
           options={options}
           onChange={(opt: any) => setSelectedReason(Number(opt.value))}
           value={options.find(o => Number(o.value) === selectedReason)}
           required
         />
         <Textarea
-          label="Əlavə qeyd (istəyə bağlı)"
-          placeholder="Şikayətiniz barədə ətraflı məlumat yazın..."
+          label={t('report.noteLabel')}
+          placeholder={t('report.notePlaceholder')}
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={4}
         />
         <div className="flex justify-end gap-3 pt-4">
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
-            Ləğv et
+            {t('report.cancel')}
           </Button>
           <Button onClick={handleSubmit} isLoading={isLoading}>
-            Göndər
+            {t('report.send')}
           </Button>
         </div>
       </div>

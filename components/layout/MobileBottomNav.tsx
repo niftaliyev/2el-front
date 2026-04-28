@@ -5,19 +5,21 @@ import { usePathname } from 'next/navigation';
 import { ROUTES } from '@/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
-
-const NAV_ITEMS = [
-  { key: 'home', icon: 'home', label: 'Əsas', authDest: ROUTES.HOME },
-  { key: 'favs', icon: 'favorite', label: 'Seçilmişlər', authDest: ROUTES.FAVORITES, guestDest: ROUTES.FAVORITES },
-  { key: 'center', icon: null, label: null, authDest: ROUTES.CREATE_LISTING, guestDest: ROUTES.LOGIN },
-  { key: 'messages', icon: 'chat_bubble', label: 'Mesajlar', authDest: ROUTES.MESSAGES, guestDest: ROUTES.LOGIN },
-  { key: 'cabinet', icon: 'person', label: 'Kabinet', authDest: ROUTES.PROFILE, guestDest: ROUTES.LOGIN },
-];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   const isVisible = useScrollDirection();
+  const { t } = useLanguage();
+
+  const NAV_ITEMS = [
+    { key: 'home', icon: 'home', labelKey: 'nav.home', authDest: ROUTES.HOME },
+    { key: 'favs', icon: 'favorite', labelKey: 'nav.favorites', authDest: ROUTES.FAVORITES, guestDest: ROUTES.FAVORITES },
+    { key: 'center', icon: null, labelKey: null, authDest: ROUTES.CREATE_LISTING, guestDest: ROUTES.LOGIN },
+    { key: 'messages', icon: 'chat_bubble', labelKey: 'nav.messages', authDest: ROUTES.MESSAGES, guestDest: ROUTES.LOGIN },
+    { key: 'cabinet', icon: 'person', labelKey: 'nav.cabinet', authDest: ROUTES.PROFILE, guestDest: ROUTES.LOGIN },
+  ];
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -43,27 +45,27 @@ export default function MobileBottomNav() {
             ? item.authDest
             : (item.guestDest ?? item.authDest);
 
-          /* ── Mərkəz "Elan yarat" düyməsi ── */
+          /* ── Center "Elan yarat" button ── */
           if (item.key === 'center') {
             return (
               <div key="center" className="flex-1 flex flex-col items-center justify-center relative">
                 <Link
                   href={href}
                   className="flex flex-col items-center group touch-none"
-                  aria-label="Yeni elan"
+                  aria-label={t('nav.createListing')}
                 >
                   <div className="w-[48px] h-[48px] -mt-7 rounded-full bg-gradient-to-br from-primary to-[#4d62c9] flex items-center justify-center shadow-lg shadow-primary/30 active:scale-90 transition-transform border-4 border-white">
                     <span className="material-symbols-outlined !text-[24px] text-white" style={{ fontVariationSettings: "'wght' 600" }}>
                       add
                     </span>
                   </div>
-                  <span className="text-[10px] text-gray-500 font-medium mt-1">Elan yarat</span>
+                  <span className="text-[10px] text-gray-500 font-medium mt-1">{t('nav.createListing')}</span>
                 </Link>
               </div>
             );
           }
 
-          /* ── Adi tab nişanı ── */
+          /* ── Regular nav tab ── */
           const active = isActive(href);
           return (
             <Link
@@ -81,7 +83,7 @@ export default function MobileBottomNav() {
                 </span>
               </div>
               <span className={`text-[10px] font-medium transition-colors ${active ? 'text-primary' : 'text-gray-500'}`}>
-                {item.label}
+                {item.labelKey ? t(item.labelKey) : ''}
               </span>
             </Link>
           );

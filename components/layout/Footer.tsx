@@ -1,8 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import { ROUTES } from '@/constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const { t } = useLanguage();
 
   return (
     <footer className="bg-white border-t border-gray-200 mt-10">
@@ -18,7 +22,7 @@ export default function Footer() {
               <h2 className="text-gray-900 text-lg font-bold leading-tight tracking-[-0.015em]">Elan.az</h2>
             </div>
             <p className="mt-4 text-sm text-gray-500">
-              Azərbaycanın ən böyük elan saytı. Asan, sürətli və etibarlı alış-verişin ünvanı.
+              {t('footer.description')}
             </p>
             <div className="mt-6 flex space-x-4">
               <a className="text-gray-500 hover:text-primary transition-colors" href="#">
@@ -39,25 +43,25 @@ export default function Footer() {
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Məlumat</h3>
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">{t('footer.information')}</h3>
             <ul className="mt-4 space-y-3">
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Haqqımızda</a></li>
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Qaydalar</a></li>
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Məxfilik siyasəti</a></li>
-              <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href="/pages/limits_by_category">Elan yerləşdirmə limitləri</Link></li>
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Reklam</a></li>
+              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.aboutUs')}</a></li>
+              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.rules')}</a></li>
+              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.privacyPolicy')}</a></li>
+              <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href="/pages/limits_by_category">{t('footer.listingLimits')}</Link></li>
+              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.advertising')}</a></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Yardım</h3>
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">{t('footer.help')}</h3>
             <ul className="mt-4 space-y-3">
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Əlaqə</a></li>
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Tez-tez verilən suallar</a></li>
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">Saytın xəritəsi</a></li>
+              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.contact')}</a></li>
+              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.faq')}</a></li>
+              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.sitemap')}</a></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Tətbiqlərimiz</h3>
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">{t('footer.apps')}</h3>
             <div className="mt-4 flex flex-col gap-3">
               <a className="inline-block" href="#">
                 <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
@@ -75,7 +79,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t border-gray-200 pt-8 text-center text-sm text-gray-500">
-          <p>© {currentYear} Elan.az. Bütün hüquqlar qorunur.</p>
+          <p>© {currentYear} Elan.az. {t('footer.rights')}</p>
         </div>
       </div>
     </footer>

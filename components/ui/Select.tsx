@@ -4,6 +4,8 @@ import ReactSelect, { Props as ReactSelectProps, StylesConfig } from 'react-sele
 export interface SelectOption {
   value: string;
   label: string;
+  nameAz?: string;
+  slug?: string;
 }
 
 export interface SelectProps extends Omit<ReactSelectProps<SelectOption, false>, 'options'> {
