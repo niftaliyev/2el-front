@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { PackageItem } from '@/types/api';
 import { adService } from '@/services/ad.service';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PromoteAdModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
   const [success, setSuccess] = useState<string | null>(null);
 
   const { refreshUser } = useAuth();
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -37,7 +39,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
         setSelectedPackage(items.length > 0 ? items[0].id : null);
       } catch (err: any) {
         console.error('Error fetching packages:', err);
-        setError('Zəhmət olmasa biraz sonra yenidən cəhd edin.');
+        setError(t('promoteModal.errorGeneric'));
       } finally {
         setIsLoading(false);
       }
@@ -55,12 +57,12 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
     try {
       await adService.buyPackage(adId, selectedPackage);
       await refreshUser(); // Update balance
-      setSuccess('Paket uğurla alındı!');
+      setSuccess(t('promoteModal.buySuccess'));
       setTimeout(() => {
         onClose();
       }, 2000);
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Xəta baş verdi. Balansınız kifayət etməyə bilər.');
+      setError(err.response?.data?.message || err.message || t('promoteModal.errorBalance'));
     } finally {
       setIsSubmitting(false);
     }
@@ -73,7 +75,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-          <h2 className="text-xl font-bold text-gray-900">Elanı Önə Çıxar</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t('promoteModal.title')}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -87,7 +89,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
               }`}
           >
             <span className="material-symbols-outlined !text-[20px] font-bold">stars</span>
-            <span>VIP</span>
+            <span>{t('promoteModal.vip')}</span>
           </button>
           <button
             onClick={() => setActiveTab('premium')}
@@ -95,7 +97,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
               }`}
           >
             <span className="material-symbols-outlined !text-[20px] font-bold">workspace_premium</span>
-            <span>Premium</span>
+            <span>{t('promoteModal.premium')}</span>
           </button>
           <button
             onClick={() => setActiveTab('boost')}
@@ -103,7 +105,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
               }`}
           >
             <span className="material-symbols-outlined !text-[20px] font-bold">rocket_launch</span>
-            <span>İrəli Çək</span>
+            <span>{t('promoteModal.boost')}</span>
           </button>
         </div>
 
@@ -113,7 +115,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <span className="material-symbols-outlined text-green-500 text-6xl mb-4">check_circle</span>
               <h3 className="text-xl font-bold text-gray-900 mb-2">{success}</h3>
-              <p className="text-gray-500">Pəncərə bağlanır...</p>
+              <p className="text-gray-500">{t('promoteModal.windowClosing')}</p>
             </div>
           ) : isLoading ? (
             <div className="flex justify-center p-8">
@@ -132,15 +134,15 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
 
               {packages.length === 0 ? (
                 <div className="text-center py-6 text-gray-500">
-                  Bu növ üçün paket tapılmadı
+                  {t('promoteModal.noPackages')}
                 </div>
               ) : (
                 packages.map((pkg) => (
                   <label
                     key={pkg.id}
                     className={`flex items-start p-4 border rounded-xl cursor-pointer transition-all ${selectedPackage === pkg.id
-                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                        : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                      : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
                       }`}
                   >
                     <div className="flex items-center h-5 mr-3 mt-1">
@@ -156,16 +158,14 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="text-sm font-bold text-gray-900 leading-none mb-1">
-                            {activeTab === 'vip' ? 'VIP' : activeTab === 'premium' ? 'Premium' : 'İrəli Çək'}
-                            {pkg.intervalDay ? ` • ${pkg.intervalDay} Gün` : ''}
-                            {activeTab === 'boost' && pkg.boostCount ? ` • ${pkg.boostCount} dəfə` : ''}
+                            {activeTab === 'vip' ? t('promoteModal.vip') : activeTab === 'premium' ? t('promoteModal.premium') : t('promoteModal.boost')}
+                            {pkg.intervalDay ? ` • ${pkg.intervalDay} ${t('promoteModal.day')}` : ''}
+                            {activeTab === 'boost' && pkg.boostCount ? ` • ${pkg.boostCount} ${t('promoteModal.count')}` : ''}
                           </h4>
                           <p className="text-xs text-gray-500 mt-1">
-                            {pkg.packageType === 'Premium' 
-                              ? "VIP + Gündəlik irəli çəkmə daxil" 
-                              : pkg.packageType === 'Vip' 
-                              ? "Gündəlik irəli çəkmə daxil" 
-                              : pkg.description}
+                            {language === 'ru' && pkg.descriptionRu
+                              ? pkg.descriptionRu
+                              : (pkg.description || (pkg.packageType === 'Premium' ? t('promoteModal.premiumDesc') : pkg.packageType === 'Vip' ? t('promoteModal.vipDesc') : ''))}
                           </p>
                         </div>
                         <span className="text-lg font-black text-gray-900 whitespace-nowrap ml-4">
@@ -183,7 +183,7 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
                 disabled={!selectedPackage || isSubmitting || packages.length === 0}
                 className="mt-4 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
-                {isSubmitting ? 'Gözləyin...' : 'İndi Ödə'}
+                {isSubmitting ? t('promoteModal.waiting') : t('promoteModal.payNow')}
               </button>
             </div>
           )}

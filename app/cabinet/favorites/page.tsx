@@ -10,7 +10,8 @@ import { adService } from '@/services/ad.service';
 import { storeService } from '@/services/store.service';
 import { AdListItem, StoreListItem } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { storeService as storeSvc } from '@/services/store.service';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useFormatRelativeTime } from '@/hooks/useFormatRelativeTime';
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<AdListItem[]>([]);
@@ -19,33 +20,31 @@ export default function FavoritesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const { isAuthenticated } = useAuth();
+  const { t, language } = useLanguage();
+  const formatRelativeTime = useFormatRelativeTime();
 
   useEffect(() => {
     setMounted(true);
-    fetchData();
-  }, [isAuthenticated, activeTab]);
+    const fetchAllData = async () => {
+      setIsLoading(true);
+      try {
+        // Hər iki məlumatı paralel yükləyirik
+        const [adsResult, storesResult] = await Promise.all([
+          adService.getFavourites({ pageNumber: 1, pageSize: 50 }),
+          isAuthenticated ? storeService.getFollowedStores() : storeService.getFollowedStoresByIds()
+        ]);
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      if (activeTab === 'ads') {
-        const result = await adService.getFavourites({ pageNumber: 1, pageSize: 50 });
-        setFavorites(result?.data ?? []);
-      } else {
-        let response: StoreListItem[] = [];
-        if (isAuthenticated) {
-          response = await storeService.getFollowedStores();
-        } else {
-          response = await storeService.getFollowedStoresByIds();
-        }
-        setFollowedStores(response || []);
+        setFavorites(adsResult?.data ?? []);
+        setFollowedStores(storesResult || []);
+      } catch (error) {
+        console.error('Error fetching favorites data:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    fetchAllData();
+  }, [isAuthenticated]);
 
   const handleRemoveFavorite = async (id: string) => {
     try {
@@ -77,10 +76,10 @@ export default function FavoritesPage() {
               <div className="mb-4 sm:mb-8 border-b border-gray-100 pb-0 shadow-sm">
                 <div className="px-1 sm:px-0 mb-6">
                   <h1 className="text-gray-900 text-2xl sm:text-4xl font-black leading-tight tracking-tight mb-2">
-                    Seçilmişlər
+                    {t('cabinet.favorites.title')}
                   </h1>
                   <p className="text-gray-500 text-xs sm:text-sm font-medium">
-                    {activeTab === 'ads' ? 'Bəyəndiyiniz elanlar burada saxlanılır' : 'İzlədiyiniz mağazalar burada saxlanılır'}
+                    {activeTab === 'ads' ? t('cabinet.favorites.adsDesc') : t('cabinet.favorites.storesDesc')}
                   </p>
                 </div>
 
@@ -90,7 +89,7 @@ export default function FavoritesPage() {
                     className={`pb-4 px-1 text-sm sm:text-base font-bold transition-all relative whitespace-nowrap cursor-pointer ${activeTab === 'ads' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
                       }`}
                   >
-                    Elanlar ({favorites.length})
+                    {t('cabinet.favorites.ads')} ({favorites.length})
                     {activeTab === 'ads' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
                   </button>
                   <button
@@ -98,7 +97,7 @@ export default function FavoritesPage() {
                     className={`pb-4 px-1 text-sm sm:text-base font-bold transition-all relative whitespace-nowrap cursor-pointer ${activeTab === 'stores' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
                       }`}
                   >
-                    Mağazalar ({followedStores.length})
+                    {t('cabinet.favorites.stores')} ({followedStores.length})
                     {activeTab === 'stores' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
                   </button>
                 </div>
@@ -107,7 +106,7 @@ export default function FavoritesPage() {
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
                   <div className="animate-spin h-8 w-8 text-primary border-4 border-primary/20 border-t-primary rounded-full" />
-                  <p className="text-gray-400 text-sm font-medium">Yüklenir...</p>
+                  <p className="text-gray-400 text-sm font-medium">{t('cabinet.favorites.loading')}</p>
                 </div>
               ) : activeTab === 'ads' ? (
                 favorites.length > 0 ? (
@@ -160,7 +159,7 @@ export default function FavoritesPage() {
                                   <div className="flex justify-between items-center text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-tight">
                                     <div className="flex items-center gap-0.5 sm:gap-1">
                                       <span className="material-symbols-outlined !text-[12px] sm:!text-[14px]">location_on</span>
-                                      <span className="truncate max-w-[50px] sm:max-w-[80px]">{ad.city || ''}</span>
+                                      <span className="truncate max-w-[50px] sm:max-w-[80px]">{(language === 'ru' && ad.cityRu) ? ad.cityRu : (ad.city || '')}</span>
                                     </div>
                                     <div className="flex items-center gap-0.5 sm:gap-1">
                                       <span className="material-symbols-outlined !text-[12px] sm:!text-[14px]">calendar_today</span>
@@ -180,7 +179,7 @@ export default function FavoritesPage() {
                               handleRemoveFavorite(ad.id);
                             }}
                             className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-white/90 backdrop-blur-md rounded-lg sm:rounded-xl size-7 sm:size-9 shadow-lg hover:bg-red-600 hover:text-white transition-all flex items-center justify-center group/btn z-20 border border-white active:scale-95 cursor-pointer"
-                            aria-label="Seçilmişlərdən sil"
+                            aria-label={t('cabinet.favorites.removeFromFavorites')}
                           >
                             <span className="material-symbols-outlined !text-base sm:!text-xl font-bold transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>
                               favorite
@@ -195,8 +194,8 @@ export default function FavoritesPage() {
                     <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                       <span className="material-symbols-outlined text-gray-300 text-4xl">heart_broken</span>
                     </div>
-                    <h3 className="text-gray-900 text-lg font-bold">Seçilmiş elan yoxdur</h3>
-                    <p className="text-gray-500 text-sm mt-1">Bəyəndiyiniz elanları bura əlavə edə bilərsiniz.</p>
+                    <h3 className="text-gray-900 text-lg font-bold">{t('cabinet.favorites.noAds')}</h3>
+                    <p className="text-gray-500 text-sm mt-1">{t('cabinet.favorites.noAdsDesc')}</p>
                   </div>
                 )
               ) : (
@@ -214,17 +213,17 @@ export default function FavoritesPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <h3 className="text-gray-900 font-bold truncate group-hover/card:text-primary transition-colors">{store.storeName}</h3>
-                            <p className="text-gray-500 text-xs mt-0.5 truncate">{store.headline || 'Mağaza'}</p>
+                            <p className="text-gray-500 text-xs mt-0.5 truncate">{store.headline || t('cabinet.favorites.store')}</p>
                             <div className="flex items-center gap-3 mt-2 text-[10px] font-bold text-gray-400 uppercase">
-                              <span>{store.adCount} elan</span>
-                              <span>{store.followerCount} izləyici</span>
+                              <span>{store.adCount} {t('cabinet.favorites.adCount')}</span>
+                              <span>{store.followerCount} {t('cabinet.favorites.followerCount')}</span>
                             </div>
                           </div>
                         </Link>
                         <button
                           onClick={() => handleUnfollowStore(store.id)}
                           className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
-                          title="İzləməyi dayandır"
+                          title={t('cabinet.favorites.unfollowStore')}
                         >
                           <span className="material-symbols-outlined font-bold">person_remove</span>
                         </button>
@@ -236,8 +235,8 @@ export default function FavoritesPage() {
                     <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                       <span className="material-symbols-outlined text-gray-300 text-4xl">storefront</span>
                     </div>
-                    <h3 className="text-gray-900 text-lg font-bold">İzlənilən mağaza yoxdur</h3>
-                    <p className="text-gray-500 text-sm mt-1">Mağazaları izləyərək yeni elanlardan xəbərdar ola bilərsiniz.</p>
+                    <h3 className="text-gray-900 text-lg font-bold">{t('cabinet.favorites.noStores')}</h3>
+                    <p className="text-gray-500 text-sm mt-1">{t('cabinet.favorites.noStoresDesc')}</p>
                   </div>
                 )
               )}

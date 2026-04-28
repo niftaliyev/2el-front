@@ -18,7 +18,7 @@ export function formatDate(date: Date | string): string {
   }).format(d);
 }
 
-export function formatRelativeTime(date: Date | string): string {
+export function formatRelativeTime(date: Date | string, language: string = 'az'): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
   
@@ -30,34 +30,86 @@ export function formatRelativeTime(date: Date | string): string {
   const hours = d.getHours().toString().padStart(2, '0');
   const minutes = d.getMinutes().toString().padStart(2, '0');
 
+  const isRu = language === 'ru';
+
   // Today
   if (diffInDays === 0) {
-    return `Bugün, ${hours}:${minutes}`;
+    return isRu ? `Сегодня, ${hours}:${minutes}` : `Bugün, ${hours}:${minutes}`;
   }
 
   // Yesterday
   if (diffInDays === 1) {
-    return `Dünən, ${hours}:${minutes}`;
+    return isRu ? `Вчера, ${hours}:${minutes}` : `Dünən, ${hours}:${minutes}`;
   }
 
   // Days ago
   if (diffInDays < 7) {
+    if (isRu) {
+      if (diffInDays === 1) return '1 день назад';
+      if (diffInDays >= 2 && diffInDays <= 4) return `${diffInDays} дня назад`;
+      return `${diffInDays} дней назад`;
+    }
     return `${diffInDays} gün əvvəl`;
   }
 
   // Weeks ago
   if (diffInDays < 30) {
     const weeks = Math.floor(diffInDays / 7);
+    if (isRu) {
+      if (weeks === 1) return '1 неделю назад';
+      if (weeks >= 2 && weeks <= 4) return `${weeks} недели назад`;
+      return `${weeks} недель назад`;
+    }
     return `${weeks} həftə əvvəl`;
   }
 
   // Months ago
   if (diffInDays < 365) {
     const months = Math.floor(diffInDays / 30);
+    if (isRu) {
+      if (months === 1) return '1 месяц назад';
+      if (months >= 2 && months <= 4) return `${months} месяца назад`;
+      return `${months} месяцев назад`;
+    }
     return `${months} ay əvvəl`;
   }
 
-  return formatDate(d);
+  return d.toLocaleDateString(isRu ? 'ru-RU' : 'az-AZ');
+}
+
+/**
+ * Translates common Azerbaijani service description patterns in cabinet/invoices
+ */
+export function translateCabinetService(text: string, language: string): string {
+  if (language !== 'ru') return text;
+  
+  let translated = text;
+  
+  // Promotion types
+  translated = translated.replace(/Irəli çək xidməti/g, 'Услуга поднятия');
+  translated = translated.replace(/VIP xidməti/g, 'VIP услуга');
+  translated = translated.replace(/Premium xidməti/g, 'Premium услуга');
+  
+  // Limits
+  translated = translated.replace(/Limitdən artıq elan yerləşdirilməsi/g, 'Размещение объявления сверх лимита');
+  
+  // Discounts
+  translated = translated.replace(/Biznes Endirimi/g, 'Бизнес-скидка');
+  
+  // Entities
+  translated = translated.replace(/\(Elan:/g, '(Объявление:');
+  
+  // Package names
+  translated = translated.replace(/Mini paketi/g, 'Мини пакет');
+  translated = translated.replace(/Standart paketi/g, 'Стандартный пакет');
+  translated = translated.replace(/Premium paketi/g, 'Премиум пакет');
+  translated = translated.replace(/Full paketi/g, 'Полный пакет');
+  translated = translated.replace(/paketi/g, 'пакет');
+  
+  // Common phrases
+  translated = translated.replace(/Razılaşma yolu ilə/g, 'По договоренности');
+  
+  return translated;
 }
 
 export function getDaysLeft(date: Date | string): number {

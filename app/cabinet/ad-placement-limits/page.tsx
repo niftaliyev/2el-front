@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import { accountService, AdPlacementLimit } from '@/services/account.service';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AdPlacementLimitsPage() {
+  const { t, language } = useLanguage();
   const [limits, setLimits] = useState<AdPlacementLimit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,14 +21,14 @@ export default function AdPlacementLimitsPage() {
         setLimits(data);
       } catch (err) {
         console.error('Error fetching limits:', err);
-        setError('Limitləri yükləmək mümkün olmadı');
+        setError(t('cabinet.limitsPage.loadError') || 'Limitləri yükləmək mümkün olmadı');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchLimits();
-  }, []);
+  }, [language]);
 
   const toggleExpand = (id: string) => {
     const newExpanded = new Set(expandedItems);
@@ -38,11 +40,37 @@ export default function AdPlacementLimitsPage() {
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('az-AZ', {
+    return date.toLocaleDateString(language === 'az' ? 'az-AZ' : 'ru-RU', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     });
+  };
+
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
+  const handleImageError = (categoryId: string) => {
+    setImageErrors(prev => ({ ...prev, [categoryId]: true }));
+  };
+
+  const getCategoryIcon = (categoryName: string) => {
+    const ICONS: Record<string, string> = {
+      'Elektronika': 'devices',
+      'Nəqliyyat': 'directions_car',
+      'Ev və bağ üçün': 'chair',
+      'Ehtiyat hissələri və aksesuarlar (avto)': 'build',
+      'Daşınmaz əmlak': 'home',
+      'Xidmətlər və biznes': 'home_repair_service',
+      'Şəxsi əşyalar': 'watch',
+      'Hobbi və asudə': 'sports_esports',
+      'Uşaq aləmi': 'stroller',
+      'Heyvanlar': 'pets',
+      'İş elanları': 'work',
+      'Məktəblilər üçün': 'school',
+      'Mağazalar': 'store',
+      'Tanışlıq': 'favorite',
+    };
+    return ICONS[categoryName] || 'category';
   };
 
   const myLimits = limits.filter(l => l.usedCount > 0);
@@ -58,10 +86,10 @@ export default function AdPlacementLimitsPage() {
               {/* Page Heading */}
               <div className="mb-6">
                 <h1 className="text-gray-900 text-2xl sm:text-4xl font-bold leading-tight tracking-tight mb-2">
-                  Yerləşdirmə limitləri
+                  {t('cabinet.limitsPage.title')}
                 </h1>
                 <p className="text-gray-500 text-[11px] sm:text-sm font-medium">
-                  Hər bir bölmə üzrə pulsuz elan yerləşdirmə və ödənişli xidmət şərtləri
+                  {t('cabinet.limitsPage.subtitle')}
                 </p>
               </div>
 
@@ -74,7 +102,7 @@ export default function AdPlacementLimitsPage() {
                     : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
-                  Mənim limitlərim
+                  {t('cabinet.limitsPage.myLimits')}
                 </button>
                 <button
                   onClick={() => setActiveTab('all')}
@@ -83,7 +111,7 @@ export default function AdPlacementLimitsPage() {
                     : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
-                  Bütün limitlər
+                  {t('cabinet.limitsPage.allLimits')}
                 </button>
               </div>
 
@@ -105,14 +133,17 @@ export default function AdPlacementLimitsPage() {
                     <input
                       type="text"
                       className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50/50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-[15px]"
-                      placeholder="Kateqoriya axtar..."
+                      placeholder={t('cabinet.limitsPage.searchPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
 
                   {(() => {
-                    const filteredLimits = limits.filter(l => l.categoryName.toLowerCase().includes(searchQuery.toLowerCase()));
+                    const filteredLimits = limits.filter(l => 
+                      l.categoryName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                      (l.categoryNameRu && l.categoryNameRu.toLowerCase().includes(searchQuery.toLowerCase()))
+                    );
                     return filteredLimits.length > 0 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                         {filteredLimits.map((limit) => {
@@ -125,15 +156,29 @@ export default function AdPlacementLimitsPage() {
                               className="relative p-3 sm:p-5 rounded-2xl border border-gray-100 bg-white hover:shadow-xl hover:border-primary/20 transition-all duration-300 group flex flex-col"
                             >
                               {/* Card Header */}
-                              <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-gray-900 font-bold text-[12px] sm:text-base group-hover:text-primary transition-colors line-clamp-2 leading-tight">
-                                    {limit.categoryName}
-                                  </h3>
-                                  <p className="text-gray-400 text-[9px] sm:text-[11px] font-medium uppercase tracking-wider mt-0.5 truncate">KONTİNGENT</p>
+                              <div className="flex items-start gap-3 mb-3 sm:mb-4">
+                                <div className="size-10 sm:size-12 rounded-xl overflow-hidden p-1 bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
+                                  {(limit.categoryImageUrl && !imageErrors[limit.categoryId]) ? (
+                                    <img 
+                                      src={limit.categoryImageUrl} 
+                                      alt="" 
+                                      className="w-full h-full object-contain scale-[1.2]" 
+                                      onError={() => handleImageError(limit.categoryId)}
+                                    />
+                                  ) : (
+                                    <span className="material-symbols-outlined text-gray-400 !text-xl sm:!text-2xl">
+                                      {getCategoryIcon(limit.categoryName)}
+                                    </span>
+                                  )}
                                 </div>
-                                <div className={`size-6 sm:size-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isExpired ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
-                                  <span className="material-symbols-outlined !text-[15px] sm:!text-xl">{isExpired ? 'block' : 'task_alt'}</span>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-gray-900 font-bold text-[12px] sm:text-[14px] group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+                                    {language === 'ru' && limit.categoryNameRu ? limit.categoryNameRu : limit.categoryName}
+                                  </h3>
+                                  <p className="text-gray-400 text-[9px] sm:text-[10px] font-medium uppercase tracking-wider mt-0.5 truncate">{t('cabinet.limitsPage.contingent')}</p>
+                                </div>
+                                <div className={`size-5 sm:size-6 rounded-lg flex items-center justify-center flex-shrink-0 ${isExpired ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                                  <span className="material-symbols-outlined !text-[12px] sm:!text-base">{isExpired ? 'block' : 'task_alt'}</span>
                                 </div>
                               </div>
 
@@ -141,7 +186,7 @@ export default function AdPlacementLimitsPage() {
                               <div className="mt-auto pt-2">
                                 <div className="flex items-end justify-between mb-2 gap-1 flex-wrap">
                                   <div className="flex flex-col">
-                                    <span className="text-gray-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest mb-0.5">İstifadə (Pulsuz)</span>
+                                    <span className="text-gray-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest mb-0.5">{t('cabinet.limitsPage.usedFree')}</span>
                                     <div className="flex items-baseline gap-1">
                                       <span className={`text-[15px] sm:text-xl font-black tabular-nums transition-colors ${isExpired ? 'text-red-600' : 'text-gray-900'}`}>
                                         {limit.usedFreeCount}
@@ -170,7 +215,7 @@ export default function AdPlacementLimitsPage() {
 
                                 {/* Price Info Row */}
                                 <div className="flex flex-col xl:flex-row items-baseline xl:items-center justify-between p-2 sm:p-3 bg-gray-50/80 rounded-xl border border-gray-100/50 gap-1">
-                                  <span className="text-gray-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Limit aşarsa</span>
+                                  <span className="text-gray-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">{t('cabinet.limitsPage.ifLimitExceeded')}</span>
                                   <div className="flex items-center gap-1.5">
                                     <span className="text-xs sm:text-sm font-black text-gray-900 tabular-nums">{limit.paidPrice.toFixed(2)}</span>
                                     <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold">₼</span>
@@ -187,7 +232,7 @@ export default function AdPlacementLimitsPage() {
                     ) : (
                       <div className="bg-gray-50 rounded-2xl p-12 text-center border-2 border-dashed border-gray-100">
                         <span className="material-symbols-outlined text-gray-300 !text-5xl mb-3">search_off</span>
-                        <p className="text-gray-500 font-medium">Axtarışa uyğun kateqoriya tapılmadı</p>
+                        <p className="text-gray-500 font-medium">{t('listings.noListings')}</p>
                       </div>
                     );
                   })()}
@@ -197,7 +242,7 @@ export default function AdPlacementLimitsPage() {
                 <div className="space-y-4">
                   <div className="mb-6">
                     <h2 className="text-gray-900 font-bold text-lg mb-4">
-                      Kateqoriyalarınız üzrə qalan yerləşdirmələrin sayı
+                      {t('cabinet.limitsPage.remainingCountDesc')}
                     </h2>
 
                     {myLimits.length > 0 ? (
@@ -217,19 +262,26 @@ export default function AdPlacementLimitsPage() {
                                 className="p-4 sm:p-6 flex items-center cursor-pointer select-none"
                               >
                                 <div className="size-14 sm:size-16 rounded-xl overflow-hidden p-1.5 bg-gray-50 border border-gray-100 flex items-center justify-center mr-4 sm:mr-5 flex-shrink-0">
-                                  {limit.categoryImageUrl ? (
-                                    <img src={limit.categoryImageUrl} alt="" className="w-full h-full object-contain scale-[1.3] transform-gpu" />
+                                  {(limit.categoryImageUrl && !imageErrors[limit.categoryId]) ? (
+                                    <img 
+                                      src={limit.categoryImageUrl} 
+                                      alt="" 
+                                      className="w-full h-full object-contain scale-[1.3] transform-gpu" 
+                                      onError={() => handleImageError(limit.categoryId)}
+                                    />
                                   ) : (
-                                    <span className="material-symbols-outlined text-gray-400 !text-3xl">category</span>
+                                    <span className="material-symbols-outlined text-gray-400 !text-3xl">
+                                      {getCategoryIcon(limit.categoryName)}
+                                    </span>
                                   )}
                                 </div>
 
                                 <div className="flex-1 min-w-0">
                                   <div className="text-gray-400 text-xs sm:text-sm font-medium mb-0.5">
-                                    {limit.parentCategoryName}
+                                    {language === 'ru' && limit.parentCategoryNameRu ? limit.parentCategoryNameRu : limit.parentCategoryName}
                                   </div>
                                   <div className="text-gray-900 font-bold text-sm sm:text-base truncate">
-                                    {limit.categoryName}
+                                    {language === 'ru' && limit.categoryNameRu ? limit.categoryNameRu : limit.categoryName}
                                   </div>
                                 </div>
 
@@ -256,14 +308,14 @@ export default function AdPlacementLimitsPage() {
                                     <div className="flex items-center gap-2">
                                       <div className={`size-2 rounded-full ${remainingFree > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
                                       <span className="text-sm font-medium text-gray-600">
-                                        Ödənişsiz elan — <span className={remainingFree > 0 ? 'text-emerald-600' : 'text-red-500'}>{remainingFree} elan</span>
-                                        {limit.nextFreeAt && <span className="text-gray-400 ml-1">{formatDate(limit.nextFreeAt)}-dək</span>}
+                                        {t('cabinet.limitsPage.freeAd')} — <span className={remainingFree > 0 ? 'text-emerald-600' : 'text-red-500'}>{remainingFree} {t('listings.ads').toLowerCase()}</span>
+                                        {limit.nextFreeAt && <span className="text-gray-400 ml-1">{formatDate(limit.nextFreeAt)}-{t('cabinet.dayShort')}</span>}
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <div className={`size-2 rounded-full ${limit.paidCount > 0 ? 'bg-blue-500' : 'bg-gray-300'}`} />
                                       <span className="text-sm font-medium text-gray-600">
-                                        Ödənişli elan — <span className={limit.paidCount > 0 ? 'text-blue-600' : 'text-gray-500'}>{limit.paidCount} elan</span>
+                                        {t('cabinet.limitsPage.paidAd')} — <span className={limit.paidCount > 0 ? 'text-blue-600' : 'text-gray-500'}>{limit.paidCount} {t('listings.ads').toLowerCase()}</span>
                                       </span>
                                     </div>
                                   </div>
@@ -273,7 +325,7 @@ export default function AdPlacementLimitsPage() {
                                       href="/pages/limits_by_category"
                                       className="text-primary text-xs font-bold hover:underline inline-flex items-center gap-1"
                                     >
-                                      Kateqoriya üzrə limitlər ilə ətraflı tanış olun
+                                      {t('cabinet.limitsPage.learnMore')}
                                       <span className="material-symbols-outlined !text-sm">open_in_new</span>
                                     </a>
                                   </div>
@@ -286,7 +338,7 @@ export default function AdPlacementLimitsPage() {
                     ) : (
                       <div className="bg-gray-50 rounded-2xl p-12 text-center border-2 border-dashed border-gray-100">
                         <span className="material-symbols-outlined text-gray-200 !text-6xl mb-4">info</span>
-                        <p className="text-gray-400 font-medium font-sans">Hələ ki, heç bir kateqoriya üzrə elanınız yoxdur</p>
+                        <p className="text-gray-400 font-medium font-sans">{t('cabinet.limitsPage.noAdsInCategory')}</p>
                       </div>
                     )}
                   </div>

@@ -10,6 +10,7 @@ import { AdListItem } from '@/types/api';
 import { getImageUrl } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Modal, ConfirmDialog, Button } from '@/components/ui';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Listing {
   id: string;
@@ -22,6 +23,8 @@ interface Listing {
   imageUrl: string;
   postedDate: string;
   categoryName?: string;
+  categoryNameRu?: string;
+  cityNameRu?: string;
   status: 'active' | 'pending' | 'inactive' | 'rejected';
   isBoosted: boolean;
   boostedAt?: string;
@@ -32,6 +35,7 @@ interface Listing {
 
 export default function CabinetPage() {
   const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'inactive' | 'rejected'>('active');
+  const { t, language } = useLanguage();
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +79,7 @@ export default function CabinetPage() {
 
       const transformedListings: Listing[] = ads.map(ad => {
         const formattedDate = ad.createdDate
-          ? new Date(ad.createdDate).toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric' })
+          ? new Date(ad.createdDate).toLocaleDateString(language === 'az' ? 'az-AZ' : 'ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
           : '';
         const imageUrl = ad.image ? getImageUrl(ad.image) : '';
         const normalizedStatus = ad.status.toLowerCase() as 'active' | 'pending' | 'inactive' | 'rejected';
@@ -85,11 +89,13 @@ export default function CabinetPage() {
           slug: ad.slug,
           parentCategorySlug: ad.parentCategorySlug,
           childCategorySlug: ad.childCategorySlug,
-          location: ad.city || 'Şəhər göstərilməyib',
+          location: ad.city || t('cabinet.cityNotShown'),
+          cityNameRu: ad.cityRu,
           price: ad.price,
           imageUrl,
           postedDate: formattedDate,
           categoryName: ad.category,
+          categoryNameRu: ad.categoryRu,
           status: normalizedStatus,
           isBoosted: ad.isBoosted,
           boostedAt: ad.boostedAt,
@@ -101,7 +107,7 @@ export default function CabinetPage() {
 
       setListings(transformedListings);
     } catch (err: any) {
-      setError('Elanları yükləmək mümkün olmadı');
+      setError(t('cabinet.loadError'));
       console.error('Error fetching ads:', err);
     } finally {
       setIsLoading(false);
@@ -161,10 +167,10 @@ export default function CabinetPage() {
         ...prev,
         [activeTab]: prev[activeTab as keyof typeof prev] - 1,
       }));
-      toast.success('Elan uğurla silindi');
+      toast.success(t('cabinet.deleteSuccess'));
     } catch (err: any) {
       console.error('Error deleting ad:', err);
-      toast.error(err.message || 'Elanı silmək mümkün olmadı');
+      toast.error(err.message || t('cabinet.deleteError'));
     } finally {
       setIsDeleting(false);
       setDeleteAdId(null);
@@ -176,14 +182,14 @@ export default function CabinetPage() {
       setIsLoading(true);
       const result = await adService.reactivateAd(id);
       if (result.isSuccess) {
-        toast.success('Elan yeniləndi və baxışa göndərildi');
+        toast.success(t('cabinet.reactivateSuccess'));
         setActiveTab('pending');
         fetchCounts();
       } else {
-        toast.error(result.message || 'Xəta baş verdi');
+        toast.error(result.message || t('common.error'));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || err.message || 'Xəta baş verdi');
+      toast.error(err.response?.data?.message || err.message || t('common.error'));
     } finally {
       setIsLoading(false);
     }
@@ -200,38 +206,58 @@ export default function CabinetPage() {
               {/* Page Heading */}
               <div className="mb-6">
                 <h1 className="text-gray-900 text-3xl sm:text-4xl font-bold leading-tight tracking-tight mb-2">
-                  Elanlarım
+                  {t('cabinet.myListings')}
                 </h1>
                 <p className="text-gray-500 text-sm font-medium">
-                  Elanlarınızı idarə edin və statuslarını izləyin
+                  {t('cabinet.manageListings')}
                 </p>
               </div>
 
               {/* Tabs */}
-              <div className="border-b border-gray-100 mb-8 overflow-hidden">
-                <div className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth">
-                  {(['active', 'pending', 'inactive', 'rejected'] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => {
-                        setActiveTab(tab);
-                        setPage(1);
-                      }}
-                      className={`flex items-center gap-2 pb-4 pt-1 border-b-2 transition-all whitespace-nowrap group cursor-pointer ${activeTab === tab ? 'border-primary' : 'border-transparent text-gray-400 hover:text-gray-600'
-                        }`}
-                    >
-                      <p className={`text-sm font-bold transition-colors ${activeTab === tab ? 'text-primary' : ''
-                        }`}>
-                        {tab === 'active' ? 'Aktiv' : tab === 'pending' ? 'Gözləmədə' : tab === 'inactive' ? 'Passiv' : 'Rədd edilmiş'}
-                      </p>
-                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${activeTab === tab
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 text-gray-500'
-                        }`}>
-                        {getTabCount(tab)}
-                      </span>
-                    </button>
-                  ))}
+              <div className="border-b border-gray-100 mb-8">
+                <div className="grid grid-cols-2 sm:flex items-center sm:gap-8">
+                  {(['active', 'pending', 'inactive', 'rejected'] as const).map((tab) => {
+                    const iconMap = {
+                      active: 'check_circle',
+                      pending: 'schedule',
+                      inactive: 'visibility_off',
+                      rejected: 'cancel'
+                    };
+                    const labelMap = {
+                      active: t('cabinet.active'),
+                      pending: t('cabinet.pending'),
+                      inactive: t('cabinet.inactive'),
+                      rejected: t('cabinet.rejected')
+                    };
+
+                    return (
+                      <button
+                        key={tab}
+                        onClick={() => {
+                          setActiveTab(tab);
+                          setPage(1);
+                        }}
+                        className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 pb-4 pt-2 border-b-2 transition-all group cursor-pointer sm:px-2 w-full sm:w-auto ${activeTab === tab ? 'border-primary' : 'border-transparent text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        <span className={`material-symbols-outlined !text-[18px] sm:!text-[20px] ${activeTab === tab ? 'text-primary' : 'text-gray-400 group-hover:text-gray-500'}`}>
+                          {iconMap[tab]}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <p className={`text-[10px] sm:text-sm font-bold transition-colors ${activeTab === tab ? 'text-primary' : ''
+                            }`}>
+                            {labelMap[tab]}
+                          </p>
+                          <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === tab
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 text-gray-500'
+                            }`}>
+                            {getTabCount(tab)}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -247,12 +273,12 @@ export default function CabinetPage() {
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
                   <div className="animate-spin h-8 w-8 text-primary border-4 border-primary/20 border-t-primary rounded-full" />
-                  <p className="text-gray-400 text-sm font-medium">Yüklenir...</p>
+                  <p className="text-gray-400 text-sm font-medium">{t('cabinet.loadingListings')}</p>
                 </div>
               ) : (
                 <>
                   {listings.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-6">
                       {listings.map(listing => (
                         <UserListingCard
                           key={listing.id}
@@ -269,8 +295,8 @@ export default function CabinetPage() {
                       <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                         <span className="material-symbols-outlined text-gray-300 text-4xl">layers_clear</span>
                       </div>
-                      <h3 className="text-gray-900 text-lg font-bold">Elan tapılmadı</h3>
-                      <p className="text-gray-500 text-sm mt-1">Bu bölmədə göstəriləcək elanınız yoxdur.</p>
+                      <h3 className="text-gray-900 text-lg font-bold">{t('cabinet.noListings')}</h3>
+                      <p className="text-gray-500 text-sm mt-1">{t('cabinet.noListingsDesc')}</p>
                     </div>
                   )}
 
@@ -322,9 +348,9 @@ export default function CabinetPage() {
         isOpen={!!deleteAdId}
         onClose={() => setDeleteAdId(null)}
         onConfirm={handleDelete}
-        title="Elanı sil"
-        description="Bu elanı silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz."
-        confirmText="Sil"
+        title={t('cabinet.deleteAd')}
+        description={t('cabinet.deleteAdConfirm')}
+        confirmText={t('common.delete')}
         isDestructive
         isLoading={isDeleting}
       />

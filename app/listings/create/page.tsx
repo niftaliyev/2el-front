@@ -12,12 +12,14 @@ import { CategoryDto, CategoryFieldDto, LookupItem, PackageItem } from '@/types/
 import { parseCurrency } from '@/lib/utils';
 import PromotionPackages from '@/components/listings/PromotionPackages';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // cityOptions removed - now fetched from API
 
 export default function CreateListingPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [formData, setFormData] = useState({
     categoryId: '',
     subcategoryId: '',
@@ -80,11 +82,11 @@ export default function CreateListingPage() {
         const categories = await adService.getCategories();
         const options: SelectOption[] = categories.map(cat => ({
           value: cat.id.toString(),
-          label: cat.name,
+          label: language === 'ru' && cat.nameRu ? cat.nameRu : cat.name,
         }));
         setParentCategories(options);
       } catch (err: any) {
-        setError('Kateqoriyaları yükləmək mümkün olmadı');
+        setError(t('createAd.errors.fetchCategories'));
         console.error('Error fetching categories:', err);
       } finally {
         setIsLoadingCategories(false);
@@ -92,7 +94,7 @@ export default function CreateListingPage() {
     };
 
     fetchParentCategories();
-  }, []);
+  }, [language, t]);
 
   // Auto-fill contact info from logged-in user
   useEffect(() => {
@@ -120,11 +122,11 @@ export default function CreateListingPage() {
         const types = await adService.getAdTypes();
         const options: SelectOption[] = types.map(type => ({
           value: type.id.toString(),
-          label: type.name,
+          label: language === 'ru' && type.nameRu ? type.nameRu : type.name,
         }));
         setAdTypes(options);
       } catch (err: any) {
-        setError('Elan növlərini yükləmək mümkün olmadı');
+        setError(t('createAd.errors.fetchAdTypes'));
         console.error('Error fetching ad types:', err);
       } finally {
         setIsLoadingAdTypes(false);
@@ -132,20 +134,21 @@ export default function CreateListingPage() {
     };
 
     fetchAdTypes();
-  }, []);
+  }, [language, t]);
 
   // Fetch cities on mount
   useEffect(() => {
     const fetchCities = async () => {
       setIsLoadingCities(true);
       try {
-        const categories = await adService.getCities();
-        const options: SelectOption[] = categories.map(city => ({
+        const citiesData = await adService.getCities();
+        const options: SelectOption[] = citiesData.map(city => ({
           value: city.id.toString(),
-          label: city.name,
+          label: language === 'ru' && city.nameRu ? city.nameRu : city.name,
         }));
-        setCities(options);
+        setCities([{ value: '', label: t('listings.allCities') }, ...options]);
       } catch (err: any) {
+        setError(t('createAd.errors.fetchCities'));
         console.error('Error fetching cities:', err);
       } finally {
         setIsLoadingCities(false);
@@ -153,7 +156,7 @@ export default function CreateListingPage() {
     };
 
     fetchCities();
-  }, []);
+  }, [language, t]);
 
   // Fetch promotion packages on mount
   useEffect(() => {
@@ -163,6 +166,7 @@ export default function CreateListingPage() {
         const pkgs = await adService.getAllPackages();
         setPackages(pkgs);
       } catch (err: any) {
+        setError(t('createAd.errors.fetchPackages'));
         console.error('Error fetching packages:', err);
       } finally {
         setIsLoadingPackages(false);
@@ -170,7 +174,7 @@ export default function CreateListingPage() {
     };
 
     fetchPackages();
-  }, []);
+  }, [language, t]);
 
   // Fetch subcategories when parent category is selected
   useEffect(() => {
@@ -184,11 +188,11 @@ export default function CreateListingPage() {
           const categories = await adService.getCategories(formData.categoryId || undefined);
           const options: SelectOption[] = categories.map(cat => ({
             value: cat.id.toString(),
-            label: cat.name,
+            label: language === 'ru' && cat.nameRu ? cat.nameRu : cat.name,
           }));
           setSubCategories(options);
         } catch (err: any) {
-          setError('Alt kateqoriyaları yükləmək mümkün olmadı');
+          setError(t('createAd.errors.fetchSubCategories'));
           console.error('Error fetching subcategories:', err);
         } finally {
           setIsLoadingSubCategories(false);
@@ -257,7 +261,7 @@ export default function CreateListingPage() {
           if (fetchedBrands && fetchedBrands.length > 0) {
             const options: SelectOption[] = fetchedBrands.map(b => ({
               value: b.id.toString(),
-              label: b.name,
+              label: language === 'ru' && b.nameRu ? b.nameRu : b.name,
             }));
             setBrands(options);
             setShowBrands(true);
@@ -289,6 +293,12 @@ export default function CreateListingPage() {
     if (!files) return;
 
     const newFiles = Array.from(files);
+    const oversized = newFiles.some(f => f.size > 10 * 1024 * 1024);
+    if (oversized) {
+      setError(language === 'ru' ? 'Размер некоторых изображений превышает 10MB' : 'Bəzi şəkillərin ölçüsü 10MB-dan çoxdur');
+      return;
+    }
+
     const newPreviews = newFiles.map(file => {
       const url = URL.createObjectURL(file);
       createdUrlsRef.current.push(url);
@@ -297,6 +307,7 @@ export default function CreateListingPage() {
 
     setImages(prev => [...prev, ...newFiles]);
     setImagePreviews(prev => [...prev, ...newPreviews]);
+    setError(null);
   };
 
   const handleDragEnter = (e: React.DragEvent) => {
@@ -505,7 +516,7 @@ export default function CreateListingPage() {
 
         {/* Page Title */}
         <h1 className="text-gray-900 text-3xl sm:text-4xl font-black leading-tight tracking-[-0.033em] mb-8">
-          Yeni elan yerləşdirin
+          {t('createAd.title')}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -517,16 +528,16 @@ export default function CreateListingPage() {
           )}
           {/* Section 1: Basic Information */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-gray-900 text-xl font-bold mb-6">Əsas Məlumatlar</h2>
+            <h2 className="text-gray-900 text-xl font-bold mb-6">{t('createAd.basicInfo')}</h2>
 
             <div className="space-y-4">
               {/* Category */}
               <Select
-                label="Kateqoriya"
+                label={t('createAd.category')}
                 options={parentCategories}
                 value={parentCategories.find(option => option.value === formData.categoryId)}
                 onChange={(option) => setFormData(prev => ({ ...prev, categoryId: option?.value || '' }))}
-                placeholder={isLoadingCategories ? 'Yüklənir...' : 'Kateqoriya seçin'}
+                placeholder={isLoadingCategories ? t('common.loading') : t('createAd.selectCategory')}
                 isClearable
                 required
                 isLoading={isLoadingCategories}
@@ -535,11 +546,11 @@ export default function CreateListingPage() {
               {/* Subcategory - Hidden until parent category is selected */}
               {showSubcategory && (
                 <Select
-                  label="Alt kateqoriya"
+                  label={t('createAd.subcategory')}
                   options={subCategories}
                   value={subCategories.find(option => option.value === formData.subcategoryId)}
                   onChange={(option) => setFormData(prev => ({ ...prev, subcategoryId: option?.value || '' }))}
-                  placeholder={isLoadingSubCategories ? 'Yüklənir...' : 'Alt kateqoriya seçin'}
+                  placeholder={isLoadingSubCategories ? t('common.loading') : t('createAd.selectSubcategory')}
                   isClearable
                   isLoading={isLoadingSubCategories}
                 />
@@ -548,11 +559,11 @@ export default function CreateListingPage() {
               {/* Brand/Type - Hidden until child category is selected and has brands */}
               {showBrands && (
                 <Select
-                  label="Marka / Çeşid / Tip / Sahə"
+                  label={t('createAd.brand')}
                   options={brands}
                   value={brands.find(option => option.value === formData.brandId)}
                   onChange={(option) => setFormData(prev => ({ ...prev, brandId: option?.value || '' }))}
-                  placeholder={isLoadingBrands ? 'Yüklənir...' : 'Marka / Çeşid / Tip / Sahə seçin'}
+                  placeholder={isLoadingBrands ? t('common.loading') : t('createAd.selectBrand')}
                   isClearable
                   isLoading={isLoadingBrands}
                 />
@@ -560,11 +571,11 @@ export default function CreateListingPage() {
 
               {/* Ad Type */}
               <Select
-                label="Elan növü"
+                label={t('createAd.adType')}
                 options={adTypes}
                 value={adTypes.find(option => option.value === formData.adTypeId)}
                 onChange={(option) => setFormData(prev => ({ ...prev, adTypeId: option?.value || '' }))}
-                placeholder={isLoadingAdTypes ? 'Yüklənir...' : 'Elan növü seçin'}
+                placeholder={isLoadingAdTypes ? t('common.loading') : t('createAd.selectAdType')}
                 isClearable
                 required
                 isLoading={isLoadingAdTypes}
@@ -572,34 +583,32 @@ export default function CreateListingPage() {
 
               {/* Limit Information */}
               {selectedCategory && (
-                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex items-start gap-3">
+                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex items-start gap-3 mb-4">
                   <span className="material-symbols-outlined text-blue-600 !text-2xl mt-0.5">info</span>
                   <div className="flex-1">
-                    <p className="text-gray-900 text-sm font-semibold">Kateqoriya məlumatı</p>
+                    <p className="text-gray-900 text-sm font-semibold">{t('createAd.categoryInfo')}</p>
                     <div className="text-gray-600 text-xs mt-1 leading-relaxed">
                       {selectedCategory.freeLimit > 0 ? (
-                        <>Bu bölmədə pulsuz elan limiti: <span className="font-bold text-gray-900">{selectedCategory.freeLimit}</span></>
+                        <>{t('createAd.freeLimit', { count: selectedCategory.freeLimit })}</>
                       ) : (
-                        <span className="text-amber-700 font-bold">Bu bölmədə bütün elanlar ödənişlidir.</span>
+                        <span className="text-amber-700 font-bold">{t('createAd.paidCategory')}</span>
                       )}
 
                       {categoryUsage !== null && (
                         <div className="mt-1 text-gray-500 italic">
-                          Mövcud istifadə: <span className={`font-bold ${categoryUsage >= selectedCategory.freeLimit ? 'text-error' : 'text-emerald-600'}`}>
-                            {categoryUsage} / {selectedCategory.freeLimit}
-                          </span> (son 30 gündə)
+                          {t('createAd.currentUsage', { used: categoryUsage, limit: selectedCategory.freeLimit })}
                         </div>
                       )}
 
                       {selectedCategory.paidPrice1 > 0 && (
                         <div className="mt-1 border-t border-blue-100/50 pt-1">
-                          Qiymət: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} ₼</span>
+                          {t('createAd.priceLabel')}: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} ₼</span>
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-4 mt-2">
                       <Link href="/pages/limits_by_category" className="text-primary text-[10px] font-bold uppercase tracking-wider hover:underline">
-                        Bütün limitlərə bax
+                        {t('createAd.viewAllLimits')}
                       </Link>
                     </div>
                   </div>
@@ -608,11 +617,11 @@ export default function CreateListingPage() {
 
               {/* City */}
               <Select
-                label="Şəhər"
+                label={t('listings.city')}
                 options={cities}
                 value={cities.find(option => option.value === formData.cityId)}
                 onChange={(option) => setFormData(prev => ({ ...prev, cityId: option?.value || '' }))}
-                placeholder={isLoadingCities ? 'Yüklənir...' : 'Şəhər seçin'}
+                placeholder={isLoadingCities ? t('common.loading') : t('listings.selectCity')}
                 isClearable
                 required
                 isLoading={isLoadingCities}
@@ -620,28 +629,28 @@ export default function CreateListingPage() {
 
               {/* Title */}
               <Input
-                label="Elanın başlığı"
+                label={t('createAd.adTitle')}
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                placeholder="Məsələn: iPhone 13 Pro Max 256GB"
+                placeholder={t('createAd.titlePlaceholder')}
                 required
               />
 
               {/* Description */}
               <Textarea
-                label="Təsvir"
+                label={t('createAd.description')}
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={6}
-                placeholder="Məhsul haqqında ətraflı məlumat yazın..."
+                placeholder={t('createAd.descPlaceholder')}
                 required
               />
 
               {/* Price */}
               <Input
-                label="Qiymət (₼)"
+                label={t('createAd.priceLabel') + " (₼)"}
                 type="text"
                 name="price"
                 value={formData.price}
@@ -660,7 +669,7 @@ export default function CreateListingPage() {
                       onChange={(e) => setFormData(prev => ({ ...prev, isNew: e.target.checked }))}
                       className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
                     />
-                    <span className="text-gray-900 text-sm font-medium">Yeni məhsul</span>
+                    <span className="text-gray-900 text-sm font-medium">{t('createAd.isNew')}</span>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
@@ -669,7 +678,7 @@ export default function CreateListingPage() {
                       onChange={(e) => setFormData(prev => ({ ...prev, isDeliverable: e.target.checked }))}
                       className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
                     />
-                    <span className="text-gray-900 text-sm font-medium">Çatdırılma mümkündür</span>
+                    <span className="text-gray-900 text-sm font-medium">{t('createAd.isDeliverable')}</span>
                   </label>
                 </div>
               )}
@@ -677,82 +686,81 @@ export default function CreateListingPage() {
               {/* Dynamic Category Fields */}
               {categoryFields.length > 0 && (
                 <div className="space-y-4 pt-4 border-t border-gray-100">
-                  <h3 className="text-gray-700 text-sm font-semibold">Kateqoriyaya aid məlumatlar</h3>
+                  <h3 className="text-gray-700 text-sm font-semibold">{t('createAd.dynamicInfo')}</h3>
                   {categoryFields.map((field) => {
-                    if (field.fieldType === 'select' || field.fieldType === 'dependent_select') {
-                      let parsedOptions: string[] = [];
-                      try {
-                        const parsed = field.optionsJson ? JSON.parse(field.optionsJson) : [];
+                        const isRu = language === 'ru';
+                        const fieldName = isRu && field.nameRu ? field.nameRu : field.name;
+                        const optionsJsonToUse = isRu && field.optionsJsonRu ? field.optionsJsonRu : field.optionsJson;
 
-                        if (Array.isArray(parsed)) {
-                          parsedOptions = parsed;
-                        } else if (parsed && typeof parsed === 'object' && field.fieldType === 'dependent_select') {
-                          // Handle dependent select (e.g. Model depends on Brand)
-                          // Check for selected brand label first
-                          const selectedBrandLabel = brands.find(b => b.value === formData.brandId)?.label;
-                          if (selectedBrandLabel && Array.isArray(parsed[selectedBrandLabel])) {
-                            parsedOptions = parsed[selectedBrandLabel];
-                          } else {
-                            // Try by ID as fallback
-                            if (formData.brandId && Array.isArray(parsed[formData.brandId])) {
-                              parsedOptions = parsed[formData.brandId];
+                        if (field.fieldType === 'select' || field.fieldType === 'dependent_select') {
+                          let parsedOptions: string[] = [];
+                          try {
+                            const parsed = optionsJsonToUse ? JSON.parse(optionsJsonToUse) : [];
+
+                            if (Array.isArray(parsed)) {
+                              parsedOptions = parsed;
+                            } else if (parsed && typeof parsed === 'object' && field.fieldType === 'dependent_select') {
+                              // For dependent select, we need to match the selected brand
+                              // The keys in optionsJson (and optionsJsonRu) correspond to the brand labels
+                              const selectedBrandLabel = brands.find(b => b.value === formData.brandId)?.label;
+                              if (selectedBrandLabel && Array.isArray(parsed[selectedBrandLabel])) {
+                                parsedOptions = parsed[selectedBrandLabel];
+                              }
                             }
+                          } catch (e) {
+                            console.error('Error parsing optionsJson:', e);
                           }
-                        }
-                      } catch (e) {
-                        console.error('Error parsing optionsJson:', e);
-                      }
 
-                      const options: SelectOption[] = parsedOptions.map((opt: string) => ({ value: opt, label: opt }));
-                      return (
-                        <Select
-                          key={field.id}
-                          label={field.name + (field.isRequired ? ' *' : '')}
-                          options={options}
-                          value={options.find(o => o.value === dynamicFieldValues[field.id])}
-                          onChange={(opt) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: opt?.value || '' }))}
-                          placeholder={`${field.name} seçin`}
-                          isClearable
-                        />
-                      );
-                    }
-                    if (field.fieldType === 'number') {
-                      return (
-                        <Input
-                          key={field.id}
-                          label={field.name + (field.isRequired ? ' *' : '')}
-                          type="number"
-                          value={dynamicFieldValues[field.id] || ''}
-                          onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                          placeholder={field.name}
-                        />
-                      );
-                    }
-                    if (field.fieldType === 'checkbox') {
-                      return (
-                        <label key={field.id} className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={dynamicFieldValues[field.id] === 'true'}
-                            onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.checked.toString() }))}
-                            className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
+                          const options: SelectOption[] = parsedOptions.map((opt: string) => ({ value: opt, label: opt }));
+                          return (
+                            <Select
+                              key={field.id}
+                              label={fieldName + (field.isRequired ? ' *' : '')}
+                              options={options}
+                              value={options.find(o => o.value === dynamicFieldValues[field.id])}
+                              onChange={(opt) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: opt?.value || '' }))}
+                              placeholder={t('common.select_placeholder', { name: fieldName })}
+                              isClearable
+                            />
+                          );
+                        }
+                        if (field.fieldType === 'number') {
+                          return (
+                            <Input
+                              key={field.id}
+                              label={fieldName + (field.isRequired ? ' *' : '')}
+                              type="number"
+                              value={dynamicFieldValues[field.id] || ''}
+                              onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                              placeholder={fieldName}
+                            />
+                          );
+                        }
+                        if (field.fieldType === 'checkbox') {
+                          return (
+                            <label key={field.id} className="flex items-center gap-3 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={dynamicFieldValues[field.id] === 'true'}
+                                onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.checked.toString() }))}
+                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
+                              />
+                              <span className="text-gray-900 text-sm font-medium">{fieldName}</span>
+                            </label>
+                          );
+                        }
+                        // Default: text field
+                        return (
+                          <Input
+                            key={field.id}
+                            label={fieldName + (field.isRequired ? ' *' : '')}
+                            type="text"
+                            value={dynamicFieldValues[field.id] || ''}
+                            onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                            placeholder={fieldName}
                           />
-                          <span className="text-gray-900 text-sm font-medium">{field.name}</span>
-                        </label>
-                      );
-                    }
-                    // Default: text field
-                    return (
-                      <Input
-                        key={field.id}
-                        label={field.name + (field.isRequired ? ' *' : '')}
-                        type="text"
-                        value={dynamicFieldValues[field.id] || ''}
-                        onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                        placeholder={field.name}
-                      />
-                    );
-                  })}
+                        );
+                      })}
                 </div>
               )}
             </div>
@@ -760,7 +768,7 @@ export default function CreateListingPage() {
 
           {/* Section 2: Images */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-gray-900 text-xl font-bold mb-6">Şəkillər</h2>
+            <h2 className="text-gray-900 text-xl font-bold mb-6">{t('createAd.images')}</h2>
 
             {/* Upload Area */}
             <div
@@ -782,10 +790,10 @@ export default function CreateListingPage() {
                 </div>
                 <div>
                   <p className="text-gray-900 font-medium mb-1">
-                    Şəkilləri yükləyin
+                    {t('createAd.uploadImages')}
                   </p>
                   <p className="text-sm text-gray-500">
-                    və ya bu sahəyə sürüşdürün
+                    {t('createAd.dragAndDrop')}
                   </p>
                 </div>
                 <p className="text-xs text-gray-400">
@@ -847,7 +855,7 @@ export default function CreateListingPage() {
 
                       {index === 0 && (
                         <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2 py-1 rounded">
-                          Əsas
+                          {t('createAd.mainImage')}
                         </div>
                       )}
                     </div>
@@ -869,23 +877,23 @@ export default function CreateListingPage() {
 
           {/* Section 5: Contact Information */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-gray-900 text-xl font-bold mb-6">Əlaqə Məlumatları</h2>
+            <h2 className="text-gray-900 text-xl font-bold mb-6">{t('createAd.contactInfo')}</h2>
 
             <div className="space-y-4">
               {/* Name */}
               <Input
-                label="Ad, Soyad"
+                label={t('createAd.fullName')}
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                placeholder="Ad və soyadınızı daxil edin"
+                placeholder={t('createAd.fullNamePlaceholder')}
                 required
               />
 
               {/* Email */}
               <Input
-                label="E-mail"
+                label={t('createAd.email')}
                 type="email"
                 name="email"
                 value={formData.email}
@@ -896,7 +904,7 @@ export default function CreateListingPage() {
 
               {/* Phone */}
               <Input
-                label="Telefon"
+                label={t('createAd.phone')}
                 type="tel"
                 name="phone"
                 value={formData.phone}
@@ -916,13 +924,13 @@ export default function CreateListingPage() {
 
           {/* Form Actions */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end">
-            <Link href={ROUTES.HOME}>
+            <Link href="/cabinet">
               <button
                 type="button"
                 disabled={isSubmitting}
                 className="w-full sm:w-auto px-6 h-12 rounded-lg border border-gray-300 bg-white text-gray-900 font-bold hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                İmtina et
+                {t('createAd.cancel')}
               </button>
             </Link>
             <button
@@ -930,7 +938,7 @@ export default function CreateListingPage() {
               disabled={isSubmitting}
               className="w-full sm:w-auto px-6 h-12 rounded-lg bg-primary text-white font-bold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Yüklənir...' : 'Elanı Dərc Et'}
+              {isSubmitting ? t('common.loading') : t('createAd.submit')}
             </button>
           </div>
         </form>

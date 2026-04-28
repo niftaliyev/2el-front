@@ -4,10 +4,12 @@ import { PaginatedResponse } from '@/types/api';
 export interface Transaction {
   id: string;
   title: string;
+  titleRu?: string;
   amount: number;
   date: string;
   type: 'Deposit' | 'Purchase' | 'Withdrawal' | 'Refund';
   description: string;
+  descriptionRu?: string;
   adId?: string;
   adTitle?: string;
 }
@@ -15,7 +17,9 @@ export interface Transaction {
 export interface AdPlacementLimit {
   categoryId: string;
   categoryName: string;
+  categoryNameRu?: string;
   parentCategoryName?: string;
+  parentCategoryNameRu?: string;
   categoryImageUrl?: string;
   freeLimit: number;
   usedCount: number;
@@ -31,6 +35,7 @@ export interface Invoice {
   amount: number;
   status: string;
   serviceType: string;
+  serviceTypeRu?: string;
   createdDate: string;
   paidDate?: string;
   pdfUrl?: string;

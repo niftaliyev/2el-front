@@ -10,6 +10,7 @@ import ProductGrid from '@/components/features/products/ProductGrid';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { Product } from '@/types';
 import ReportModal from '@/components/features/ReportModal';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function StoreDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const unwrappedParams = use(params);
@@ -27,6 +28,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const { t, language } = useLanguage();
   const isNavVisible = useScrollDirection();
 
   const availableCategories = Array.from(new Set(ads.map(ad => ad.category?.name).filter(Boolean))) as string[];
@@ -44,7 +46,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
     const loadStore = async () => {
       try {
         setIsLoading(true);
-        
+
         // Check if the current slug parameter is actually a GUID (identity)
         const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
         let data: StoreDetail;
@@ -81,8 +83,8 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
           currency: '₼',
           images: ad.image ? [getImageUrl(ad.image)] : [],
           createdAt: new Date(ad.createdDate),
-          category: { name: ad.categoryName || '', slug: '' },
-          location: { city: ad.city || '' },
+          category: { name: (language === 'ru' && ad.categoryNameRu ? ad.categoryNameRu : ad.categoryName) || '', slug: '' },
+          location: { city: ad.city || '', cityRu: ad.cityRu },
           seller: { name: data.storeName, id: data.id, createdAt: new Date(), email: '', isVerified: true },
           condition: ad.isNew ? 'new' : 'used',
           isFeatured: ad.isVip,
@@ -111,7 +113,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
     };
 
     if (slug) loadStore();
-  }, [slug]);
+  }, [slug, language]);
 
   const handleToggleFollow = async () => {
     if (!store) return;
@@ -147,18 +149,18 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
   if (!store) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-2xl font-bold text-gray-800">Mağaza tapılmadı</h1>
-        <Link href="/shops" className="text-primary hover:underline mt-4">Mağazalara qayıt</Link>
+        <h1 className="text-2xl font-bold text-gray-800">{t('storeDetail.notFound')}</h1>
+        <Link href="/shops" className="text-primary hover:underline mt-4">{t('storeDetail.goHome')}</Link>
       </div>
     );
   }
 
   const getStoreStatus = () => {
     if (!store || !store.workSchedules || store.workSchedules.length === 0) return null;
-    
+
     const now = new Date();
     const day = now.getDay();
-    
+
     const getSchForDay = (d: number) => {
       return store.workSchedules.find(ws => {
         if (typeof ws.dayOfWeek === 'number') return ws.dayOfWeek === d;
@@ -172,24 +174,24 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
     };
 
     const currentSchedule = getSchForDay(day);
-    
+
     if (!currentSchedule) {
       // Find next day with schedule
       for (let i = 1; i <= 7; i++) {
         const nextDay = (day + i) % 7;
         const nextSch = getSchForDay(nextDay);
         if (nextSch && (nextSch.isOpen24Hours || nextSch.openTime)) {
-          const openStr = nextSch.isOpen24Hours ? '24 saat' : `saat ${nextSch.openTime?.slice(0, 5)}-da`;
-          return { isOpen: false, text: `Bağlıdır (${nextDay === (day + 1) % 7 ? 'sabah' : getDayNameAz(nextDay)} ${openStr} açılır)` };
+          const openStr = nextSch.isOpen24Hours ? t('common.storeStatus.open24h') : t('common.storeStatus.opensAt', { time: nextSch.openTime?.slice(0, 5) ?? '' });
+          return { isOpen: false, text: `${t('common.storeStatus.closed')} (${nextDay === (day + 1) % 7 ? t('common.storeStatus.tomorrow') : getDayName(nextDay)} ${openStr})` };
         }
       }
-      return { isOpen: false, text: 'Bağlıdır' };
+      return { isOpen: false, text: t('common.storeStatus.closed') };
     }
 
-    if (currentSchedule.isOpen24Hours) return { isOpen: true, text: 'İndi açıqdır (24 saat)' };
-    
+    if (currentSchedule.isOpen24Hours) return { isOpen: true, text: t('common.storeStatus.nowOpen24h') };
+
     if (!currentSchedule.openTime || !currentSchedule.closeTime) {
-      return { isOpen: false, text: 'Bağlıdır' };
+      return { isOpen: false, text: t('common.storeStatus.closed') };
     }
 
     const [nowH, nowM] = [now.getHours(), now.getMinutes()];
@@ -198,28 +200,27 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
     const [endH, endM] = currentSchedule.closeTime.split(':').map(Number);
     const startTotal = startH * 60 + startM;
     const endTotal = endH * 60 + endM;
-    
+
     if (nowTotal >= startTotal && nowTotal < endTotal) {
-      return { isOpen: true, text: `Açıqdır (saat ${currentSchedule.closeTime.slice(0, 5)}-da bağlanır)` };
+      return { isOpen: true, text: `${t('common.storeStatus.open')} (${t('common.storeStatus.closesAt', { time: currentSchedule.closeTime.slice(0, 5) })})` };
     } else if (nowTotal < startTotal) {
-      return { isOpen: false, text: `Bağlıdır (saat ${currentSchedule.openTime.slice(0, 5)}-da açılır)` };
+      return { isOpen: false, text: `${t('common.storeStatus.closed')} (${t('common.storeStatus.opensAt', { time: currentSchedule.openTime.slice(0, 5) })})` };
     } else {
-       // After closing time today, find when it opens next
-       for (let i = 1; i <= 7; i++) {
+      // After closing time today, find when it opens next
+      for (let i = 1; i <= 7; i++) {
         const nextDay = (day + i) % 7;
         const nextSch = getSchForDay(nextDay);
         if (nextSch && (nextSch.isOpen24Hours || nextSch.openTime)) {
-          const openStr = nextSch.isOpen24Hours ? '24 saat' : `saat ${nextSch.openTime?.slice(0, 5)}-da`;
-          return { isOpen: false, text: `Bağlıdır (${nextDay === (day + 1) % 7 ? 'sabah' : getDayNameAz(nextDay)} ${openStr} açılır)` };
+          const openStr = nextSch.isOpen24Hours ? t('common.storeStatus.open24h') : t('common.storeStatus.opensAt', { time: nextSch.openTime?.slice(0, 5) ?? '' });
+          return { isOpen: false, text: `${t('common.storeStatus.closed')} (${nextDay === (day + 1) % 7 ? t('common.storeStatus.tomorrow') : getDayName(nextDay)} ${openStr})` };
         }
       }
-      return { isOpen: false, text: 'Bağlıdır' };
+      return { isOpen: false, text: t('common.storeStatus.closed') };
     }
   };
 
-  const getDayNameAz = (day: number) => {
-    const days = ['Bazar', 'Bazar ertəsi', 'Çərşənbə axşamı', 'Çərşənbə', 'Cümə axşamı', 'Cümə', 'Şənbə'];
-    return days[day];
+  const getDayName = (day: number) => {
+    return t(`common.days.${day}`);
   };
 
   const storeStatus = getStoreStatus();
@@ -259,7 +260,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                   <span className="material-symbols-outlined text-5xl md:text-7xl text-gray-200">store</span>
                 )}
               </div>
-              
+
               {/* Status Indicator Overlay */}
               <div className={`absolute bottom-2 right-2 md:bottom-5 md:right-5 size-5 md:size-6 rounded-full border-4 border-white shadow-lg ${storeStatus?.isOpen ? 'bg-green-500' : 'bg-red-500'} z-10`} />
             </div>
@@ -275,19 +276,19 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                     </h1>
                     <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-600 rounded-full shadow-lg shadow-blue-600/20">
                       <span className="material-symbols-outlined text-white !text-[16px] md:!text-[18px]">verified</span>
-                      <span className="text-[10px] md:text-[11px] font-black text-white uppercase tracking-wider">Rəsmi Mağaza</span>
+                      <span className="text-[10px] md:text-[11px] font-black text-white uppercase tracking-wider">{t('storeDetail.officialStore')}</span>
                     </div>
                   </div>
 
                   {/* Headline & Location */}
                   <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
                     <p className="text-lg md:text-xl font-bold text-gray-700 text-center md:text-left">
-                      {store.headline || 'Bütün növ məhsulların satışı'}
+                      {(language === 'ru' ? store.headlineRu : store.headline) || t('storeDetail.defaultHeadline')}
                     </p>
                     <div className="flex items-center gap-1.5 text-gray-400 font-medium text-sm">
                       <span className="hidden md:block">•</span>
                       <span className="material-symbols-outlined !text-[18px]">location_on</span>
-                      {store.address?.split(',')[0]}
+                      {language === 'ru' && store.cityNameRu ? store.cityNameRu : (store.cityName || store.address?.split(',')[0])}
                     </div>
                   </div>
 
@@ -297,17 +298,17 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                       <div className="flex items-center gap-4 text-gray-600">
                         <div className="flex items-center gap-1.5">
                           <span className="text-gray-900 font-black text-base md:text-lg">{store.adCount || 0}</span>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">elan</span>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">{t('shops.ads')}</span>
                         </div>
                         <div className="w-px h-4 bg-gray-200" />
                         <div className="flex items-center gap-1.5">
                           <span className="text-gray-900 font-black text-base md:text-lg">{store.viewCount || 0}</span>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">baxış</span>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">{t('shops.views')}</span>
                         </div>
                         <div className="w-px h-4 bg-gray-200" />
                         <div className="flex items-center gap-1.5">
                           <span className="text-gray-900 font-black text-base md:text-lg">{followerCount}</span>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">izləyici</span>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">{t('storeDetail.followers')}</span>
                         </div>
                       </div>
                     </div>
@@ -325,7 +326,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                 <div className="flex items-center justify-center md:justify-start gap-3 md:pb-2 w-full lg:w-auto">
                   <button
                     onClick={handleToggleFollow}
-                    className={`flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 md:px-10 h-14 md:h-16 rounded-[1.25rem] shadow-xl transition-all active:scale-95 font-bold text-sm ${isFollowing
+                    className={`flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 md:px-10 h-14 md:h-16 rounded-[1.25rem] shadow-xl transition-all active:scale-95 font-bold text-sm cursor-pointer ${isFollowing
                       ? 'bg-gray-100 text-gray-500 hover:bg-gray-200 shadow-none'
                       : 'bg-primary text-white shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] active:shadow-none'
                       }`}
@@ -333,15 +334,15 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                     <span className="material-symbols-outlined !text-[20px] md:!text-[24px]">
                       {isFollowing ? 'person_remove' : 'person_add'}
                     </span>
-                    {isFollowing ? 'İzlənilir' : 'İzləyici ol'}
+                    {isFollowing ? t('storeDetail.followed') : t('storeDetail.followStore')}
                   </button>
-                  <button className="flex items-center justify-center size-14 md:size-16 bg-white text-gray-400 rounded-[1.25rem] border border-gray-100 hover:border-primary/20 hover:text-primary active:scale-95 transition-all shadow-lg hover:shadow-xl group">
+                  <button className="flex items-center justify-center size-14 md:size-16 bg-white text-gray-400 rounded-[1.25rem] border border-gray-100 hover:border-primary/20 hover:text-primary active:scale-95 transition-all shadow-lg hover:shadow-xl group cursor-pointer">
                     <span className="material-symbols-outlined !text-[22px] md:!text-[26px] group-hover:rotate-12 transition-transform">share</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => setIsReportModalOpen(true)}
-                    className="flex items-center justify-center size-14 md:size-16 bg-white text-gray-400 rounded-[1.25rem] border border-gray-100 hover:border-red-500/20 hover:text-red-500 active:scale-95 transition-all shadow-lg hover:shadow-xl group"
-                    title="Şikayət et"
+                    className="flex items-center justify-center size-14 md:size-16 bg-white text-gray-400 rounded-[1.25rem] border border-gray-100 hover:border-red-500/20 hover:text-red-500 active:scale-95 transition-all shadow-lg hover:shadow-xl group cursor-pointer"
+                    title={t('storeDetail.report')}
                   >
                     <span className="material-symbols-outlined !text-[22px] md:!text-[26px] group-hover:rotate-12 transition-transform">flag</span>
                   </button>
@@ -358,7 +359,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
           <div className="lg:col-span-1 space-y-6">
             {/* Work Hours Accordion Style */}
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-5 transition-all hover:shadow-md">
-              <div 
+              <div
                 className="flex items-center justify-between cursor-pointer group/work"
                 onClick={() => setIsWorkHoursExpanded(!isWorkHoursExpanded)}
               >
@@ -366,7 +367,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                   <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center">
                     <span className="material-symbols-outlined !text-xl text-primary font-bold">schedule</span>
                   </div>
-                  <h3 className="font-bold text-gray-900 text-lg">İş saatları</h3>
+                  <h3 className="font-bold text-gray-900 text-lg">{t('storeDetail.workHours')}</h3>
                 </div>
                 <div className={`size-8 rounded-lg bg-gray-50 flex items-center justify-center transition-all ${isWorkHoursExpanded ? 'bg-primary/10 text-primary' : 'text-gray-400 group-hover/work:bg-gray-100'}`}>
                   <span className={`material-symbols-outlined !text-xl transition-transform duration-300 ${isWorkHoursExpanded ? 'rotate-180' : ''}`}>expand_more</span>
@@ -375,8 +376,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
 
               {isWorkHoursExpanded && (
                 <div className="space-y-1.5 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                  {['Bazar ertəsi', 'Çərşənbə axşamı', 'Çərşənbə', 'Cümə axşamı', 'Cümə', 'Şənbə', 'Bazar'].map((dayAz, idx) => {
-                    const dow = (idx + 1) % 7;
+                  {[1, 2, 3, 4, 5, 6, 0].map((dow) => {
                     const sch = store.workSchedules.find(s => {
                       if (typeof s.dayOfWeek === 'number') return s.dayOfWeek === dow;
                       const dayMap: Record<string, number> = {
@@ -388,15 +388,15 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                     });
                     const isToday = new Date().getDay() === dow;
                     return (
-                      <div key={dayAz} className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${isToday ? 'bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-gray-50'}`}>
-                        <span className={`text-sm ${isToday ? 'text-primary font-black' : 'text-gray-600 font-medium'}`}>{dayAz}</span>
+                      <div key={dow} className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${isToday ? 'bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-gray-50'}`}>
+                        <span className={`text-sm ${isToday ? 'text-primary font-black' : 'text-gray-600 font-medium'}`}>{t(`common.days.${dow}`)}</span>
                         <div className="flex items-center gap-2">
                           {sch && (sch.isOpen24Hours || (sch.openTime && sch.closeTime)) ? (
                             <span className={`text-[13px] font-bold ${isToday ? 'text-gray-900' : 'text-gray-700'}`}>
-                              {sch.isOpen24Hours ? '24 saat' : `${sch.openTime?.slice(0, 5)} - ${sch.closeTime?.slice(0, 5)}`}
+                              {sch.isOpen24Hours ? t('cabinet.settings.open24h') : `${sch.openTime?.slice(0, 5)} - ${sch.closeTime?.slice(0, 5)}`}
                             </span>
                           ) : (
-                            <span className="text-[13px] font-bold text-red-500">Bağlıdır</span>
+                            <span className="text-[13px] font-bold text-red-500">{t('cabinet.settings.closed')}</span>
                           )}
                         </div>
                       </div>
@@ -412,7 +412,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                 <div className="size-10 rounded-xl bg-blue-50 flex items-center justify-center">
                   <span className="material-symbols-outlined !text-xl text-blue-600 font-bold">info</span>
                 </div>
-                <h3 className="font-bold text-gray-900 text-lg">Məlumat</h3>
+                <h3 className="font-bold text-gray-900 text-lg">{t('footer.information')}</h3>
               </div>
 
               <div className="space-y-6">
@@ -421,14 +421,14 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                     <span className="material-symbols-outlined !text-[22px]">location_on</span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-1">Ünvan</p>
+                    <p className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-1">{t('storeDetail.address')}</p>
                     <p className="text-sm font-bold text-gray-800 leading-snug">{store.address}</p>
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`}
                       target="_blank"
                       className="text-[11px] font-black text-primary hover:text-primary/80 transition-colors mt-2 inline-flex items-center gap-1 uppercase tracking-wider"
                     >
-                      Xəritədə bax <span className="material-symbols-outlined !text-[14px]">open_in_new</span>
+                      {t('storeDetail.mapView')} <span className="material-symbols-outlined !text-[14px]">open_in_new</span>
                     </a>
                   </div>
                 </div>
@@ -438,7 +438,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                     <span className="material-symbols-outlined !text-[22px]">call</span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-1">Əlaqə nömrələri</p>
+                    <p className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-1">{t('auth.phoneNumber')}</p>
                     <div className="space-y-1.5 mt-1">
                       <a href={`tel:${store.contactNumber.replace(/\s+/g, '')}`} className="block text-base font-black text-gray-900 tracking-tight hover:text-primary transition-colors">{store.contactNumber}</a>
                       {store.contactNumber2 && <a href={`tel:${store.contactNumber2.replace(/\s+/g, '')}`} className="block text-base font-black text-gray-900 tracking-tight hover:text-primary transition-colors">{store.contactNumber2}</a>}
@@ -453,7 +453,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                       <span className="material-symbols-outlined !text-[22px]">language</span>
                     </div>
                     <div className="flex-1">
-                      <p className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-1">Vebsayt</p>
+                      <p className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-1">{t('cabinet.settings.website')}</p>
                       <a href={store.website.startsWith('http') ? store.website : `https://${store.website}`} target="_blank" className="text-sm font-bold text-primary hover:underline truncate block max-w-[180px]">
                         {store.website.replace(/^https?:\/\//, '')}
                       </a>
@@ -470,9 +470,9 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                   </a>
                 )}
                 {(store.tiktok || (store as any).TikTok || (store as any).tikTok) && (
-                  <a 
-                    href={`https://tiktok.com/@${((store.tiktok || (store as any).TikTok || (store as any).tikTok) || '').replace('@', '')}`} 
-                    target="_blank" 
+                  <a
+                    href={`https://tiktok.com/@${((store.tiktok || (store as any).TikTok || (store as any).tikTok) || '').replace('@', '')}`}
+                    target="_blank"
                     className="size-12 rounded-2xl bg-black text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-md"
                   >
                     <i className="fa-brands fa-tiktok text-2xl"></i>
@@ -496,10 +496,10 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                 <div className="size-10 rounded-xl bg-orange-50 flex items-center justify-center">
                   <span className="material-symbols-outlined !text-xl text-orange-600 font-bold">description</span>
                 </div>
-                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Mağaza haqqında</h2>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">{t('storeDetail.aboutStore')}</h2>
               </div>
               <p className="text-gray-600 leading-relaxed whitespace-pre-line text-lg font-medium">
-                {store.description}
+                {language === 'ru' && store.descriptionRu ? store.descriptionRu : store.description}
               </p>
             </div>
 
@@ -510,13 +510,13 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                   <div className="size-10 rounded-xl bg-purple-50 flex items-center justify-center">
                     <span className="material-symbols-outlined !text-xl text-purple-600 font-bold">collections</span>
                   </div>
-                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Mağaza Qalereyası</h2>
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">{t('storeDetail.gallery')}</h2>
                 </div>
-                
+
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                   {store.photos.map((photo, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="group relative aspect-square rounded-xl bg-gray-50 overflow-hidden cursor-zoom-in transition-all hover:shadow-xl hover:scale-[1.02] border border-gray-100"
                       onClick={() => window.open(getImageUrl(photo), '_blank')}
                     >
@@ -539,24 +539,24 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
             <div>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-6 border-b border-gray-100 overflow-visible">
                 <div className="space-y-1">
-                  <h2 className="text-3xl font-black text-gray-900 tracking-tight">Mağazanın elanları</h2>
-                  <p className="text-sm text-gray-400 font-medium">Toplam {filteredAds.length} nəticə tapıldı</p>
+                  <h2 className="text-3xl font-black text-gray-900 tracking-tight">{t('product.storeAds')}</h2>
+                  <p className="text-sm text-gray-400 font-medium">{t('storeDetail.allAdsFound', { count: filteredAds.length })}</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4">
                   {/* Custom Ad Sort Dropdown */}
                   <div className="relative" onClick={(e) => e.stopPropagation()}>
-                    <button 
+                    <button
                       onClick={() => {
                         setIsSortDropdownOpen(!isSortDropdownOpen);
                       }}
-                      className="h-12 pl-5 pr-12 rounded-2xl border border-gray-200 bg-white text-sm font-bold text-gray-700 outline-none hover:border-primary transition-all shadow-sm flex items-center justify-between min-w-[200px]"
+                      className="h-12 pl-5 pr-12 rounded-2xl border border-gray-200 bg-white text-sm font-bold text-gray-700 outline-none hover:border-primary transition-all shadow-sm flex items-center justify-between min-w-[200px] cursor-pointer"
                     >
                       <span className="truncate">
-                        {adSortOrder === 'newest' && 'Ən yeni'}
-                        {adSortOrder === 'oldest' && 'Ən köhnə'}
-                        {adSortOrder === 'price-asc' && 'Ucuzdan bahaya'}
-                        {adSortOrder === 'price-desc' && 'Bahadan ucuza'}
+                        {adSortOrder === 'newest' && t('cabinet.settings.new')}
+                        {adSortOrder === 'oldest' && t('listings.sortByDate')}
+                        {adSortOrder === 'price-asc' && t('listings.sortByCheap')}
+                        {adSortOrder === 'price-desc' && t('listings.sortByExpensive')}
                       </span>
                       <span className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform ${isSortDropdownOpen ? 'rotate-180 text-primary' : ''}`}>expand_more</span>
                     </button>
@@ -564,12 +564,12 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                     {isSortDropdownOpen && (
                       <div className="absolute top-[calc(100%+8px)] right-0 w-full min-w-[200px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
                         {[
-                          { id: 'newest', label: 'Ən yeni' },
-                          { id: 'oldest', label: 'Ən köhnə' },
-                          { id: 'price-asc', label: 'Ucuzdan bahaya' },
-                          { id: 'price-desc', label: 'Bahadan ucuza' }
+                          { id: 'newest', label: t('cabinet.settings.new') },
+                          { id: 'oldest', label: t('listings.sortByDate') },
+                          { id: 'price-asc', label: t('listings.sortByCheap') },
+                          { id: 'price-desc', label: t('listings.sortByExpensive') }
                         ].map(opt => (
-                          <div 
+                          <div
                             key={opt.id}
                             className={`px-5 py-3.5 text-sm font-semibold cursor-pointer transition-all ${adSortOrder === opt.id ? 'text-primary bg-primary/5' : 'text-gray-600 hover:bg-gray-50 hover:pl-7'}`}
                             onClick={() => { setAdSortOrder(opt.id); setIsSortDropdownOpen(false); }}
@@ -586,7 +586,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors !text-[20px]">search</span>
                     <input
                       type="text"
-                      placeholder="Mağaza daxili axtarış..."
+                      placeholder={t('storeDetail.searchInStore')}
                       value={adSearchQuery}
                       onChange={(e) => setAdSearchQuery(e.target.value)}
                       className="h-12 pl-12 pr-4 rounded-2xl border border-gray-200 bg-white text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none w-full md:w-64 shadow-sm"
@@ -600,13 +600,12 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                 <div className="flex items-center gap-3 overflow-x-auto pb-6 scrollbar-hide -mx-2 px-2 mb-4">
                   <button
                     onClick={() => setSelectedCategory('all')}
-                    className={`h-11 px-6 rounded-2xl whitespace-nowrap text-sm font-bold transition-all shadow-sm flex items-center gap-2 ${
-                      selectedCategory === 'all' 
-                        ? 'bg-primary text-white shadow-primary/20 scale-105' 
-                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                    }`}
+                    className={`h-11 px-6 rounded-2xl whitespace-nowrap text-sm font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer ${selectedCategory === 'all'
+                      ? 'bg-primary text-white shadow-primary/20 scale-105'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                      }`}
                   >
-                    Bütün elanlar {ads.length}
+                    {t('storeDetail.allAds')} {ads.length}
                   </button>
                   {availableCategories.map(cat => {
                     const count = ads.filter(a => a.category?.name === cat).length;
@@ -614,13 +613,12 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                       <button
                         key={cat}
                         onClick={() => setSelectedCategory(cat)}
-                        className={`h-11 px-6 rounded-2xl whitespace-nowrap text-sm font-bold transition-all shadow-sm ${
-                          selectedCategory === cat 
-                            ? 'bg-primary text-white shadow-primary/20 scale-105' 
-                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                        }`}
+                        className={`h-11 px-6 rounded-2xl whitespace-nowrap text-sm font-bold transition-all shadow-sm cursor-pointer ${selectedCategory === cat
+                          ? 'bg-primary text-white shadow-primary/20 scale-105'
+                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                          }`}
                       >
-                       {cat} <span className={selectedCategory === cat ? 'text-white/80' : 'text-gray-400'}>{count}</span>
+                        {cat} <span className={selectedCategory === cat ? 'text-white/80' : 'text-gray-400'}>{count}</span>
                       </button>
                     )
                   })}
@@ -634,13 +632,13 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                   <div className="size-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="material-symbols-outlined text-4xl text-gray-300">search_off</span>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900">Heç bir elan tapılmadı</h3>
-                  <p className="text-gray-500 mt-1 max-w-xs mx-auto">Axtarış kriteriyalarınıza uyğun nəticə tapılmadı.</p>
+                  <h3 className="text-lg font-bold text-gray-900">{t('storeDetail.noAds')}</h3>
+                  <p className="text-gray-500 mt-1 max-w-xs mx-auto">{t('storeDetail.noAdsDesc')}</p>
                   <button
                     onClick={() => { setAdSearchQuery(''); setActiveTab('all'); setSelectedCategory('all'); }}
-                    className="mt-6 text-primary font-bold hover:underline"
+                    className="mt-6 text-primary font-bold hover:underline cursor-pointer"
                   >
-                    Filtrləri təmizlə
+                    {t('storeDetail.clearFilters')}
                   </button>
                 </div>
               )}
@@ -648,7 +646,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
           </div>
         </div>
       </div>
-      
+
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
@@ -657,23 +655,22 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
       />
 
       {/* Mobile Sticky Action Bar */}
-      <div 
-        className={`lg:hidden fixed left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${
-          isNavVisible 
-            ? 'bottom-[calc(54px+max(9px,env(safe-area-inset-bottom)))]' 
-            : 'bottom-0'
-        }`}
+      <div
+        className={`lg:hidden fixed left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${isNavVisible
+          ? 'bottom-[calc(54px+max(9px,env(safe-area-inset-bottom)))]'
+          : 'bottom-0'
+          }`}
       >
         <a
           href={`tel:${store.contactNumber.replace(/\s+/g, '')}`}
           className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#22C55E] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(34,197,94,0.3)] active:scale-95 transition-all"
         >
           <span className="material-symbols-outlined !text-[20px]">call</span>
-          Zəng et
+          {t('product.call')}
         </a>
-        <button className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#3B82F6] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(59,130,246,0.3)] active:scale-95 transition-all">
+        <button className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#3B82F6] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(59,130,246,0.3)] active:scale-95 transition-all cursor-pointer">
           <span className="material-symbols-outlined !text-[20px]">chat</span>
-          Mesaj yaz
+          {t('product.sendMessage')}
         </button>
       </div>
     </main>

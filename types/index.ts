@@ -11,6 +11,7 @@ export interface User {
 export interface Location {
   id: string;
   city: string;
+  cityRu?: string;
   region: string;
   country: string;
   latitude?: number;
@@ -20,6 +21,7 @@ export interface Location {
 export interface Category {
   id: string;
   name: string;
+  nameRu?: string;
   slug: string;
   icon?: string;
   image?: string;

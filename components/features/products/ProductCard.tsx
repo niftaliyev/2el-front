@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from '@/types';
-import { formatPrice, formatRelativeTime, getImageUrl, generateSlug } from '@/lib/utils';
+import { formatPrice, getImageUrl, generateSlug } from '@/lib/utils';
 import { ROUTES } from '@/constants';
 import { adService } from '@/services/ad.service';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useFormatRelativeTime } from '@/hooks/useFormatRelativeTime';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProductCardProps {
   product: Product;
@@ -20,6 +22,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [isChangingFav, setIsChangingFav] = useState(false);
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const formatRelativeTime = useFormatRelativeTime();
+  const { language } = useLanguage();
 
   const mainImage = product.images?.[0] || '/placeholder-product.jpg';
   const [imageSrc, setImageSrc] = useState(mainImage);
@@ -132,7 +136,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="flex-grow">
           {/* Price */}
           <div className="flex items-baseline gap-0.5 mb-1 h-6">
-            {product.category?.name === 'Tanışlıq' || product.subCategory?.name === 'Tanışlıq' ? null : (
+            {product.category?.slug?.includes('tanisliq') || product.subCategory?.slug?.includes('tanisliq') ? null : (
               <>
                 <span className="text-gray-900 font-bold text-sm sm:text-base">
                   {formatPrice(product.price, product.currency)}
@@ -153,7 +157,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="pt-2 mt-auto border-t border-gray-100 flex items-center justify-between text-[11px] sm:text-[13px] text-gray-500 font-medium tracking-tight">
           <div className="flex items-center gap-1 truncate max-w-[55%]">
             <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] text-gray-400">location_on</span>
-            <span className="truncate">{product.location.city}</span>
+            <span className="truncate">{language === 'ru' && product.location.cityRu ? product.location.cityRu : product.location.city}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-gray-400 font-normal">{mounted ? formatRelativeTime(product.createdAt) : '\u00A0'}</span>

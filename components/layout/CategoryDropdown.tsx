@@ -6,6 +6,7 @@ import { CATEGORIES, ROUTES } from '@/constants';
 import { Category } from '@/types';
 import { adService } from '@/services/ad.service';
 import { generateSlug } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ICONS: Record<string, string> = {
   'Elektronika': 'devices',
@@ -29,6 +30,7 @@ interface CategoryDropdownProps {
 }
 
 export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownProps) {
+  const { language, t } = useLanguage();
   const [categories, setCategories] = useState<any[]>([...CATEGORIES]);
   const [activeMain, setActiveMain] = useState<any>(null);
   const [activeSub, setActiveSub] = useState<any>(null);
@@ -42,13 +44,13 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
         if (tree && tree.length > 0) {
           const dynamicTree = tree.map(cat => ({
             id: cat.id,
-            name: cat.name,
+            name: language === 'ru' && cat.nameRu ? cat.nameRu : cat.name,
             slug: generateSlug(cat.name),
             icon: ICONS[cat.name] || 'category',
             description: '',
             children: cat.children?.map(c => ({
               id: c.id,
-              name: c.name,
+              name: language === 'ru' && c.nameRu ? c.nameRu : c.name,
               slug: generateSlug(c.name)
             })) || []
           }));
@@ -58,7 +60,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
       } catch (e) { }
     };
     fetchTree();
-  }, []);
+  }, [language]);
 
   const handleActiveSubChange = async (sub: any) => {
     setActiveSub(sub);
@@ -68,7 +70,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
       if (data && data.length > 0) {
         setSubCategoriesForActive(data.map((d: any) => ({
           id: d.id,
-          name: d.name,
+          name: language === 'ru' && d.nameRu ? d.nameRu : d.name,
           slug: generateSlug(d.name)
         })));
       } else {
@@ -88,7 +90,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
       setActiveSub(null);
       setSubCategoriesForActive([]);
     }
-  }, [isOpen, categories]);
+  }, [isOpen, categories, language]);
 
   // Lock body scroll when open on mobile
   useEffect(() => {
@@ -117,7 +119,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
           >
             <span className="material-symbols-outlined text-gray-700">close</span>
           </button>
-          <h2 className="text-lg font-bold text-gray-900">Kataloq</h2>
+          <h2 className="text-lg font-bold text-gray-900">{t('nav.catalog')}</h2>
           <div className="size-10" /> {/* Spacer for centering */}
         </div>
 
@@ -255,7 +257,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
               <span className="material-symbols-outlined text-5xl mb-4 opacity-20">
                 category
               </span>
-              <p className="text-sm font-medium">Alt kateqoriya seçin</p>
+              <p className="text-sm font-medium">{t('catalog.selectSubcategory')}</p>
             </div>
           ) : activeSub && subCategoriesForActive.length === 0 ? (
             <div className="grid grid-cols-1 gap-4">
@@ -264,12 +266,12 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
                 className="text-lg font-bold text-gray-900 hover:text-primary transition-colors flex items-center gap-2"
                 onClick={onClose}
               >
-                {activeSub.name} bölməsinə keç
+                {t('catalog.goToSection', { name: activeSub.name })}
                 <span className="material-symbols-outlined">arrow_forward</span>
               </Link>
               <div className="h-[2px] w-12 bg-primary rounded-full" />
               <p className="text-sm text-gray-500">
-                Bu bölmədəki bütün elanları görmək üçün yuxarıdakı keçidə klikləyin.
+                {t('catalog.viewAllInCategory')}
               </p>
             </div>
           ) : null}

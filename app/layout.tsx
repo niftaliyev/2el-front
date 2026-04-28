@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header, MobileBottomNav } from "@/components/layout";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Toaster } from 'sonner';
 
 const geistSans = Geist({
@@ -54,14 +55,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen pb-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] md:pb-0`}
       >
         <div className="flex flex-col min-h-screen w-full relative">
-          <AuthProvider>
-            <Toaster richColors position="top-right" closeButton />
-            <Header />
-            <main className="flex-1 flex flex-col w-full relative">
-              {children}
-            </main>
-            <MobileBottomNav />
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <Toaster richColors position="top-right" closeButton />
+              <Header />
+              <main className="flex-1 flex flex-col w-full relative">
+                {children}
+              </main>
+              <MobileBottomNav />
+            </AuthProvider>
+          </LanguageProvider>
         </div>
       </body>
     </html>

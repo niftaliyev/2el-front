@@ -77,7 +77,7 @@ export default function HomeContent() {
             currency: '₼',
             images: imageUrl ? [imageUrl] : [],
             category: { id: ad.categoryId ?? '1', name: ad.category ?? '', slug: '' },
-            location: { id: '1', city: ad.city ?? '', region: '', country: 'Azerbaijan' },
+            location: { id: '1', city: ad.city ?? '', cityRu: ad.cityRu, region: '', country: 'Azerbaijan' },
             seller: { id: '1', name: '', email: '', createdAt: new Date(), isVerified: false },
             condition: ad.isNew ? 'new' : 'used',
             status: 'active',

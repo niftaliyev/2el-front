@@ -4,6 +4,7 @@ import { LegalPolicy, StaticPage, PrivacyPolicy, HelpCategory } from '@/types/he
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PagesSidebarProps {
   helpCategories?: HelpCategory[];
@@ -13,12 +14,12 @@ interface PagesSidebarProps {
 }
 
 export default function PagesSidebar({ helpCategories = [], legalPolicies, staticPages, privacyPolicy }: PagesSidebarProps) {
+  const { t, language } = useLanguage();
   const pathname = usePathname();
 
   const specialLinks = [
-    { name: 'Kateqoriyalar üzrə limitlər', href: '/pages/limits_by_category' },
-    { name: 'Ödənişli xidmətlər', href: '/pages/packages' },
-    { name: 'Paketlər', href: '/pages/packages' },
+    { name: t('burgerMenu.categoryLimits'), href: '/pages/limits_by_category' },
+    { name: t('burgerMenu.paidServices'), href: '/pages/packages' },
   ];
 
   const renderLink = (name: string, href: string) => {
@@ -47,14 +48,14 @@ export default function PagesSidebar({ helpCategories = [], legalPolicies, stati
     <div className="flex flex-col sticky top-24 bg-gray-50/50 p-2 rounded-2xl border border-gray-100">
       {/* SECTION 1: Help / FAQ */}
       <div className="flex flex-col gap-0.5">
-        {helpCategories.map(cat => renderLink(cat.name, `/help/${cat.slug}`))}
+        {helpCategories.map(cat => renderLink(language === 'ru' && (cat.nameRu || cat.NameRu) ? (cat.nameRu || cat.NameRu)! : cat.name, `/help/${cat.slug}`))}
         
         {helpCategories.length === 0 && (
           <Link
             href="/help"
             className="px-4 py-2 rounded-lg text-[14px] font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all"
           >
-            Yardım / FAQ
+            {t('burgerMenu.help')}
           </Link>
         )}
       </div>
@@ -66,18 +67,18 @@ export default function PagesSidebar({ helpCategories = [], legalPolicies, stati
       <div className="flex flex-col gap-0.5">
         {/* Legal Policies */}
         {legalPolicies.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)).map(policy => 
-          renderLink(policy.title, `/pages/${policy.slug}`)
+          renderLink(language === 'ru' && (policy.titleRu || policy.TitleRu) ? (policy.titleRu || policy.TitleRu)! : policy.title, `/pages/${policy.slug}`)
         )}
         
         {/* Dynamic / Special Pages */}
         {specialLinks.map(link => renderLink(link.name, link.href))}
 
         {/* Privacy Policy */}
-        {privacyPolicy && renderLink(privacyPolicy.title, `/pages/${privacyPolicy.slug}`)}
+        {privacyPolicy && renderLink(language === 'ru' && (privacyPolicy.titleRu || privacyPolicy.TitleRu) ? (privacyPolicy.titleRu || privacyPolicy.TitleRu)! : privacyPolicy.title, `/pages/${privacyPolicy.slug}`)}
 
         {/* Static Pages */}
         {staticPages.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)).map(page => 
-          renderLink(page.title, `/pages/${page.slug}`)
+          renderLink(language === 'ru' && (page.titleRu || page.TitleRu) ? (page.titleRu || page.TitleRu)! : page.title, `/pages/${page.slug}`)
         )}
       </div>
     </div>

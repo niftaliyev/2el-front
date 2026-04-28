@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Thumbs, FreeMode } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
-import { formatPrice, formatRelativeTime, getImageUrl, generateSlug } from '@/lib/utils';
+import { formatPrice, getImageUrl, generateSlug } from '@/lib/utils';
 import { adService } from '@/services/ad.service';
 import { AdDetail } from '@/types/api';
 import { Product } from '@/types';
@@ -16,6 +16,8 @@ import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
 import ReportModal from '@/components/features/ReportModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useFormatRelativeTime } from '@/hooks/useFormatRelativeTime';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -27,6 +29,8 @@ import { useScrollDirection } from '@/hooks/useScrollDirection';
 export default function ProductDetailContent({ id }: { id: string }) {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
+  const { t, language } = useLanguage();
+  const formatRelativeTime = useFormatRelativeTime();
 
   const [product, setProduct] = useState<AdDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,9 +59,9 @@ export default function ProductDetailContent({ id }: { id: string }) {
     const lowerName = name.toLowerCase();
 
     if (lowerName.includes('kredit') || lowerName.includes('barter') || lowerName.includes('çatdırılma') || lowerName.includes('zəmanət')) {
-      return isTrue ? 'Var' : 'Yoxdur';
+      return isTrue ? t('product.available') : t('product.notAvailable');
     }
-    return isTrue ? 'Bəli' : 'Xeyir';
+    return isTrue ? t('common.yes') : t('common.no');
   };
 
   useEffect(() => {
@@ -85,8 +89,8 @@ export default function ProductDetailContent({ id }: { id: string }) {
                 price: ad.price,
                 currency: '₼',
                 images: imageUrl ? [imageUrl] : [],
-                category: { name: ad.categoryName || '', slug: '' },
-                location: { city: ad.city || '' },
+                category: { name: language === 'ru' && ad.categoryRu ? ad.categoryRu : (ad.categoryName || ad.category || ''), slug: '' },
+                location: { city: ad.city || '', cityRu: ad.cityRu },
                 createdAt: new Date(ad.createdDate),
                 isStore: true,
                 store: {
@@ -114,9 +118,9 @@ export default function ProductDetailContent({ id }: { id: string }) {
                   price: ad.price,
                   currency: '₼',
                   images: imageUrl ? [imageUrl] : [],
-                  category: { name: ad.category, slug: ad.categorySlug },
-                  subCategory: ad.subCategorySlug ? { name: '', slug: ad.subCategorySlug } : undefined,
-                  location: { city: ad.city ?? '' },
+                  category: { name: language === 'ru' && ad.categoryRu ? ad.categoryRu : ad.category, slug: ad.categorySlug },
+                  subCategory: ad.subCategorySlug ? { name: language === 'ru' && ad.subCategoryRu ? ad.subCategoryRu : (ad.subCategory || ''), slug: ad.subCategorySlug } : undefined,
+                  location: { city: ad.city ?? '', cityRu: ad.cityRu },
                   createdAt: new Date(ad.createdDate),
                   isPremium: ad.isPremium,
                   isFeatured: true,
@@ -142,9 +146,9 @@ export default function ProductDetailContent({ id }: { id: string }) {
                   price: ad.price,
                   currency: '₼',
                   images: imageUrl ? [imageUrl] : [],
-                  category: { name: ad.category, slug: ad.categorySlug },
-                  subCategory: ad.subCategorySlug ? { name: '', slug: ad.subCategorySlug } : undefined,
-                  location: { city: ad.city ?? '' },
+                  category: { name: language === 'ru' && ad.categoryRu ? ad.categoryRu : ad.category, slug: ad.categorySlug },
+                  subCategory: ad.subCategorySlug ? { name: language === 'ru' && ad.subCategoryRu ? ad.subCategoryRu : (ad.subCategory || ''), slug: ad.subCategorySlug } : undefined,
+                  location: { city: ad.city ?? '', cityRu: ad.cityRu },
                   createdAt: new Date(ad.createdDate),
                   isPremium: ad.isPremium,
                   isFeatured: ad.isVip,
@@ -158,14 +162,14 @@ export default function ProductDetailContent({ id }: { id: string }) {
         }
       } catch (err: any) {
         console.error('Error fetching product:', err);
-        setError('Elanı yükləyərkən xəta baş verdi');
+        setError(t('product.loadError'));
       } finally {
         setLoading(false);
       }
     };
 
     if (id) fetchProduct();
-  }, [id]);
+  }, [id, language]);
 
   if (loading) {
     return (
@@ -178,8 +182,8 @@ export default function ProductDetailContent({ id }: { id: string }) {
   if (error || !product) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen gap-4">
-        <p className="text-xl font-bold text-gray-800">{error || 'Elan tapılmadı'}</p>
-        <Link href="/" className="text-primary hover:underline">Ana səhifəyə qayıt</Link>
+        <p className="text-xl font-bold text-gray-800">{error || t('product.notFound')}</p>
+        <Link href="/" className="text-primary hover:underline">{t('product.goHome')}</Link>
       </div>
     );
   }
@@ -232,9 +236,8 @@ export default function ProductDetailContent({ id }: { id: string }) {
     });
   };
 
-  const getDayNameAz = (day: number) => {
-    const days = ['Bazar', 'Bazar ertəsi', 'Çərşənbə axşamı', 'Çərşənbə', 'Cümə axşamı', 'Cümə', 'Şənbə'];
-    return days[day];
+  const getDayName = (day: number) => {
+    return t(`common.days.${day}`);
   };
 
   const getStoreStatus = () => {
@@ -249,17 +252,17 @@ export default function ProductDetailContent({ id }: { id: string }) {
         const nextDay = (day + i) % 7;
         const nextSch = getSchForDay(nextDay);
         if (nextSch && (nextSch.isOpen24Hours || nextSch.openTime)) {
-          const openStr = nextSch.isOpen24Hours ? '24 saat' : `saat ${nextSch.openTime?.slice(0, 5)}-da`;
-          return { isOpen: false, text: `Bağlıdır (${nextDay === (day + 1) % 7 ? 'sabah' : getDayNameAz(nextDay)} ${openStr} açılır)` };
+          const openStr = nextSch.isOpen24Hours ? t('common.storeStatus.open24h') : t('common.storeStatus.opensAt', { time: nextSch.openTime?.slice(0, 5) || '' });
+          return { isOpen: false, text: `${t('common.storeStatus.closed')} (${nextDay === (day + 1) % 7 ? t('common.storeStatus.tomorrow') : getDayName(nextDay)} ${openStr})` };
         }
       }
-      return { isOpen: false, text: 'Bağlıdır' };
+      return { isOpen: false, text: t('common.storeStatus.closed') };
     }
 
-    if (currentSchedule.isOpen24Hours) return { isOpen: true, text: 'Açıqdır (24 saat)' };
+    if (currentSchedule.isOpen24Hours) return { isOpen: true, text: t('common.storeStatus.open24h') };
 
     if (!currentSchedule.openTime || !currentSchedule.closeTime) {
-      return { isOpen: false, text: 'Bağlıdır' };
+      return { isOpen: false, text: t('common.storeStatus.closed') };
     }
 
     const [nowH, nowM] = [now.getHours(), now.getMinutes()];
@@ -271,19 +274,19 @@ export default function ProductDetailContent({ id }: { id: string }) {
     const endTotal = endH * 60 + endM;
 
     if (nowTotal >= startTotal && nowTotal < endTotal) {
-      return { isOpen: true, text: `Açıqdır (saat ${currentSchedule.closeTime.slice(0, 5)}-da bağlanır)` };
+      return { isOpen: true, text: `${t('common.storeStatus.open')} (${t('common.storeStatus.closesAt', { time: currentSchedule.closeTime.slice(0, 5) })})` };
     } else if (nowTotal < startTotal) {
-      return { isOpen: false, text: `Bağlıdır (saat ${currentSchedule.openTime.slice(0, 5)}-da açılır)` };
+      return { isOpen: false, text: `${t('common.storeStatus.closed')} (${t('common.storeStatus.opensAt', { time: currentSchedule.openTime.slice(0, 5) })})` };
     } else {
       for (let i = 1; i <= 7; i++) {
         const nextDay = (day + i) % 7;
         const nextSch = getSchForDay(nextDay);
         if (nextSch && (nextSch.isOpen24Hours || nextSch.openTime)) {
-          const openStr = nextSch.isOpen24Hours ? '24 saat' : `saat ${nextSch.openTime?.slice(0, 5)}-da`;
-          return { isOpen: false, text: `Bağlıdır (${nextDay === (day + 1) % 7 ? 'sabah' : getDayNameAz(nextDay)} ${openStr} açılır)` };
+          const openStr = nextSch.isOpen24Hours ? t('common.storeStatus.open24h') : t('common.storeStatus.opensAt', { time: nextSch.openTime?.slice(0, 5) || '' });
+          return { isOpen: false, text: `${t('common.storeStatus.closed')} (${nextDay === (day + 1) % 7 ? t('common.storeStatus.tomorrow') : getDayName(nextDay)} ${openStr})` };
         }
       }
-      return { isOpen: false, text: 'Bağlıdır' };
+      return { isOpen: false, text: t('common.storeStatus.closed') };
     }
   };
 
@@ -291,7 +294,10 @@ export default function ProductDetailContent({ id }: { id: string }) {
 
   const isDatingAd = product?.category?.toLowerCase() === 'tanışlıq' ||
     product?.parentCategoryName?.toLowerCase() === 'tanışlıq' ||
-    product?.subCategory?.toLowerCase() === 'tanışlıq';
+    product?.subCategory?.toLowerCase() === 'tanışlıq' ||
+    product?.categoryRu?.toLowerCase() === 'знакомства' ||
+    product?.parentCategoryNameRu?.toLowerCase() === 'знакомства' ||
+    product?.subCategoryRu?.toLowerCase() === 'знакомства';
 
   return (
     <main className="w-full bg-gray-50 min-h-screen">
@@ -301,7 +307,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-24 pt-4">
               <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-purple-200">
-                <p className="text-sm text-gray-500 text-center">Reklam sahəsi</p>
+                <p className="text-sm text-gray-500 text-center">{t('product.adSpace')}</p>
               </div>
             </div>
           </aside>
@@ -312,13 +318,13 @@ export default function ProductDetailContent({ id }: { id: string }) {
               {/* Breadcrumb */}
               <div>
                 <div className="flex flex-wrap gap-1.5 items-center">
-                  <Link className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/">Ana Səhifə</Link>
+                  <Link className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/">{t('product.homePage')}</Link>
                   <span className="text-gray-400 text-sm font-medium leading-normal">/</span>
                   <Link
                     className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors"
                     href={`/elanlar/${product.parentCategorySlug}`}
                   >
-                    {product.parentCategoryName}
+                    {language === 'ru' && product.parentCategoryNameRu ? product.parentCategoryNameRu : product.parentCategoryName}
                   </Link>
                   {product.childCategorySlug && product.childCategorySlug !== product.parentCategorySlug && (
                     <>
@@ -327,7 +333,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                         className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors"
                         href={`/elanlar/${product.parentCategorySlug}/${product.childCategorySlug}`}
                       >
-                        {product.category}
+                        {language === 'ru' && product.categoryRu ? product.categoryRu : product.category}
                       </Link>
                     </>
                   )}
@@ -338,7 +344,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                         className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors"
                         href={`${ROUTES.LISTINGS}?categoryId=${product.categoryId}${product.subCategoryId ? `&subCategoryId=${product.subCategoryId}` : ''}`}
                       >
-                        {product.subCategory}
+                        {language === 'ru' && product.subCategoryRu ? product.subCategoryRu : product.subCategory}
                       </Link>
                     </>
                   )}
@@ -483,40 +489,43 @@ export default function ProductDetailContent({ id }: { id: string }) {
                     <div className="p-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
                         <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                          <span className="text-[#8D94AD] text-[15px]">Şəhər</span>
-                          <span className="text-[#212121] text-[15px] font-medium">{product.city || 'Göstərilməyib'}</span>
+                          <span className="text-[#8D94AD] text-[15px]">{t('product.city')}</span>
+                          <span className="text-[#212121] text-[15px] font-medium">{(language === 'ru' && product.cityRu ? product.cityRu : product.city) || t('product.notShown')}</span>
                         </div>
                         {(() => {
                           const NON_PRODUCT_CATEGORIES = [
-                            'İş elanları', 'Vakansiyalar', 'İş axtarıram', 'Xidmətlər və biznes', 'Daşınmaz əmlak', 'Tanışlıq'
+                            'İş elanları', 'Vakansiyalar', 'İş axtarıram', 'Xidmətlər və biznes', 'Daşınmaz əmlak', 'Tanışlıq',
+                            'Вакансии', 'Ищу работу', 'Услуги и бизнес', 'Недвижимость', 'Знакомства'
                           ];
                           const isNonProduct = NON_PRODUCT_CATEGORIES.some(cat =>
                             product.category?.toLowerCase().trim().includes(cat.toLowerCase()) ||
-                            product.parentCategoryName?.toLowerCase().trim().includes(cat.toLowerCase())
+                            product.parentCategoryName?.toLowerCase().trim().includes(cat.toLowerCase()) ||
+                            product.categoryRu?.toLowerCase().trim().includes(cat.toLowerCase()) ||
+                            product.parentCategoryNameRu?.toLowerCase().trim().includes(cat.toLowerCase())
                           );
                           if (isNonProduct) return null;
                           return (
                             <>
                               <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                                <span className="text-[#8D94AD] text-[15px]">Vəziyyət</span>
-                                <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{product.isNew ? 'Yeni' : 'İşlənmiş'}</span>
+                                <span className="text-[#8D94AD] text-[15px]">{t('product.condition')}</span>
+                                <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{product.isNew ? t('product.conditionNew') : t('product.conditionUsed')}</span>
                               </div>
                               <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                                <span className="text-[#8D94AD] text-[15px]">Çatdırılma</span>
-                                <span className="text-[#212121] text-[15px] font-medium">{product.isDeliverable ? 'Var' : 'Yoxdur'}</span>
+                                <span className="text-[#8D94AD] text-[15px]">{t('product.delivery')}</span>
+                                <span className="text-[#212121] text-[15px] font-medium">{product.isDeliverable ? t('product.available') : t('product.notAvailable')}</span>
                               </div>
                               <div className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                                <span className="text-[#8D94AD] text-[15px]">Malın növü</span>
-                                <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{product.adType || 'Göstərilməyib'}</span>
+                                <span className="text-[#8D94AD] text-[15px]">{t('product.productType')}</span>
+                                <span className="text-[#3D78C8] text-[15px] cursor-pointer hover:underline">{(language === 'ru' && product.adTypeRu ? product.adTypeRu : product.adType) || t('product.notShown')}</span>
                               </div>
                             </>
                           );
                         })()}
                         {product.dynamicFields?.map((field, idx) => (
                           <div key={idx} className="flex justify-between items-center py-2.5 border-b border-gray-100">
-                            <span className="text-[#8D94AD] text-[15px]">{field.name}</span>
+                            <span className="text-[#8D94AD] text-[15px]">{language === 'ru' && field.nameRu ? field.nameRu : field.name}</span>
                             <span className="text-[#212121] text-[15px] font-medium min-w-0 max-w-[60%] text-right truncate">
-                              {formatBooleanValue(field.name, field.value)}
+                              {formatBooleanValue(language === 'ru' && field.nameRu ? field.nameRu : field.name, language === 'ru' && field.valueRu ? field.valueRu : field.value)}
                             </span>
                           </div>
                         ))}
@@ -527,7 +536,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                   {/* Description */}
                   <div className="bg-white rounded-xl shadow-sm p-4 md:p-5 space-y-4 border border-gray-100">
                     <div className="border-b border-gray-100 pb-3">
-                      <h3 className="text-gray-900 font-bold text-xl">Təsvir</h3>
+                      <h3 className="text-gray-900 font-bold text-xl">{t('product.description')}</h3>
                     </div>
                     <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
                       {product.description}
@@ -536,15 +545,15 @@ export default function ProductDetailContent({ id }: { id: string }) {
                       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500">
                         <div className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-sm">tag</span>
-                          <span>Elan №: <span className="text-gray-900 font-semibold">{product.id.slice(0, 8)}</span></span>
+                          <span>{t('product.adNumber')}: <span className="text-gray-900 font-semibold">{product.id.slice(0, 8)}</span></span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-sm">visibility</span>
-                          <span>Baxış sayı: <span className="text-gray-900 font-semibold">{product.viewCount}</span></span>
+                          <span>{t('product.views')}: <span className="text-gray-900 font-semibold">{product.viewCount}</span></span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-sm">update</span>
-                          <span>Yeniləndi: <span className="text-gray-900 font-semibold">{formatRelativeTime(product.createdDate)}</span></span>
+                          <span>{t('product.updated')}: <span className="text-gray-900 font-semibold">{formatRelativeTime(product.createdDate)}</span></span>
                         </div>
                       </div>
                       <button
@@ -552,7 +561,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                         className="flex items-center gap-2 px-6 py-2.5 bg-[#e8effd] hover:bg-[#d8e4f9] text-[#4a7ecb] rounded-xl transition-all font-semibold active:scale-[0.98]"
                       >
                         <span className="material-symbols-outlined !text-[20px]">monitoring</span>
-                        Reklam et
+                        {t('product.advertise')}
                       </button>
                     </div>
                   </div>
@@ -566,7 +575,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                         <div className="flex items-center justify-between gap-4">
                           {!isDatingAd ? (
                             <div className="min-w-0">
-                              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Qiymət</p>
+                              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('product.price')}</p>
                               <h3 className="text-3xl font-black text-gray-900 tracking-tight flex items-baseline gap-1.5 whitespace-nowrap">
                                 <span>{product.price.toLocaleString('az-AZ')}</span>
                                 <span className="text-2xl">₼</span>
@@ -579,14 +588,14 @@ export default function ProductDetailContent({ id }: { id: string }) {
                             <button
                               onClick={handleFavoriteToggle}
                               className={`flex cursor-pointer items-center justify-center rounded-xl size-11 transition-all border shadow-sm ${isFavorite ? 'bg-red-50 text-red-500 border-red-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`}
-                              title="Seçilmişlərə əlavə et"
+                              title={t('product.addToFavorites')}
                             >
                               <span className="material-symbols-outlined !text-2xl" style={{ fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
                             </button>
                             <button
                               onClick={() => setIsReportModalOpen(true)}
                               className="flex cursor-pointer items-center justify-center rounded-xl size-11 bg-gray-50 text-gray-400 border border-gray-100 hover:text-red-500 hover:border-red-100 transition-colors"
-                              title="Şikayət et"
+                              title={t('product.report')}
                             >
                               <span className="material-symbols-outlined !text-2xl">flag</span>
                             </button>
@@ -616,15 +625,15 @@ export default function ProductDetailContent({ id }: { id: string }) {
                               <div className="min-w-0 flex-1">
                                 <p className="text-gray-900 font-black text-lg leading-tight truncate group-hover:text-primary transition-colors">{product.storeName}</p>
                                 <div className="flex items-center gap-1.5 mt-1">
-                                  <span className="text-primary font-black text-[9px] uppercase tracking-widest bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10">Mağaza</span>
-                                  <span className="text-[#8D94AD] text-[10px] font-black uppercase tracking-wider">{product.storeAdCount || 0} elan</span>
+                                  <span className="text-primary font-black text-[9px] uppercase tracking-widest bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10">{t('product.store')}</span>
+                                  <span className="text-[#8D94AD] text-[10px] font-black uppercase tracking-wider">{product.storeAdCount || 0} {t('product.adCount')}</span>
                                 </div>
                               </div>
                             </Link>
-                            <div className="flex items-center gap-2 text-[10px] font-black text-white bg-blue-600 px-4 py-2 rounded-xl w-full shadow-lg shadow-blue-600/20">
+                            <Link href={ROUTES.STORE_DETAIL(product.storeSlug || '')} className="flex items-center gap-2 text-[10px] font-black text-white bg-blue-600 px-4 py-2 rounded-xl w-full shadow-lg shadow-blue-600/20 cursor-pointer">
                               <span className="material-symbols-outlined !text-[16px]">verified</span>
-                              <span className="uppercase tracking-wider">{product.storeHeadline || 'Rəsmi Mağaza'}</span>
-                            </div>
+                              <span className="uppercase tracking-wider">{(language === 'ru' && product.storeHeadlineRu ? product.storeHeadlineRu : product.storeHeadline) || t('product.officialStore')}</span>
+                            </Link>
                           </div>
                         ) : (
                           <div className="flex items-center gap-4 py-1">
@@ -637,11 +646,11 @@ export default function ProductDetailContent({ id }: { id: string }) {
                                 href={`${ROUTES.LISTINGS}?userId=${product.userId}`}
                                 className="text-[13px] text-[#3D78C8] hover:underline font-bold mt-1 block"
                               >
-                                İstifadəçinin bütün elanları
+                                {t('product.allUserListings')}
                               </Link>
                               <div className="flex items-center gap-1 mt-1 text-xs text-green-600 font-bold">
                                 <span className="material-symbols-outlined !text-[14px]">verified_user</span>
-                                <span>Doğrulanmış</span>
+                                <span>{t('product.verified')}</span>
                               </div>
                             </div>
                           </div>
@@ -655,11 +664,11 @@ export default function ProductDetailContent({ id }: { id: string }) {
                                 <div className="bg-white p-2 rounded-xl text-primary shadow-sm border border-gray-100">
                                   <span className="material-symbols-outlined !text-[20px]">call</span>
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Telefon</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{t('product.phone')}</span>
                               </div>
                               {!showFullPhone && (
                                 <button onClick={() => setShowFullPhone(true)} className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-primary/90 shadow-md">
-                                  Göstər
+                                  {t('product.show')}
                                 </button>
                               )}
                             </div>
@@ -696,7 +705,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                           <div className="flex flex-col gap-2.5">
                             <button className="w-full flex items-center justify-center rounded-xl h-12 bg-primary text-white text-[13px] font-black uppercase gap-2.5 hover:bg-primary/90 shadow-lg shadow-primary/20">
                               <span className="material-symbols-outlined !text-[18px]">chat</span>
-                              <span>Mesaj yaz</span>
+                              <span>{t('product.sendMessage')}</span>
                             </button>
                             <a href={`https://wa.me/${product.phoneNumber.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center rounded-xl h-12 bg-[#25D366] text-white text-[13px] font-black uppercase gap-2.5 hover:bg-[#20ba59] shadow-lg shadow-green-500/20">
                               <i className="fa-brands fa-whatsapp text-xl"></i>
@@ -729,10 +738,10 @@ export default function ProductDetailContent({ id }: { id: string }) {
                                           return (
                                             <div key={dayNum} className={`flex justify-between items-center ${new Date().getDay() === dayNum ? 'bg-primary/5 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
                                               <span className={`text-[11px] font-black uppercase tracking-tight ${new Date().getDay() === dayNum ? 'text-primary' : 'text-gray-400'}`}>
-                                                {getDayNameAz(dayNum)}
+                                                {getDayName(dayNum)}
                                               </span>
                                               <span className={`text-[11px] font-black ${new Date().getDay() === dayNum ? 'text-primary' : 'text-gray-900'}`}>
-                                                {sch ? (sch.isOpen24Hours ? '24 saat' : (sch.openTime && sch.closeTime ? `${sch.openTime.slice(0, 5)} - ${sch.closeTime.slice(0, 5)}` : 'Bağlıdır')) : 'Bağlıdır'}
+                                                {sch ? (sch.isOpen24Hours ? t('cabinet.settings.open24h') : (sch.openTime && sch.closeTime ? `${sch.openTime.slice(0, 5)} - ${sch.closeTime.slice(0, 5)}` : t('cabinet.settings.closed'))) : t('cabinet.settings.closed')}
                                               </span>
                                             </div>
                                           );
@@ -751,7 +760,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                                   >
                                     <span className="material-symbols-outlined !text-[22px] text-primary/70 mt-0.5">location_on</span>
                                     <div className="flex flex-col gap-0.5 min-w-0">
-                                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Mağaza adresi</span>
+                                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{t('product.storeAddress')}</span>
                                       <span className="text-[12px] font-bold text-gray-700 leading-snug truncate group-hover:text-primary transition-colors">
                                         {product.storeAddress}
                                       </span>
@@ -762,7 +771,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                             )}
 
                             <Link href={ROUTES.STORE_DETAIL(product.storeSlug || '')} className="w-full h-12 rounded-xl bg-primary text-white text-[12px] font-black uppercase flex items-center justify-center gap-2 shadow-md">
-                              Mağazaya keç <span className="material-symbols-outlined !text-[18px]">arrow_forward</span>
+                              {t('product.goToStore')} <span className="material-symbols-outlined !text-[18px]">arrow_forward</span>
                             </Link>
                             <button
                               onClick={handleFollowStore}
@@ -774,7 +783,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                               <span className="material-symbols-outlined !text-[20px]">
                                 {isFollowingStore ? 'person_remove' : 'person_add'}
                               </span>
-                              {isFollowingStore ? 'İzləməyi burax' : 'İzləyici ol'}
+                              {isFollowingStore ? t('product.unfollow') : t('product.follow')}
                             </button>
                           </div>
                         )}
@@ -782,9 +791,9 @@ export default function ProductDetailContent({ id }: { id: string }) {
                           <div className="mt-4 bg-[#FFF9E6]/50 rounded-2xl p-5 border border-[#FFE7A3]/50 space-y-2 shadow-sm">
                             <div className="flex items-center gap-2 text-[#856404]">
                               <span className="material-symbols-outlined !text-[18px]">security</span>
-                              <h4 className="font-black text-[12px] uppercase tracking-wider">Diqqət:</h4>
+                              <h4 className="font-black text-[12px] uppercase tracking-wider">{t('product.safetyNote')}</h4>
                             </div>
-                            <p className="text-[11px] text-[#856404] leading-relaxed font-bold">Qiymət çox aşağıdırsa ehtiyatlı olun və şübhəli elanları report edin.</p>
+                            <p className="text-[11px] text-[#856404] leading-relaxed font-bold">{t('product.safetyText')}</p>
                           </div>
                         )}
                       </div>
@@ -798,8 +807,8 @@ export default function ProductDetailContent({ id }: { id: string }) {
                 {product.isStore && storeAds.length > 0 && (
                   <div className="space-y-5">
                     <div className="flex justify-between items-center px-2">
-                      <h2 className="text-xl font-bold text-gray-900">Mağazanın digər elanları</h2>
-                      <Link href={ROUTES.STORE_DETAIL(product.storeSlug || '')} className="text-primary text-sm font-bold hover:underline flex items-center gap-1">Hamısını göstər <span className="material-symbols-outlined !text-[18px]">chevron_right</span></Link>
+                      <h2 className="text-xl font-bold text-gray-900">{t('product.storeAds')}</h2>
+                      <Link href={ROUTES.STORE_DETAIL(product.storeSlug || '')} className="text-primary text-sm font-bold hover:underline flex items-center gap-1">{t('product.showAll')} <span className="material-symbols-outlined !text-[18px]">chevron_right</span></Link>
                     </div>
                     <ProductGrid products={storeAds} title="" emptyMessage="" />
                   </div>
@@ -807,14 +816,14 @@ export default function ProductDetailContent({ id }: { id: string }) {
                 {(similarVipProducts.length > 0 || similarNormalProducts.length > 0) && (
                   <div className="space-y-5">
                     <div className="flex justify-between items-center px-2">
-                      <h2 className="text-xl font-bold text-gray-900">Bənzər elanlar</h2>
+                      <h2 className="text-xl font-bold text-gray-900">{t('product.similarAds')}</h2>
                       <Link
                         href={product.childCategorySlug && product.childCategorySlug !== product.parentCategorySlug
                           ? ROUTES.SUBCATEGORY(product.parentCategorySlug || '', product.childCategorySlug)
                           : ROUTES.CATEGORY(product.parentCategorySlug || '')}
                         className="text-primary text-sm font-bold hover:underline flex items-center gap-1"
                       >
-                        Hamısını göstər <span className="material-symbols-outlined !text-[18px]">chevron_right</span>
+                        {t('product.showAll')} <span className="material-symbols-outlined !text-[18px]">chevron_right</span>
                       </Link>
                     </div>
                     {similarVipProducts.length > 0 && <ProductGrid products={similarVipProducts} title="" emptyMessage="" />}
@@ -829,7 +838,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-24 pt-4">
               <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-blue-200">
-                <p className="text-sm text-gray-500 text-center">Reklam sahəsi</p>
+                <p className="text-sm text-gray-500 text-center">{t('product.adSpace')}</p>
               </div>
             </div>
           </aside>
@@ -838,7 +847,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
 
       {/* Modals */}
       {isLightboxOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col">
+        <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex flex-col">
           <div className="flex items-center justify-between p-4 text-white border-b border-white/10">
             <div className="flex flex-col">
               <h4 className="font-bold text-lg truncate max-w-[300px] md:max-w-xl">{product.title}</h4>
@@ -882,9 +891,11 @@ export default function ProductDetailContent({ id }: { id: string }) {
 
       {/* Mobile Sticky Action Bar */}
       <div
-        className={`lg:hidden fixed left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${isNavVisible
-          ? 'bottom-[calc(54px+max(9px,env(safe-area-inset-bottom)))]'
-          : 'bottom-0'
+        className={`lg:hidden fixed left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${
+          isLightboxOpen ? 'translate-y-full opacity-0 pointer-events-none' :
+          isNavVisible
+            ? 'bottom-[calc(54px+max(9px,env(safe-area-inset-bottom)))]'
+            : 'bottom-0'
           }`}
       >
         {showFullPhone ? (
@@ -893,7 +904,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
             className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#22C55E] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(34,197,94,0.3)] active:scale-95 transition-all"
           >
             <span className="material-symbols-outlined !text-[20px]">call</span>
-            Zəng et
+            {t('product.call')}
           </a>
         ) : (
           <button
@@ -901,12 +912,12 @@ export default function ProductDetailContent({ id }: { id: string }) {
             className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#22C55E] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(34,197,94,0.3)] active:scale-95 transition-all"
           >
             <span className="material-symbols-outlined !text-[20px]">call</span>
-            Zəng et
+            {t('product.call')}
           </button>
         )}
         <button className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#3B82F6] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(59,130,246,0.3)] active:scale-95 transition-all">
           <span className="material-symbols-outlined !text-[20px]">chat</span>
-          Mesaj yaz
+          {t('product.sendMessage')}
         </button>
       </div>
     </main>

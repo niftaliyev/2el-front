@@ -13,6 +13,7 @@ export interface AdListItem {
   title: string;
   slug?: string;
   parentCategoryName?: string;
+  parentCategoryNameRu?: string;
   parentCategorySlug?: string;
   childCategorySlug?: string;
   description: string;
@@ -30,8 +31,11 @@ export interface AdListItem {
   premiumExpiresAt?: string;
   totalBoostsRemaining: number;
   city?: string;
+  cityRu?: string;
   category?: string;
+  categoryRu?: string;
   adType?: string;
+  adTypeRu?: string;
   fullName?: string;
   phoneNumber?: string;
   email?: string;
@@ -43,6 +47,8 @@ export interface AdListItem {
   storeName?: string;
   storeSlug?: string;
   storeLogoUrl?: string;
+  storeHeadline?: string;
+  storeHeadlineRu?: string;
   isFavourite: boolean;
 }
 
@@ -53,6 +59,7 @@ export interface AdDetail {
   title: string;
   slug?: string;
   parentCategoryName?: string;
+  parentCategoryNameRu?: string;
   parentCategorySlug?: string;
   childCategorySlug?: string;
   description: string;
@@ -63,12 +70,16 @@ export interface AdDetail {
   rejectReason?: string;
   images: string[];
   category?: string;
+  categoryRu?: string;
   categoryId?: string;
   subCategory?: string;
+  subCategoryRu?: string;
   subCategoryId?: string;
   city?: string;
+  cityRu?: string;
   cityId?: string;
   adType?: string;
+  adTypeRu?: string;
   adTypeId?: string;
   isNew: boolean;
   isDeliverable: boolean;
@@ -90,6 +101,7 @@ export interface AdDetail {
   storeSlug?: string;
   storeLogoUrl?: string;
   storeHeadline?: string;
+  storeHeadlineRu?: string;
   storeDescription?: string;
   storeAddress?: string;
   contactNumber2?: string;
@@ -153,20 +165,25 @@ export interface CreateAdRequest {
 export interface CategoryFieldDto {
   id: string;
   name: string;
+  nameRu?: string;
   fieldType: string;
   isRequired: boolean;
   optionsJson?: string;
+  optionsJsonRu?: string;
 }
 
 export interface AdFieldDto {
   categoryFieldId: string;
   name: string;
+  nameRu?: string;
   value: string;
+  valueRu?: string;
 }
 
 export interface SubCategoryDto {
   id: string;
   name: string;
+  nameRu?: string;
   slug?: string;
   imageUrl?: string;
   categoryId: string;
@@ -181,6 +198,7 @@ export interface ContactInfo {
 export interface CategoryDto {
   id: string;
   name: string;
+  nameRu?: string;
   slug?: string;
   parentId?: string;
   imageUrl?: string;
@@ -216,17 +234,21 @@ export interface StoreListItem {
   id: string;
   storeName: string;
   description: string;
+  descriptionRu?: string;
   storeLogoUrl?: string;
   storeCoverUrl?: string;
   headline?: string;
+  headlineRu?: string;
   followerCount: number;
   viewCount: number;
   adCount: number;
   slug?: string;
   cityId?: string;
   cityName?: string;
+  cityNameRu?: string;
   contactNumber?: string;
   categories: string[];
+  categoriesRu: string[];
 }
 
 export interface StoreAdItem {
@@ -238,7 +260,9 @@ export interface StoreAdItem {
   createdDate: string;
   isStore?: boolean;
   categoryName?: string;
+  categoryNameRu?: string;
   city?: string;
+  cityRu?: string;
   isNew: boolean;
   isVip?: boolean;
   isPremium?: boolean;
@@ -250,6 +274,7 @@ export interface StoreDetail {
   id: string;
   storeName: string;
   description: string;
+  descriptionRu?: string;
   contactNumber: string;
   contactNumber2?: string;
   contactNumber3?: string;
@@ -261,12 +286,14 @@ export interface StoreDetail {
   tiktok?: string;
   facebook?: string;
   headline?: string;
+  headlineRu?: string;
   followerCount: number;
   viewCount: number;
   adCount: number;
   slug?: string;
   cityId?: string;
   cityName?: string;
+  cityNameRu?: string;
   isFollowing?: boolean;
   workSchedules: StoreWorkSchedule[];
   photos: string[];
@@ -283,12 +310,14 @@ export interface PackageItem {
   intervalHours?: number;
   boostCount?: number;
   description: string;
+  descriptionRu?: string;
   packageType: string;
 }
 
 export interface BusinessPackageDto {
   id: string;
   name: string;
+  nameRu?: string;
   basePrice: number;
   serviceBalance: number;
   adLimit: number;
@@ -297,6 +326,7 @@ export interface BusinessPackageDto {
   discount90Days: number;
   discount180Days: number;
   description?: string;
+  descriptionRu?: string;
 }
 
 // ================================
@@ -306,6 +336,7 @@ export interface BusinessPackageDto {
 export interface LookupItem {
   id: string;
   name: string;
+  nameRu?: string;
 }
 
 // ================================

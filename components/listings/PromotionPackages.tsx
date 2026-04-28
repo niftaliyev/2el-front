@@ -4,6 +4,7 @@ import { PackageItem } from '@/types/api';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { formatPrice } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PromotionPackagesProps {
   packages: PackageItem[];
@@ -13,6 +14,7 @@ interface PromotionPackagesProps {
 }
 
 export default function PromotionPackages({ packages, selectedPackageId, onSelect, businessDiscount = 0 }: PromotionPackagesProps) {
+  const { t, language } = useLanguage();
   // Sort and pick most relevant packages for each type to keep it clean
   const vips = packages.filter(p => p.packageType === 'Vip').sort((a, b) => (a.price || 0) - (b.price || 0));
   const premiums = packages.filter(p => p.packageType === 'Premium').sort((a, b) => (a.price || 0) - (b.price || 0));
@@ -20,7 +22,7 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
 
   const renderPackageCard = (pkg: PackageItem) => {
     const isSelected = selectedPackageId === pkg.id;
-    const typeLabel = pkg.packageType === 'Vip' ? 'VİP' : pkg.packageType === 'Premium' ? 'PREMİUM' : 'İrəli çək';
+    const typeLabel = pkg.packageType === 'Vip' ? t('promoteModal.vip') : pkg.packageType === 'Premium' ? t('promoteModal.premium') : t('promoteModal.boost');
     const icon = pkg.packageType === 'Vip' ? 'grade' : pkg.packageType === 'Premium' ? 'diamond' : 'rocket_launch';
 
     let colorClass = 'border-gray-200 hover:border-primary/50';
@@ -64,24 +66,24 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
         </div>
 
         <div className="flex flex-col mb-0.5 sm:mb-1">
-            {hasDiscount && (
-                <div className="flex items-center gap-1">
-                    <span className="text-red-500 line-through text-[10px] font-bold">{formatPrice(originalPrice)}</span>
-                    <span className="bg-green-500 text-white text-[8px] px-1 rounded-sm font-black">-{businessDiscount}%</span>
-                </div>
-            )}
-            <h3 className="text-gray-900 font-extrabold text-base sm:text-lg lg:text-xl">{formatPrice(discountedPrice)}</h3>
+          {hasDiscount && (
+            <div className="flex items-center gap-1">
+              <span className="text-red-500 line-through text-[10px] font-bold">{formatPrice(originalPrice)}</span>
+              <span className="bg-green-500 text-white text-[8px] px-1 rounded-sm font-black">-{businessDiscount}%</span>
+            </div>
+          )}
+          <h3 className="text-gray-900 font-extrabold text-base sm:text-lg lg:text-xl">{formatPrice(discountedPrice)}</h3>
         </div>
         <div className="flex flex-col gap-0.5 sm:gap-1 mb-3 sm:mb-4 h-10 sm:h-12">
           <p className="text-gray-900 text-[10px] sm:text-[12px] font-bold">
-            {pkg.intervalDay} Günlük {typeLabel}
+            {pkg.intervalDay} {t('promoteModal.day')} {typeLabel}
           </p>
           <p className="text-gray-500 text-[9.5px] sm:text-[11px] leading-tight line-clamp-2">
             {pkg.packageType === 'Premium'
-              ? "VIP + Gündəlik irəli çəkmə daxil"
+              ? t('promoteModal.premiumDesc')
               : pkg.packageType === 'Vip'
-                ? "Gündəlik irəli çəkmə daxil"
-                : pkg.description || "Elanınızı siyahıda önə çəkin"}
+                ? t('promoteModal.vipDesc')
+                : (language === 'ru' && pkg.descriptionRu ? pkg.descriptionRu : pkg.description) || t('promoteModal.boostDesc')}
           </p>
         </div>
 
@@ -93,7 +95,7 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
             {isSelected && <span className="material-symbols-outlined !text-[12px] sm:!text-[14px] text-white font-bold">check</span>}
           </div>
           <span className={twMerge("text-[10px] sm:text-xs font-bold", isSelected ? "opacity-100" : "opacity-40")}>
-            {isSelected ? "Seçildi" : "Seç"}
+            {isSelected ? t('common.selected') : t('common.select')}
           </span>
         </div>
 
@@ -117,8 +119,8 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
             <span className="material-symbols-outlined !text-2xl sm:!text-3xl fill">rocket_launch</span>
           </div>
           <div>
-            <h2 className="text-gray-900 text-lg sm:text-xl font-black tracking-tight leading-tight">Daha çox baxış qazanın</h2>
-            <p className="text-gray-500 text-[11px] sm:text-sm font-medium">Elanınızı sürətlə satın və ya fərqləndirin</p>
+            <h2 className="text-gray-900 text-lg sm:text-xl font-black tracking-tight leading-tight">{t('createAd.promoteTitle') || 'Daha çox baxış qazanın'}</h2>
+            <p className="text-gray-500 text-[11px] sm:text-sm font-medium">{t('createAd.promoteSubtitle') || 'Elanınızı sürətlə satın və ya fərqləndirin'}</p>
           </div>
         </div>
 
@@ -126,7 +128,7 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
           <div className="hidden lg:block animate-bounce px-3 py-1 bg-amber-100 border border-amber-200 rounded-full">
             <span className="text-amber-800 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
               <span className="material-symbols-outlined !text-[12px]">trending_up</span>
-              Satışı 10x sürətləndirin
+              {t('createAd.promoteBadge') || 'Satışı 10x sürətləndirin'}
             </span>
           </div>
         )}
@@ -143,16 +145,16 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
         >
           <div className="flex justify-between items-start mb-2 sm:mb-3">
             <span className="text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wider font-bold">
-              STANDART
+              {t('createAd.standardPackage') || 'STANDART'}
             </span>
             <span className={twMerge("material-symbols-outlined !text-xl sm:!text-2xl transition-all", !selectedPackageId ? "text-primary scale-110" : "text-gray-400 opacity-40")}>
               check_circle
             </span>
           </div>
 
-          <h3 className="text-gray-900 font-extrabold text-base sm:text-lg lg:text-xl mb-0.5 sm:mb-1">Pulsuz</h3>
+          <h3 className="text-gray-900 font-extrabold text-base sm:text-lg lg:text-xl mb-0.5 sm:mb-1">{t('createAd.freePrice') || 'Pulsuz'}</h3>
           <p className="text-gray-500 text-[9.5px] sm:text-[11px] leading-tight mb-3 sm:mb-4 h-7 sm:h-8 uppercase tracking-tighter font-medium">
-            Heç bir əlavə xidmət olmadan elan yerləşdirin
+            {t('createAd.standardPackageDesc') || 'Heç bir əlavə xidmət olmadan elan yerləşdirin'}
           </p>
 
           <div className="mt-auto flex items-center gap-1.5 sm:gap-2">
@@ -163,7 +165,7 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
               {!selectedPackageId && <span className="material-symbols-outlined !text-[12px] sm:!text-[14px] text-white font-bold">check</span>}
             </div>
             <span className={twMerge("text-[10px] sm:text-xs font-bold", !selectedPackageId ? "text-primary opacity-100" : "text-gray-400 opacity-40")}>
-              {!selectedPackageId ? "Seçildi" : "Seç"}
+              {!selectedPackageId ? t('common.selected') : t('common.select')}
             </span>
           </div>
         </div>
@@ -178,7 +180,7 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
       <div className="mt-8 flex items-center justify-center">
         <div className="flex items-center gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-widest bg-gray-50 px-4 py-2 rounded-full border border-gray-100 select-none">
           <span className="material-symbols-outlined !text-[14px] text-emerald-500">verified</span>
-          Xidmət seçimi məcburi deyil
+          {t('createAd.notMandatory') || 'Xidmət seçimi məcburi deyil'}
         </div>
       </div>
     </div>

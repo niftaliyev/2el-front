@@ -8,6 +8,7 @@ import { SearchFilters } from '@/types';
 import { PRODUCT_CONDITIONS, SORT_OPTIONS } from '@/constants';
 import { parseCurrency } from '@/lib/utils';
 import { adService } from '@/services/ad.service';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FilterPanelProps {
   filters: SearchFilters;
@@ -25,6 +26,7 @@ const EXCLUDED_DELIVERY_CATEGORIES = [
 export default function FilterPanel({ filters, onFilterChange, categories = [] }: FilterPanelProps) {
   const [localFilters, setLocalFilters] = useState<SearchFilters>(filters);
   const [cities, setCities] = useState<SelectOption[]>([]);
+  const { t, language } = useLanguage();
 
   // Accordion states
   const [isPriceOpen, setIsPriceOpen] = useState(true);
@@ -39,15 +41,15 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
         const fetchedCities = await adService.getCities();
         const cityOptions = fetchedCities.map((c: any) => ({
           value: c.id.toString(),
-          label: c.name
+          label: language === 'ru' && c.nameRu ? c.nameRu : c.name
         }));
-        setCities([{ value: '', label: 'Bütün şəhərlər' }, ...cityOptions]);
+        setCities([{ value: '', label: t('listings.allCities') }, ...cityOptions]);
       } catch (error) {
         console.error('Failed to fetch cities:', error);
       }
     };
     fetchCities();
-  }, []);
+  }, [language, t]);
 
   const handleFilterChange = (key: keyof SearchFilters | 'cityId', value: any) => {
     let finalValue = value;
@@ -151,13 +153,13 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
     <div className="w-full">
       <div className="flex items-center justify-between pb-3 mt-4 border-t border-gray-100 pt-6">
         <span className="text-[13px] text-gray-400">
-          Filtrlər
+          {t('listings.filters')}
         </span>
         <button
           onClick={resetFilters}
           className="text-[13px] text-gray-400 hover:text-primary transition-colors"
         >
-          Sıfırla
+          {t('common.reset')}
         </button>
       </div>
 
@@ -168,21 +170,21 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
             className="flex items-center justify-between mb-3 cursor-pointer select-none"
             onClick={() => setIsPriceOpen(!isPriceOpen)}
           >
-            <span className="text-[15px] text-[#212121]">Qiymət, ₼</span>
+            <span className="text-[15px] text-[#212121]">{t('listings.price')}, ₼</span>
             <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isPriceOpen ? '' : 'rotate-180'}`}>expand_less</span>
           </div>
           {isPriceOpen && (
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
-                placeholder="min."
+                placeholder={t('listings.minPrice')}
                 value={localFilters.minPrice || ''}
                 onChange={(e) => handleFilterChange('minPrice', e.target.value)}
                 className="w-full h-10 px-3 bg-[#f1f2f4] rounded-[10px] outline-none placeholder:text-gray-400 text-sm focus:ring-1 focus:ring-gray-300"
               />
               <input
                 type="text"
-                placeholder="maks."
+                placeholder={t('listings.maxPrice')}
                 value={localFilters.maxPrice || ''}
                 onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
                 className="w-full h-10 px-3 bg-[#f1f2f4] rounded-[10px] outline-none placeholder:text-gray-400 text-sm focus:ring-1 focus:ring-gray-300"
@@ -199,7 +201,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
             className="flex items-center justify-between mb-3 cursor-pointer select-none"
             onClick={() => setIsCityOpen(!isCityOpen)}
           >
-            <span className="text-[15px] text-[#212121]">Şəhər</span>
+            <span className="text-[15px] text-[#212121]">{t('listings.city')}</span>
             <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isCityOpen ? '' : 'rotate-180'}`}>expand_less</span>
           </div>
           {isCityOpen && (
@@ -207,8 +209,8 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
               <Select
                 value={cities.find(c => c.value === (localFilters as any).cityId) || cities[0]}
                 onChange={(option) => handleFilterChange('cityId', option?.value === '' ? undefined : option?.value)}
-                options={cities.length > 0 ? cities : [{ value: '', label: 'Bütün şəhərlər' }]}
-                placeholder="Şəhər seçin"
+                options={cities.length > 0 ? cities : [{ value: '', label: t('listings.allCities') }]}
+                placeholder={t('listings.selectCity')}
                 className="text-sm bg-[#f1f2f4] border-transparent focus:bg-white w-full rounded-[10px]"
               />
             </div>
@@ -224,7 +226,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
               className="flex items-center justify-between mb-3 cursor-pointer select-none"
               onClick={() => setIsConditionOpen(!isConditionOpen)}
             >
-              <span className="text-[15px] text-[#212121]">Məhsulun vəziyyəti</span>
+              <span className="text-[15px] text-[#212121]">{t('listings.condition')}</span>
               <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isConditionOpen ? '' : 'rotate-180'}`}>expand_less</span>
             </div>
             {isConditionOpen && (
@@ -237,7 +239,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                     checked={!localFilters.condition}
                     onChange={() => handleFilterChange('condition', undefined)}
                   />
-                  <span className="text-[14px] text-[#212121] transition-colors leading-none">Bütün vəziyyətlər</span>
+                  <span className="text-[14px] text-[#212121] transition-colors leading-none">{t('listings.allConditions')}</span>
                 </label>
                 {PRODUCT_CONDITIONS.map(c => (
                   <label key={c.value} className="flex items-center gap-3 cursor-pointer group">
@@ -248,7 +250,9 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                       checked={localFilters.condition === c.value}
                       onChange={() => handleFilterChange('condition', c.value)}
                     />
-                    <span className="text-[14px] text-[#212121] transition-colors leading-none">{c.label}</span>
+                    <span className="text-[14px] text-[#212121] transition-colors leading-none">
+                      {c.value === 'new' ? t('listings.conditionNew') : t('listings.conditionUsed')}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -264,20 +268,27 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
           let options: any[] = [];
 
           try {
-            if (field.optionsJson) {
-              const parsed = JSON.parse(field.optionsJson);
+            const isRu = language === 'ru';
+            const rawJson = (isRu && field.optionsJsonRu) ? field.optionsJsonRu : field.optionsJson;
+            if (rawJson) {
+              const parsed = JSON.parse(rawJson);
               if (isDependent) {
-                // ... (existing brand/model logic)
+                // For dependent select, we need to match the selected category (e.g. Brand)
                 const selectedSubCatId = localFilters.subCategoryId;
                 if (selectedSubCatId) {
                   const selectedSubCat = findSubCategoryById(categories, selectedSubCatId);
                   if (selectedSubCat) {
-                    const brandName = selectedSubCat.name.trim().toLowerCase();
+                    // Match by the localized name of the category
+                    const brandName = (isRu && selectedSubCat.nameRu ? selectedSubCat.nameRu : selectedSubCat.name).trim().toLowerCase();
                     const keys = Object.keys(parsed);
                     const matchingKey = keys.find(k => k.trim().toLowerCase() === brandName);
                     options = matchingKey ? parsed[matchingKey] : [];
+
                     if (options.length === 0 && Array.isArray(parsed)) {
-                      const brandEntry = parsed.find((b: any) => b.brand?.trim().toLowerCase() === brandName);
+                      const brandEntry = parsed.find((b: any) => {
+                        const bName = (b.brand || '').trim().toLowerCase();
+                        return bName === brandName;
+                      });
                       options = brandEntry ? (brandEntry.models || []) : [];
                     }
                   }
@@ -288,7 +299,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                 options = Array.isArray(parsed) ? parsed : [];
               }
             } else if (fType === 'checkbox') {
-              options = ['Bəli', 'Xeyr'];
+              options = [t('common.yes'), t('common.no')];
             }
           } catch (e) {
             console.error('Error parsing dynamic field options:', e);
@@ -299,12 +310,19 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
           }
 
           const isOpen = openDynamicFields[field.id] ?? true;
+          const fieldName = (language === 'ru' && field.nameRu ? field.nameRu : field.name);
+
           const selectOptions: SelectOption[] = [
-            { value: '', label: 'Bütün' },
-            ...options.map((opt: string) => ({ 
-              value: fType === 'checkbox' ? (opt === 'Bəli' ? 'true' : 'false') : opt, 
-              label: opt 
-            }))
+            { value: '', label: t('listings.allFilter') },
+            ...options.map((opt: string) => {
+              // Map Yes/No labels to boolean strings
+              let val = opt;
+              if (fType === 'checkbox') {
+                if (opt === t('common.yes')) val = 'true';
+                else if (opt === t('common.no')) val = 'false';
+              }
+              return { value: val, label: opt };
+            })
           ];
 
           return (
@@ -313,7 +331,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                 className="flex items-center justify-between mb-3 cursor-pointer select-none"
                 onClick={() => setOpenDynamicFields(prev => ({ ...prev, [field.id]: !isOpen }))}
               >
-                <span className="text-[15px] font-medium text-[#212121]">{field.name}</span>
+                <span className="text-[15px] font-medium text-[#212121]">{fieldName}</span>
                 <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isOpen ? '' : 'rotate-180'}`}>expand_less</span>
               </div>
               {isOpen && (
@@ -321,7 +339,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                   {fType === 'number' || fType === 'text' ? (
                     <input
                       type="text"
-                      placeholder={field.name}
+                      placeholder={fieldName}
                       value={localFilters.dynamicProperties?.[field.id] || ''}
                       onChange={(e) => handleDynamicPropertyChange(field.id, e.target.value)}
                       className="w-full h-10 px-3 bg-[#f1f2f4] rounded-[10px] outline-none placeholder:text-gray-400 text-sm focus:ring-1 focus:ring-gray-300"
@@ -331,7 +349,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                       value={selectOptions.find(o => o.value === localFilters.dynamicProperties?.[field.id]) || selectOptions[0]}
                       onChange={(opt) => handleDynamicPropertyChange(field.id, opt?.value || undefined)}
                       options={selectOptions}
-                      placeholder={`${field.name} seçin`}
+                      placeholder={t('common.select_placeholder', { name: fieldName })}
                       className="text-sm bg-[#f1f2f4] border-transparent focus:bg-white w-full rounded-[10px]"
                     />
                   ) : (
@@ -344,10 +362,14 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                           checked={!localFilters.dynamicProperties?.[field.id]}
                           onChange={() => handleDynamicPropertyChange(field.id, undefined)}
                         />
-                        <span className="text-[14px] text-[#212121] transition-colors leading-none">Bütün</span>
+                        <span className="text-[14px] text-[#212121] transition-colors leading-none">{t('listings.allFilter')}</span>
                       </label>
                       {options.map((opt: string) => {
-                        const val = fType === 'checkbox' ? (opt === 'Bəli' ? 'true' : 'false') : opt;
+                        let val = opt;
+                        if (fType === 'checkbox') {
+                          if (opt === t('common.yes')) val = 'true';
+                          else if (opt === t('common.no')) val = 'false';
+                        }
                         return (
                           <label key={opt} className="flex items-center gap-3 cursor-pointer group">
                             <input
@@ -379,7 +401,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                 className="flex items-center justify-between cursor-pointer select-none"
                 onClick={() => setIsDeliveryOpen(!isDeliveryOpen)}
               >
-                <span className="text-[15px] text-[#212121]">Çatdırılma</span>
+                <span className="text-[15px] text-[#212121]">{t('listings.delivery')}</span>
                 <span className={`material-symbols-outlined !text-lg text-gray-400 transition-transform ${isDeliveryOpen ? '' : 'rotate-180'}`}>expand_less</span>
               </div>
               {isDeliveryOpen && (
@@ -392,7 +414,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                       checked={localFilters.isDeliverable === undefined}
                       onChange={() => handleFilterChange('isDeliverable', undefined)}
                     />
-                    <span className="text-[14px] text-[#212121] leading-none">Vacib deyil</span>
+                    <span className="text-[14px] text-[#212121] leading-none">{t('listings.deliveryNotImportant')}</span>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer group">
                     <input
@@ -402,7 +424,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                       checked={localFilters.isDeliverable === true}
                       onChange={() => handleFilterChange('isDeliverable', true)}
                     />
-                    <span className="text-[14px] text-[#212121] leading-none">Bəli</span>
+                    <span className="text-[14px] text-[#212121] leading-none">{t('common.yes')}</span>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer group">
                     <input
@@ -412,7 +434,7 @@ export default function FilterPanel({ filters, onFilterChange, categories = [] }
                       checked={localFilters.isDeliverable === false}
                       onChange={() => handleFilterChange('isDeliverable', false)}
                     />
-                    <span className="text-[14px] text-[#212121] leading-none">Xeyr</span>
+                    <span className="text-[14px] text-[#212121] leading-none">{t('common.no')}</span>
                   </label>
                 </div>
               )}

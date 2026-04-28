@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { accountService } from '@/services/account.service';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function BurgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState<{ contactPhone?: string; email?: string } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { language, setLanguage, t } = useLanguage();
 
   // Fetch settings once
   useEffect(() => {
@@ -48,6 +50,11 @@ export default function BurgerMenu() {
     };
   }, [isOpen]);
 
+  const handleLanguageSwitch = (lang: 'az' | 'ru') => {
+    setLanguage(lang);
+    setIsOpen(false);
+  };
+
   return (
     <div className="relative z-50" ref={menuRef}>
       <button
@@ -76,16 +83,16 @@ export default function BurgerMenu() {
           <div className="flex flex-col gap-4 min-w-[150px]">
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 sm:mb-2 flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-              Əsas
+              {t('burgerMenu.main')}
             </h4>
             <Link href="/shops" onClick={() => setIsOpen(false)} className="text-slate-700 hover:text-primary font-bold transition-all hover:translate-x-1 flex items-center gap-2">
-              Mağazalar
+              {t('burgerMenu.shops')}
             </Link>
             <Link href="/help" onClick={() => setIsOpen(false)} className="text-slate-700 hover:text-primary font-bold transition-all hover:translate-x-1 flex items-center gap-2">
-              Yardım
+              {t('burgerMenu.help')}
             </Link>
             <Link href="/business" onClick={() => setIsOpen(false)} className="text-slate-700 hover:text-primary font-bold transition-all hover:translate-x-1 flex items-center gap-2 group">
-              Biznes <span className="bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider group-hover:scale-110 transition-transform">Yeni</span>
+              {t('burgerMenu.business')} <span className="bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider group-hover:scale-110 transition-transform">{t('burgerMenu.new')}</span>
             </Link>
           </div>
 
@@ -93,42 +100,61 @@ export default function BurgerMenu() {
           <div className="flex flex-col gap-3.5 min-w-[200px]">
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 sm:mb-2 flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-              Dəstək və Qaydalar
+              {t('burgerMenu.supportAndRules')}
             </h4>
             {[
-              { href: '/help/populyar-suallar', label: 'Top 10 sual' },
-              { href: '/pages/limits_by_category', label: 'Kateqoriyalar üzrə limitlər' },
-              { href: '/pages/packages', label: 'Ödənişli xidmətlər' },
-              { href: '/pages/packages', label: 'Paketlər' },
-              { href: '/pages/rules', label: 'Qaydalar' },
-              { href: '/pages/terms-and-conditions', label: 'İstifadəçi razılaşması' },
-              { href: '/pages/proposal', label: 'İctimai oferta' },
-              { href: '/pages/privacy', label: 'Məxfilik siyasəti' },
-              { href: '/pages/about', label: 'Haqqımızda' },
+              { href: '/help/populyar-suallar', labelKey: 'burgerMenu.topQuestions' },
+              { href: '/pages/limits_by_category', labelKey: 'burgerMenu.categoryLimits' },
+              { href: '/pages/packages', labelKey: 'burgerMenu.paidServices' },
+              { href: '/pages/packages', labelKey: 'burgerMenu.packages' },
+              { href: '/pages/rules', labelKey: 'burgerMenu.rules' },
+              { href: '/pages/terms-and-conditions', labelKey: 'burgerMenu.userAgreement' },
+              { href: '/pages/proposal', labelKey: 'burgerMenu.publicOffer' },
+              { href: '/pages/privacy', labelKey: 'burgerMenu.privacyPolicy' },
+              { href: '/pages/about', labelKey: 'burgerMenu.aboutUs' },
             ].map((link) => (
               <Link
-                key={link.href + link.label}
+                key={link.href + link.labelKey}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
                 className="text-slate-500 hover:text-primary font-bold text-sm transition-all hover:translate-x-1"
               >
-                {link.label}
+                {t(link.labelKey)}
               </Link>
             ))}
           </div>
 
           {/* Column 3 - Contact */}
           <div className="flex flex-col gap-6 sm:ml-auto">
-            <div className="flex flex-col gap-4">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">DİL</h4>
-              <button className="flex items-center gap-3 text-slate-700 hover:text-primary font-bold transition-all w-fit group cursor-pointer">
-                <span className="material-symbols-outlined !text-[22px] group-hover:rotate-12 transition-transform">language</span>
-                Русский язык
-              </button>
+            {/* Language Switcher */}
+            <div className="flex flex-col gap-3">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{t('burgerMenu.language')}</h4>
+              <div className="flex items-center bg-slate-100/80 p-1 rounded-xl w-fit border border-slate-200/60">
+                <button
+                  onClick={() => handleLanguageSwitch('az')}
+                  className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
+                    language === 'az'
+                      ? 'bg-white text-primary shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  AZ
+                </button>
+                <button
+                  onClick={() => handleLanguageSwitch('ru')}
+                  className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
+                    language === 'ru'
+                      ? 'bg-white text-primary shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  RU
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-4">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">ƏLAQƏ</h4>
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{t('burgerMenu.contact')}</h4>
               <div className="flex flex-col gap-4">
                 <a href={`tel:${settings?.contactPhone?.replace(/\D/g, '') || '0123456789'}`} className="text-slate-900 font-black text-lg flex items-center gap-3 hover:text-primary transition-all hover:translate-x-1">
                   <div className="size-8 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
@@ -146,7 +172,7 @@ export default function BurgerMenu() {
             </div>
 
             <div className="flex flex-col gap-4">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 text-center sm:text-left">SOSİAL</h4>
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 text-center sm:text-left">{t('burgerMenu.social')}</h4>
               <div className="flex gap-3 justify-center sm:justify-start">
                 <a href="#" className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all shadow-sm">
                   <span className="material-symbols-outlined !text-[20px]">share</span>

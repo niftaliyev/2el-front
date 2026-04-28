@@ -9,8 +9,10 @@ import { authService } from '@/services/auth.service';
 import { getImageUrl } from '@/lib/utils';
 import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SettingsPage() {
+  const { t, language } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -35,12 +37,14 @@ export default function SettingsPage() {
   const [storeFormData, setStoreFormData] = useState({
     storeName: '',
     description: '',
+    descriptionRu: '',
     contactNumber: '',
     contactNumber2: '',
     contactNumber3: '',
     address: '',
     website: '',
     headline: '',
+    headlineRu: '',
     instagram: '',
     tiktok: '',
     facebook: '',
@@ -67,12 +71,12 @@ export default function SettingsPage() {
   const movePhoto = (idx: number, direction: 'left' | 'right') => {
     const activePhotos = storeGalleryPhotos.filter(p => !photosToRemove.includes(p.id));
     const targetIdx = direction === 'left' ? idx - 1 : idx + 1;
-    
+
     if (targetIdx < 0 || targetIdx >= activePhotos.length) return;
 
     const newActivePhotos = [...activePhotos];
     [newActivePhotos[idx], newActivePhotos[targetIdx]] = [newActivePhotos[targetIdx], newActivePhotos[idx]];
-    
+
     const removedPhotos = storeGalleryPhotos.filter(p => photosToRemove.includes(p.id));
     setStoreGalleryPhotos([...newActivePhotos, ...removedPhotos]);
   };
@@ -152,12 +156,14 @@ export default function SettingsPage() {
           setStoreFormData({
             storeName: store.storeName || store.StoreName || '',
             description: store.description || store.Description || '',
+            descriptionRu: store.descriptionRu || store.DescriptionRu || '',
             contactNumber: store.contactNumber || store.ContactNumber || '',
             contactNumber2: store.contactNumber2 || store.ContactNumber2 || '',
             contactNumber3: store.contactNumber3 || store.ContactNumber3 || '',
             address: store.address || store.Address || '',
             website: store.website || store.Website || '',
             headline: store.headline || store.Headline || '',
+            headlineRu: store.headlineRu || store.HeadlineRu || '',
             instagram: store.instagram || store.Instagram || '',
             tiktok: store.tikTok || store.TikTok || store.tiktok || '',
             facebook: store.facebook || store.Facebook || '',
@@ -185,8 +191,13 @@ export default function SettingsPage() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError(t('cabinet.payments.errorSize'));
+        return;
+      }
       setPhotoFile(file);
       setProfilePhoto(URL.createObjectURL(file));
+      setError(null);
     }
   };
 
@@ -202,10 +213,10 @@ export default function SettingsPage() {
         phoneNumber: formData.phone,
         profilePhoto: photoFile || undefined,
       });
-      setSuccess('Profil uğurla yeniləndi!');
+      setSuccess(t('cabinet.settings.profileSaved'));
       setPhotoFile(null);
     } catch (err: any) {
-      setError(err.message || 'Profili yeniləmək mümkün olmadı');
+      setError(err.message || t('cabinet.settings.profileSaveError'));
     } finally {
       setIsLoading(false);
     }
@@ -218,17 +229,17 @@ export default function SettingsPage() {
     setSuccess(null);
 
     if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
-      setError('Yeni şifrələr uyğun gəlmir');
+      setError(t('cabinet.settings.passwordsNotMatch'));
       setIsLoading(false);
       return;
     }
 
     try {
       await authService.changePassword(passwordForm);
-      setSuccess('Şifrə uğurla dəyişdirildi!');
+      setSuccess(t('cabinet.settings.passwordSaved'));
       setPasswordForm({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Şifrəni dəyişmək mümkün olmadı');
+      setError(err.response?.data?.message || t('cabinet.settings.passwordSaveError'));
     } finally {
       setIsLoading(false);
     }
@@ -248,12 +259,14 @@ export default function SettingsPage() {
       const formData = new FormData();
       formData.append('StoreName', storeFormData.storeName);
       formData.append('Description', storeFormData.description);
+      formData.append('DescriptionRu', storeFormData.descriptionRu);
       formData.append('ContactNumber', storeFormData.contactNumber);
       if (storeFormData.contactNumber2) formData.append('ContactNumber2', storeFormData.contactNumber2);
       if (storeFormData.contactNumber3) formData.append('ContactNumber3', storeFormData.contactNumber3);
       formData.append('Address', storeFormData.address);
-      formData.append('Website', storeFormData.website);
+      if (storeFormData.website) formData.append('Website', storeFormData.website);
       if (storeFormData.headline) formData.append('Headline', storeFormData.headline);
+      if (storeFormData.headlineRu) formData.append('HeadlineRu', storeFormData.headlineRu);
       if (storeFormData.instagram) formData.append('Instagram', storeFormData.instagram);
       if (storeFormData.tiktok) formData.append('TikTok', storeFormData.tiktok);
       if (storeFormData.facebook) formData.append('Facebook', storeFormData.facebook);
@@ -285,23 +298,23 @@ export default function SettingsPage() {
       const orderedIds = storeGalleryPhotos
         .filter(p => !photosToRemove.includes(p.id))
         .map(p => p.id);
-        
+
       orderedIds.forEach(id => {
         formData.append('OrderedPhotoIds', id);
       });
 
       await storeService.updateStore(formData);
-      setSuccess('Mağaza məlumatları uğurla yeniləndi!');
+      setSuccess(t('cabinet.settings.storeSaved'));
       setStoreLogoFile(null);
       setStoreCoverFile(null);
       setNewGalleryPhotos([]);
       setPhotosToRemove([]);
-      
+
       // Refresh data
       const updatedStore = await storeService.getMyStore();
       setStoreGalleryPhotos(updatedStore.galleryPhotos || updatedStore.GalleryPhotos || []);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Xəta baş verdi');
+      setError(err.response?.data?.message || t('cabinet.settings.storeSaveError'));
     } finally {
       setIsLoading(false);
     }
@@ -328,7 +341,8 @@ export default function SettingsPage() {
     });
   };
 
-  const dayNames = ['Bazar ertəsi', 'Çərşənbə axşamı', 'Çərşənbə', 'Cümə axşamı', 'Cümə', 'Şənbə', 'Bazar'];
+  // Remove hardcoded dayNames as we use t('common.days.X')
+
 
   const toggleCategory = (id: string) => {
     setStoreFormData(prev => {
@@ -349,7 +363,7 @@ export default function SettingsPage() {
             <UserSidebar />
             <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-2xl shadow-sm border border-gray-100">
               <div className="animate-spin h-8 w-8 text-primary border-4 border-primary/20 border-t-primary rounded-full shadow-lg shadow-primary/10" />
-              <p className="text-gray-400 text-sm font-medium">Yüklenir...</p>
+              <p className="text-gray-400 text-sm font-medium">{t('cabinet.settings.loading')}</p>
             </div>
           </div>
         </div>
@@ -369,10 +383,10 @@ export default function SettingsPage() {
               <div className="mb-8 border-b border-gray-100 pb-0">
                 <div className="mb-6">
                   <h1 className="text-gray-900 text-3xl sm:text-4xl font-black leading-tight tracking-tight mb-2">
-                    Tənzimləmələr
+                    {t('cabinet.settings.title')}
                   </h1>
                   <p className="text-gray-500 text-sm font-medium">
-                    Hesab və mağaza məlumatlarınızı idarə edin
+                    {t('cabinet.settings.subtitle')}
                   </p>
                 </div>
 
@@ -381,14 +395,14 @@ export default function SettingsPage() {
                     onClick={() => setActiveTab('profile')}
                     className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap cursor-pointer ${activeTab === 'profile' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
                   >
-                    Profil Ayarları
+                    {t('cabinet.settings.profileTab')}
                     {activeTab === 'profile' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />}
                   </button>
                   <button
                     onClick={() => setActiveTab('security')}
                     className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap cursor-pointer ${activeTab === 'security' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
                   >
-                    Təhlükəsizlik
+                    {t('cabinet.settings.securityTab')}
                     {activeTab === 'security' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />}
                   </button>
                   {hasStore && (
@@ -396,7 +410,7 @@ export default function SettingsPage() {
                       onClick={() => setActiveTab('store')}
                       className={`pb-4 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap cursor-pointer ${activeTab === 'store' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
                     >
-                      Mağaza Ayarları
+                      {t('cabinet.settings.storeTab')}
                       {activeTab === 'store' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />}
                     </button>
                   )}
@@ -440,16 +454,16 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <h3 className="text-gray-900 text-lg font-bold">Profil Şəkli</h3>
+                        <h3 className="text-gray-900 text-lg font-bold">{t('cabinet.settings.profilePhoto')}</h3>
                         <p className="text-gray-500 text-xs font-medium leading-relaxed max-w-xs">
-                          Şəkil seçərək profilinizi fərdiləşdirin. JPG, PNG və ya GIF (maks. 5MB) yükləyə bilərsiniz.
+                          {t('cabinet.settings.profilePhotoDesc')}
                         </p>
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
                           className="text-primary text-xs font-bold uppercase tracking-wider hover:underline cursor-pointer"
                         >
-                          Şəkli Dəyiş
+                          {t('cabinet.settings.changePhoto')}
                         </button>
                         <input
                           ref={fileInputRef}
@@ -464,19 +478,19 @@ export default function SettingsPage() {
                     {/* Inputs */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                       <div className="space-y-2">
-                        <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">Ad Soyad</label>
+                        <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">{t('cabinet.settings.fullName')}</label>
                         <div className="relative group">
                           <input
                             value={formData.name}
                             onChange={(e) => handleInputChange('name', e.target.value)}
                             className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
-                            placeholder="Adınızı daxil edin"
+                            placeholder={t('cabinet.settings.fullNamePlaceholder')}
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">E-poçt (Dəyişdirilə bilməz)</label>
+                        <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">{t('cabinet.settings.email')}</label>
                         <div className="relative">
                           <input
                             type="email"
@@ -489,14 +503,14 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">Telefon Nömrəsi</label>
+                        <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">{t('cabinet.settings.phone')}</label>
                         <div className="relative group">
                           <input
                             type="tel"
                             value={formData.phone}
                             onChange={(e) => handleInputChange('phone', e.target.value)}
                             className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
-                            placeholder="Məsələn: 0501234567"
+                            placeholder={t('cabinet.settings.phonePlaceholder')}
                             pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
                             title="Səhv format. Nümunə: 0501234567 və ya +994501234567"
                           />
@@ -512,7 +526,7 @@ export default function SettingsPage() {
                       disabled={isLoading}
                       className="w-full sm:w-auto min-w-[200px] h-14 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
                     >
-                      {isLoading ? 'Yadda saxlanılır...' : 'Yadda saxla'}
+                      {isLoading ? t('cabinet.settings.saving') : t('cabinet.settings.save')}
                     </button>
                   </div>
                 </form>
@@ -521,7 +535,7 @@ export default function SettingsPage() {
                   <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <Input
-                        label="Cari Şifrə"
+                        label={t('cabinet.settings.currentPassword')}
                         type="password"
                         value={passwordForm.currentPassword}
                         onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
@@ -530,7 +544,7 @@ export default function SettingsPage() {
                       />
                       <div className="hidden md:block"></div>
                       <Input
-                        label="Yeni Şifrə"
+                        label={t('cabinet.settings.newPassword')}
                         type="password"
                         value={passwordForm.newPassword}
                         onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
@@ -538,7 +552,7 @@ export default function SettingsPage() {
                         placeholder="••••••••"
                       />
                       <Input
-                        label="Yeni Şifrə (Təkrar)"
+                        label={t('cabinet.settings.confirmNewPassword')}
                         type="password"
                         value={passwordForm.confirmNewPassword}
                         onChange={(e) => handlePasswordChange('confirmNewPassword', e.target.value)}
@@ -553,7 +567,7 @@ export default function SettingsPage() {
                       disabled={isLoading}
                       className="w-full sm:w-auto min-w-[200px] h-14 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
                     >
-                      {isLoading ? 'Gözləyin...' : 'Şifrəni Yenilə'}
+                      {isLoading ? t('cabinet.settings.waiting') : t('cabinet.settings.updatePassword')}
                     </button>
                   </div>
                 </form>
@@ -563,7 +577,7 @@ export default function SettingsPage() {
                     {/* Media section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                       <div className="p-4 sm:p-6 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center sm:items-start">
-                        <h3 className="text-gray-900 text-[10px] sm:text-sm font-black uppercase tracking-widest mb-4">Mağaza Loqosu</h3>
+                        <h3 className="text-gray-900 text-[10px] sm:text-sm font-black uppercase tracking-widest mb-4">{t('cabinet.settings.storeLogo')}</h3>
                         <div className="relative group cursor-pointer w-32 sm:w-full max-w-[200px]" onClick={() => storeLogoInputRef.current?.click()}>
                           <div className="aspect-square rounded-2xl bg-gray-200 overflow-hidden border-4 border-white shadow-md">
                             {storeLogo ? (
@@ -586,15 +600,20 @@ export default function SettingsPage() {
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              if (file.size > 5 * 1024 * 1024) {
+                                setError(t('cabinet.payments.errorSize'));
+                                return;
+                              }
                               setStoreLogoFile(file);
                               setStoreLogo(URL.createObjectURL(file));
+                              setError(null);
                             }
                           }}
                         />
                       </div>
 
                       <div className="p-4 sm:p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                        <h3 className="text-gray-900 text-[10px] sm:text-sm font-black uppercase tracking-widest mb-4">Mağaza Coveri</h3>
+                        <h3 className="text-gray-900 text-[10px] sm:text-sm font-black uppercase tracking-widest mb-4">{t('cabinet.settings.storeCover')}</h3>
                         <div className="relative group cursor-pointer" onClick={() => storeCoverInputRef.current?.click()}>
                           <div className="aspect-video rounded-2xl bg-gray-200 overflow-hidden border-4 border-white shadow-md">
                             {storeCover ? (
@@ -617,8 +636,13 @@ export default function SettingsPage() {
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              if (file.size > 10 * 1024 * 1024) {
+                                setError(language === 'ru' ? 'Размер изображения не должен превышать 10MB' : 'Şəkil ölçüsü 10MB-dan çox olmamalıdır');
+                                return;
+                              }
                               setStoreCoverFile(file);
                               setStoreCover(URL.createObjectURL(file));
+                              setError(null);
                             }
                           }}
                         />
@@ -627,7 +651,7 @@ export default function SettingsPage() {
 
                     <div className="grid grid-cols-1 gap-6">
                       <Input
-                        label="Mağaza Adı"
+                        label={t('cabinet.settings.storeName')}
                         value={storeFormData.storeName}
                         onChange={(e) => handleStoreInputChange('storeName', e.target.value)}
                         required
@@ -635,16 +659,24 @@ export default function SettingsPage() {
                       />
 
                       <Textarea
-                        label="Mağaza Haqqında"
+                        label={t('cabinet.settings.storeAbout')}
                         value={storeFormData.description}
                         onChange={(e) => handleStoreInputChange('description', e.target.value)}
                         rows={4}
                         required
                       />
 
+                      <Textarea
+                        label={t('cabinet.settings.storeAbout') + " (RU)"}
+                        value={storeFormData.descriptionRu}
+                        onChange={(e) => handleStoreInputChange('descriptionRu', e.target.value)}
+                        rows={4}
+                        required
+                      />
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
-                          label="Əlavə Əlaqə Nömrəsi 1 (Opsional)"
+                          label={t('cabinet.settings.phone2')}
                           type="tel"
                           value={storeFormData.contactNumber2}
                           onChange={(e) => handleStoreInputChange('contactNumber2', e.target.value)}
@@ -653,7 +685,7 @@ export default function SettingsPage() {
                           title="Səhv format. Nümunə: 0501234567"
                         />
                         <Input
-                          label="Əlavə Əlaqə Nömrəsi 2 (Opsional)"
+                          label={t('cabinet.settings.phone3')}
                           type="tel"
                           value={storeFormData.contactNumber3}
                           onChange={(e) => handleStoreInputChange('contactNumber3', e.target.value)}
@@ -665,7 +697,7 @@ export default function SettingsPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
-                          label="Əsas Əlaqə Nömrəsi"
+                          label={t('cabinet.settings.mainPhone')}
                           type="tel"
                           value={storeFormData.contactNumber}
                           onChange={(e) => handleStoreInputChange('contactNumber', e.target.value)}
@@ -675,7 +707,7 @@ export default function SettingsPage() {
                           title="Səhv format. Nümunə: 0501234567"
                         />
                         <Input
-                          label="Vebsayt (Opsional)"
+                          label={t('cabinet.settings.website')}
                           value={storeFormData.website}
                           onChange={(e) => handleStoreInputChange('website', e.target.value)}
                         />
@@ -683,13 +715,19 @@ export default function SettingsPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
-                          label="Mağaza Başlığı/Sloqanı (Opsional)"
+                          label={t('cabinet.settings.headline')}
                           value={storeFormData.headline}
                           onChange={(e) => handleStoreInputChange('headline', e.target.value)}
-                          placeholder="Məs: Ən ucuz oyun dükkanı"
+                          placeholder={t('cabinet.settings.headlinePlaceholder')}
                         />
                         <Input
-                          label="Instagram (İstifadəçi adı)"
+                          label={t('cabinet.settings.headline') + " (RU)"}
+                          value={storeFormData.headlineRu}
+                          onChange={(e) => handleStoreInputChange('headlineRu', e.target.value)}
+                          placeholder={t('cabinet.settings.headlinePlaceholder')}
+                        />
+                        <Input
+                          label={t('cabinet.settings.instagram')}
                           value={storeFormData.instagram}
                           onChange={(e) => handleStoreInputChange('instagram', e.target.value)}
                           placeholder="@username"
@@ -698,13 +736,13 @@ export default function SettingsPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
-                          label="TikTok (İstifadəçi adı)"
+                          label={t('cabinet.settings.tiktok')}
                           value={storeFormData.tiktok}
                           onChange={(e) => handleStoreInputChange('tiktok', e.target.value)}
                           placeholder="@username"
                         />
                         <Input
-                          label="Facebook (Səhifə ID və ya ad)"
+                          label={t('cabinet.settings.facebook')}
                           value={storeFormData.facebook}
                           onChange={(e) => handleStoreInputChange('facebook', e.target.value)}
                         />
@@ -712,21 +750,21 @@ export default function SettingsPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
-                          label="Ünvan"
+                          label={t('cabinet.settings.address')}
                           value={storeFormData.address}
                           onChange={(e) => handleStoreInputChange('address', e.target.value)}
                           required
                         />
                         <div className="space-y-2">
-                          <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">Şəhər</label>
+                          <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">{t('cabinet.settings.city')}</label>
                           <select
                             value={storeFormData.cityId}
                             onChange={(e) => handleStoreInputChange('cityId', e.target.value)}
-                            className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900"
+                            className="w-full h-14 px-5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900 cursor-pointer"
                           >
-                            <option value="">Şəhər seçin</option>
+                            <option value="">{t('cabinet.settings.citySelect')}</option>
                             {cities.map(city => (
-                              <option key={city.id} value={city.id}>{city.name}</option>
+                              <option key={city.id} value={city.id}>{language === 'ru' && city.nameRu ? city.nameRu : city.name}</option>
                             ))}
                           </select>
                         </div>
@@ -741,7 +779,7 @@ export default function SettingsPage() {
                         >
                           <div className="flex items-center gap-3">
                             <span className="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">schedule</span>
-                            <label className="text-gray-900 text-[11px] font-black uppercase tracking-widest cursor-pointer">İş Vaxtları</label>
+                            <label className="text-gray-900 text-[11px] font-black uppercase tracking-widest cursor-pointer">{t('cabinet.settings.workHours')}</label>
                           </div>
                           <span className={`material-symbols-outlined text-gray-400 transition-transform duration-300 ${showWorkHours ? 'rotate-180' : ''}`}>expand_more</span>
                         </button>
@@ -752,7 +790,7 @@ export default function SettingsPage() {
                               {storeFormData.workSchedules.map((ws, idx) => (
                                 <div key={idx} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center gap-4 hover:bg-white transition-colors">
                                   <div className="sm:w-32 flex-shrink-0">
-                                    <span className="text-gray-900 text-xs sm:text-sm font-black uppercase sm:normal-case tracking-wider sm:tracking-normal">{dayNames[ws.dayOfWeek === 0 ? 6 : ws.dayOfWeek - 1] || dayNames[ws.dayOfWeek]}</span>
+                                    <span className="text-gray-900 text-xs sm:text-sm font-black uppercase sm:normal-case tracking-wider sm:tracking-normal">{t(`common.days.${ws.dayOfWeek}`)}</span>
                                   </div>
 
                                   <div className="flex flex-wrap items-center gap-3 sm:gap-6 flex-1">
@@ -763,7 +801,7 @@ export default function SettingsPage() {
                                         onChange={(e) => handleWorkScheduleChange(idx, 'isClosed', e.target.checked)}
                                         className="size-4 sm:size-5 rounded border-gray-300 text-primary focus:ring-primary"
                                       />
-                                      <span className="text-gray-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Bağlı</span>
+                                      <span className="text-gray-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider">{t('cabinet.settings.closed')}</span>
                                     </label>
 
                                     <label className="flex items-center gap-2 cursor-pointer bg-white sm:bg-transparent px-3 py-2 sm:p-0 rounded-xl border border-gray-100 sm:border-0 shadow-sm sm:shadow-none">
@@ -773,7 +811,7 @@ export default function SettingsPage() {
                                         onChange={(e) => handleWorkScheduleChange(idx, 'isOpen24Hours', e.target.checked)}
                                         className="size-4 sm:size-5 rounded border-gray-300 text-primary focus:ring-primary"
                                       />
-                                      <span className="text-gray-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider">24 Saat</span>
+                                      <span className="text-gray-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider">{t('cabinet.settings.open24h')}</span>
                                     </label>
 
                                     {!ws.isClosed && !ws.isOpen24Hours && (
@@ -782,14 +820,14 @@ export default function SettingsPage() {
                                           type="time"
                                           value={ws.openTime?.substring(0, 5) || '09:00'}
                                           onChange={(e) => handleWorkScheduleChange(idx, 'openTime', e.target.value + ':00')}
-                                          className="px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 text-[11px] sm:text-xs font-bold text-gray-900 bg-white outline-none focus:border-primary shadow-sm"
+                                          className="px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 text-[11px] sm:text-xs font-bold text-gray-900 bg-white outline-none focus:border-primary shadow-sm cursor-pointer"
                                         />
                                         <span className="text-gray-400 font-bold">-</span>
                                         <input
                                           type="time"
                                           value={ws.closeTime?.substring(0, 5) || '18:00'}
                                           onChange={(e) => handleWorkScheduleChange(idx, 'closeTime', e.target.value + ':00')}
-                                          className="px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 text-[11px] sm:text-xs font-bold text-gray-900 bg-white outline-none focus:border-primary shadow-sm"
+                                          className="px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 text-[11px] sm:text-xs font-bold text-gray-900 bg-white outline-none focus:border-primary shadow-sm cursor-pointer"
                                         />
                                       </div>
                                     )}
@@ -806,11 +844,11 @@ export default function SettingsPage() {
                         <button
                           type="button"
                           onClick={() => setShowCategories(!showCategories)}
-                          className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-all group"
+                          className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-all group cursor-pointer"
                         >
                           <div className="flex items-center gap-3">
                             <span className="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">category</span>
-                            <label className="text-gray-900 text-[11px] font-black uppercase tracking-widest cursor-pointer">Kateqoriyalar</label>
+                            <label className="text-gray-900 text-[11px] font-black uppercase tracking-widest cursor-pointer">{t('cabinet.settings.categories')}</label>
                           </div>
                           <span className={`material-symbols-outlined text-gray-400 transition-transform duration-300 ${showCategories ? 'rotate-180' : ''}`}>expand_more</span>
                         </button>
@@ -820,11 +858,11 @@ export default function SettingsPage() {
                             {categories.map(parent => (
                               <div key={parent.id} className="bg-gray-50 rounded-2xl border border-gray-100 p-4 space-y-3">
                                 <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-2">
-                                  <h4 className="text-gray-900 text-sm font-black uppercase tracking-tight">{parent.name}</h4>
+                                  <h4 className="text-gray-900 text-sm font-black uppercase tracking-tight">{language === 'ru' && parent.nameRu ? parent.nameRu : parent.name}</h4>
                                   <button
                                     type="button"
                                     onClick={() => toggleCategory(parent.id)}
-                                    className={`size-6 rounded-full flex items-center justify-center transition-all ${storeFormData.categoryIds.includes(parent.id) ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'}`}
+                                    className={`size-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${storeFormData.categoryIds.includes(parent.id) ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'}`}
                                   >
                                     <span className="material-symbols-outlined !text-xs font-bold">{storeFormData.categoryIds.includes(parent.id) ? 'done' : 'add'}</span>
                                   </button>
@@ -836,12 +874,12 @@ export default function SettingsPage() {
                                       key={child.id}
                                       type="button"
                                       onClick={() => toggleCategory(child.id)}
-                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${storeFormData.categoryIds.includes(child.id)
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border cursor-pointer ${storeFormData.categoryIds.includes(child.id)
                                         ? 'bg-primary/10 border-primary text-primary'
                                         : 'bg-white border-gray-200 text-gray-500 hover:border-gray-400'
                                         }`}
                                     >
-                                      {child.name}
+                                      {language === 'ru' && child.nameRu ? child.nameRu : child.name}
                                     </button>
                                   ))}
                                   {parent.subCategories?.map((child: any) => (
@@ -849,12 +887,12 @@ export default function SettingsPage() {
                                       key={child.id}
                                       type="button"
                                       onClick={() => toggleCategory(child.id)}
-                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${storeFormData.categoryIds.includes(child.id)
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border cursor-pointer ${storeFormData.categoryIds.includes(child.id)
                                         ? 'bg-primary/10 border-primary text-primary'
                                         : 'bg-white border-gray-200 text-gray-500 hover:border-gray-400'
                                         }`}
                                     >
-                                      {child.name}
+                                      {language === 'ru' && child.nameRu ? child.nameRu : child.name}
                                     </button>
                                   ))}
                                 </div>
@@ -869,37 +907,37 @@ export default function SettingsPage() {
                         <div className="flex items-center justify-between px-1">
                           <div className="flex items-center gap-2">
                             <span className="material-symbols-outlined text-gray-400 !text-xl">collections</span>
-                            <label className="block text-gray-900 text-[11px] font-black uppercase tracking-widest">Mağaza Qalereyası</label>
+                            <label className="block text-gray-900 text-[11px] font-black uppercase tracking-widest">{t('cabinet.settings.storeGallery')}</label>
                           </div>
-                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Maksimum 10 şəkil</span>
+                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('cabinet.settings.max10Photos')}</span>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                           {/* Existing Photos */}
                           {storeGalleryPhotos.filter(p => !photosToRemove.includes(p.id)).map((photo, index, arr) => (
                             <div key={photo.id} className="relative aspect-square rounded-2xl bg-gray-100 overflow-hidden group border-2 border-transparent hover:border-primary/20 transition-all shadow-sm">
                               <img src={getImageUrl(photo.filePath)} className="size-full object-cover" alt="Gallery" />
-                              
+
                               {/* Overlay for controls */}
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex flex-col justify-between p-2">
                                 <div className="flex justify-end">
                                   <button
                                     type="button"
                                     onClick={() => setPhotosToRemove(prev => [...prev, photo.id])}
-                                    className="size-8 rounded-xl bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-all shadow-lg"
-                                    title="Sil"
+                                    className="size-8 rounded-xl bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-all shadow-lg cursor-pointer"
+                                    title={t('cabinet.settings.delete')}
                                   >
                                     <span className="material-symbols-outlined !text-lg">delete</span>
                                   </button>
                                 </div>
-                                
+
                                 <div className="flex justify-center gap-2">
                                   {index > 0 && (
                                     <button
                                       type="button"
                                       onClick={() => movePhoto(index, 'left')}
-                                      className="size-8 rounded-xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/40 hover:scale-110 transition-all shadow-sm"
-                                      title="Sola çək"
+                                      className="size-8 rounded-xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/40 hover:scale-110 transition-all shadow-sm cursor-pointer"
+                                      title={t('cabinet.settings.moveLeft')}
                                     >
                                       <span className="material-symbols-outlined !text-lg">arrow_back</span>
                                     </button>
@@ -908,15 +946,15 @@ export default function SettingsPage() {
                                     <button
                                       type="button"
                                       onClick={() => movePhoto(index, 'right')}
-                                      className="size-8 rounded-xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/40 hover:scale-110 transition-all shadow-sm"
-                                      title="Sağa çək"
+                                      className="size-8 rounded-xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/40 hover:scale-110 transition-all shadow-sm cursor-pointer"
+                                      title={t('cabinet.settings.moveRight')}
                                     >
                                       <span className="material-symbols-outlined !text-lg">arrow_forward</span>
                                     </button>
                                   )}
                                 </div>
                               </div>
-                              
+
                               <div className="absolute bottom-2 left-2 size-5 rounded-lg bg-black/40 backdrop-blur-md text-white text-[10px] font-bold flex items-center justify-center">
                                 {index + 1}
                               </div>
@@ -927,11 +965,11 @@ export default function SettingsPage() {
                           {newGalleryPhotos.map((file, idx) => (
                             <div key={idx} className="relative aspect-square rounded-2xl bg-gray-100 overflow-hidden group border-2 border-primary/20 shadow-md transition-all">
                               <img src={URL.createObjectURL(file)} className="size-full object-cover" alt="New Gallery" />
-                              <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-primary text-white text-[8px] font-black uppercase tracking-widest shadow-lg">YENİ</div>
+                              <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-primary text-white text-[8px] font-black uppercase tracking-widest shadow-lg">{t('cabinet.settings.new')}</div>
                               <button
                                 type="button"
                                 onClick={() => setNewGalleryPhotos(prev => prev.filter((_, i) => i !== idx))}
-                                className="absolute top-2 right-2 size-8 rounded-xl bg-red-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg backdrop-blur-sm"
+                                className="absolute top-2 right-2 size-8 rounded-xl bg-red-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg backdrop-blur-sm cursor-pointer"
                               >
                                 <span className="material-symbols-outlined !text-lg">close</span>
                               </button>
@@ -943,12 +981,12 @@ export default function SettingsPage() {
                             <button
                               type="button"
                               onClick={() => galleryInputRef.current?.click()}
-                              className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-3 hover:bg-gray-100 hover:border-primary/30 transition-all group"
+                              className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-3 hover:bg-gray-100 hover:border-primary/30 transition-all group cursor-pointer"
                             >
                               <div className="size-12 rounded-2xl bg-white flex items-center justify-center text-gray-400 group-hover:text-primary shadow-sm transition-colors ring-1 ring-gray-100">
                                 <span className="material-symbols-outlined !text-2xl">add_photo_alternate</span>
                               </div>
-                              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-primary transition-colors text-center px-2">Şəkil Əlavə Et</span>
+                              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-primary transition-colors text-center px-2">{t('cabinet.settings.addPhoto')}</span>
                             </button>
                           )}
                         </div>
@@ -975,17 +1013,17 @@ export default function SettingsPage() {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full sm:w-auto min-w-[220px] h-16 rounded-2xl bg-primary text-white font-black uppercase tracking-[0.1em] text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-3"
+                      className="w-full sm:w-auto min-w-[220px] h-16 rounded-2xl bg-primary text-white font-black uppercase tracking-[0.1em] text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-3 cursor-pointer"
                     >
                       {isLoading ? (
                         <>
                           <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin" />
-                          <span>Yadda saxlanılır...</span>
+                          <span>{t('cabinet.settings.saving')}</span>
                         </>
                       ) : (
                         <>
                           <span className="material-symbols-outlined !text-[20px]">check_circle</span>
-                          <span>Mağazanı Yenilə</span>
+                          <span>{t('cabinet.settings.updateStore')}</span>
                         </>
                       )}
                     </button>

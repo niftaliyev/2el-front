@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback, KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/constants';
 import axiosInstance from '@/lib/axios';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // ─── Tiplər ──────────────────────────────────────────────────────────────────
 
@@ -12,9 +13,23 @@ interface SuggestionItem {
   text: string;
   category: string;
   categoryId: string;
+  categorySlug?: string;
+  CategorySlug?: string;
   subCategory?: string | null;
   subCategoryId?: string | null;
+  subCategorySlug?: string;
+  SubCategorySlug?: string;
   count: number;
+}
+
+interface HistoryItem {
+  text: string;
+  categorySlug?: string;
+  subCategorySlug?: string;
+  categoryId?: string;
+  subCategoryId?: string;
+  category?: string;
+  subCategory?: string;
 }
 
 interface SuggestionResponse {
@@ -47,24 +62,40 @@ function highlightText(text: string, query: string): React.ReactNode {
 const HISTORY_KEY = 'elanaz_search_history';
 const MAX_HISTORY = 6;
 
-function getSearchHistory(): string[] {
+function getSearchHistory(): HistoryItem[] {
   if (typeof window === 'undefined') return [];
   try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((h: any) => (typeof h === 'string' ? { text: h } : h));
   } catch {
     return [];
   }
 }
 
-function saveToHistory(term: string) {
+function saveToHistory(term: string, item?: any) {
   if (!term.trim() || term.trim().length < 2) return;
-  const prev = getSearchHistory().filter((t) => t !== term.trim());
-  const updated = [term.trim(), ...prev].slice(0, MAX_HISTORY);
+  const history = getSearchHistory();
+  const prev = history.filter((h) => h.text !== term.trim());
+
+  const newItem: HistoryItem = { text: term.trim() };
+  if (item) {
+    newItem.categorySlug = item.categorySlug || item.CategorySlug;
+    newItem.subCategorySlug = item.subCategorySlug || item.SubCategorySlug;
+    newItem.categoryId = item.categoryId || item.CategoryId;
+    newItem.subCategoryId = item.subCategoryId || item.SubCategoryId;
+    newItem.category = item.category;
+    newItem.subCategory = item.subCategory;
+  }
+
+  const updated = [newItem, ...prev].slice(0, MAX_HISTORY);
   localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
 }
 
-function removeFromHistory(term: string) {
-  const updated = getSearchHistory().filter((t) => t !== term);
+function removeFromHistory(text: string) {
+  const updated = getSearchHistory().filter((h) => h.text !== text);
   localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
 }
 
@@ -88,6 +119,7 @@ export default function SearchAutocomplete({
   initialValue = '',
 }: SearchAutocompleteProps) {
   const router = useRouter();
+  const { language, t } = useLanguage();
 
   // ─── State ──────────────────────────────────────────────────────────────────
   const [query, setQuery] = useState(initialValue);
@@ -96,7 +128,7 @@ export default function SearchAutocomplete({
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
   // ─── Ref-lər ────────────────────────────────────────────────────────────────
@@ -126,7 +158,7 @@ export default function SearchAutocomplete({
       const response = await axiosInstance.get<SuggestionResponse>(
         '/search/suggestions',
         {
-          params: { term, limit: 10 },
+          params: { term, limit: 10, lang: language },
           signal: controller.signal,
         }
       );
@@ -146,7 +178,7 @@ export default function SearchAutocomplete({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [language]);
 
   // ─── Debounce: 350ms gözlə ───────────────────────────────────────────────
   useEffect(() => {
@@ -193,7 +225,7 @@ export default function SearchAutocomplete({
       if (!trimmed && !item) return;
 
       if (trimmed) {
-        saveToHistory(trimmed);
+        saveToHistory(trimmed, item);
         setHistory(getSearchHistory());
       }
 
@@ -330,7 +362,7 @@ export default function SearchAutocomplete({
           ref={inputRef}
           type="text"
           className="search-input"
-          placeholder={placeholder}
+          placeholder={placeholder || t('nav.searchPlaceholder')}
           value={query}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
@@ -344,7 +376,7 @@ export default function SearchAutocomplete({
             }
           }}
           autoComplete="off"
-          aria-label="Axtarış"
+          aria-label={t('common.search')}
           aria-autocomplete="list"
           aria-expanded={showDropdown || showHistoryDropdown}
           aria-activedescendant={activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined}
@@ -364,7 +396,7 @@ export default function SearchAutocomplete({
             type="button"
             className="search-clear-btn"
             onClick={handleClear}
-            aria-label="Axtarışı təmizlə"
+            aria-label={t('common.close')}
             tabIndex={-1}
           >
             <span className="material-symbols-outlined">close</span>
@@ -377,9 +409,9 @@ export default function SearchAutocomplete({
             type="button"
             onClick={() => doSearch(query)}
             className="search-btn"
-            aria-label="Axtar"
+            aria-label={t('common.search')}
           >
-            {buttonLabel}
+            {buttonLabel || t('common.search')}
           </button>
         )}
       </div>
@@ -396,7 +428,7 @@ export default function SearchAutocomplete({
           ) : suggestions.length === 0 ? (
             <div className="search-no-results">
               <span className="material-symbols-outlined search-no-results-icon">search_off</span>
-              <span>Nəticə tapılmadı</span>
+              <span>{t('shops.noStores')}</span>
             </div>
           ) : (
             <ul className="search-suggestion-list">
@@ -427,7 +459,7 @@ export default function SearchAutocomplete({
                         )}
                       </span>
                       {item.count > 0 && (
-                        <span className="search-suggestion-count">{item.count} elan</span>
+                        <span className="search-suggestion-count">{item.count} {t('product.adCount')}</span>
                       )}
                     </div>
                   </div>
@@ -442,9 +474,9 @@ export default function SearchAutocomplete({
 
       {/* ── Avito kimi: Son Axtarışlar (Tarix) ── */}
       {showHistoryDropdown && (
-        <div className="search-dropdown" role="listbox" aria-label="Son axtarışlar">
+        <div className="search-dropdown" role="listbox" aria-label={t('search.recentSearches')}>
           <div className="search-history-header">
-            <span>Son axtarışlar</span>
+            <span>{t('search.recentSearches')}</span>
             <button
               className="search-history-clear-all"
               onMouseDown={(e) => {
@@ -454,37 +486,37 @@ export default function SearchAutocomplete({
                 setShowHistory(false);
               }}
             >
-              Hamısını sil
+              {t('search.clearAll')}
             </button>
           </div>
           <ul className="search-suggestion-list">
-            {history.map((term, i) => (
+            {history.map((h, i) => (
               <li
                 key={`hist-${i}`}
                 className="search-suggestion-item"
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  setQuery(term);
-                  doSearch(term);
+                  setQuery(h.text);
+                  doSearch(h.text, h);
                 }}
               >
                 <span className="material-symbols-outlined search-suggestion-icon" style={{ color: '#9ca3af' }}>
                   history
                 </span>
                 <div className="search-suggestion-content">
-                  <span className="search-suggestion-text" style={{ fontWeight: 400 }}>{term}</span>
+                  <span className="search-suggestion-text" style={{ fontWeight: 400 }}>{h.text}</span>
                 </div>
                 <button
                   className="search-history-remove"
                   onMouseDown={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    removeFromHistory(term);
+                    removeFromHistory(h.text);
                     const updated = getSearchHistory();
                     setHistory(updated);
                     if (updated.length === 0) setShowHistory(false);
                   }}
-                  aria-label="Axtarışı sil"
+                  aria-label={t('common.delete')}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#9ca3af' }}>close</span>
                 </button>
