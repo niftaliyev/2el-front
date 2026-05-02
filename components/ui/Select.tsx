@@ -20,11 +20,11 @@ const customSelectStyles: StylesConfig<SelectOption, false> = {
     ...base,
     minHeight: '48px',
     borderRadius: '0.5rem',
-    borderColor: state.isFocused ? '#8B5CF6' : '#D1D5DB',
+    borderColor: state.isFocused ? '#607afb' : '#D1D5DB',
     backgroundColor: '#FFFFFF',
-    boxShadow: state.isFocused ? '0 0 0 2px rgba(139, 92, 246, 0.2)' : 'none',
+    boxShadow: state.isFocused ? '0 0 0 2px rgba(96, 122, 251, 0.2)' : 'none',
     '&:hover': {
-      borderColor: state.isFocused ? '#8B5CF6' : '#9CA3AF',
+      borderColor: state.isFocused ? '#607afb' : '#9CA3AF',
     },
     cursor: 'pointer',
   }),
@@ -73,7 +73,7 @@ const customSelectStyles: StylesConfig<SelectOption, false> = {
     padding: '10px 12px',
     fontSize: '14px',
     '&:active': {
-      backgroundColor: state.isSelected ? '#8B5CF6' : '#E5E7EB',
+      backgroundColor: state.isSelected ? '#607afb' : '#E5E7EB',
     },
   }),
   indicatorSeparator: () => ({
@@ -81,10 +81,10 @@ const customSelectStyles: StylesConfig<SelectOption, false> = {
   }),
   dropdownIndicator: (base, state) => ({
     ...base,
-    color: state.isFocused ? '#8B5CF6' : '#6B7280',
+    color: state.isFocused ? '#607afb' : '#6B7280',
     padding: '0 12px',
     '&:hover': {
-      color: '#8B5CF6',
+      color: '#607afb',
     },
   }),
   clearIndicator: (base) => ({
@@ -105,7 +105,7 @@ const Select = ({ label, error, options, required, instanceId, ...props }: Selec
       {label && (
         <label className="block text-gray-900 text-sm font-medium mb-2">
           {label}
-          {required && <span className="text-error ml-1">*</span>}
+          {required && <span className="text-primary ml-1 font-black">*</span>}
         </label>
       )}
       <ReactSelect<SelectOption, false>

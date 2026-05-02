@@ -8,6 +8,11 @@
     "close": "Bağla",
     "delete": "Sil",
     "edit": "Redaktə et",
+    "image": "Şəkil",
+    "isStillAvailable": "Hələ də satılır?",
+    "isNegotiable": "Qiymətdə razılaşmaq olar?",
+    "hasDelivery": "Salam, çatdırılma var?",
+    "whereToMeet": "Harada baxa bilərəm?",
     "search": "Axtar",
     "all": "Hamısı",
     "yes": "Bəli",
@@ -44,7 +49,8 @@
     },
     "unknown": "Bilinmir",
     "user": "İstifadəçi",
-    "store": "Mağaza"
+    "store": "Mağaza",
+    "details": "Ətraflı"
   },
   "nav": {
     "home": "Əsas",
@@ -238,7 +244,8 @@
     "unfollow": "İzləməyi burax",
     "safetyNote": "Diqqət:",
     "safetyText": "Qiymət çox aşağıdırsa ehtiyatlı olun və şübhəli elanları report edin.",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "ownAdMessageError": "Öz elanınıza mesaj yaza bilməzsiniz"
   },
   "shops": {
     "title": "Mağazalar",
@@ -318,7 +325,8 @@
       "favorites": "Seçilmiş Elanlar",
       "messages": "Mesajlar",
       "settings": "Parametrlər",
-      "packages": "Paketlər"
+      "packages": "Paketlər",
+      "notifications": "Bildirişlər"
     },
     "favorites": {
       "title": "Seçilmişlər",
@@ -477,11 +485,6 @@
       "learnMore": "Kateqoriya üzrə limitlər ilə ətraflı tanış olun",
       "noAdsInCategory": "Hələ ki, heç bir kateqoriya üzrə elanınız yoxdur"
     },
-    "messages": {
-      "title": "Mesajlar",
-      "noMessages": "Mesaj yoxdur",
-      "noMessagesDesc": "Hələ ki heç bir mesajınız yoxdur."
-    },
     "businessCabinet": "Biznes Kabineti",
     "businessSubtitle": "Paketlərinizi idarə edin və balansınızı izləyin",
     "totalBalance": "Cəmi Balans",
@@ -526,7 +529,50 @@
     "bonusBalanceDesc": "Kampaniya və hədiyyə bonusları.",
     "remainingAdLimitDesc": "Sizin cari biznes paketiniz üzrə aktiv elan yerləşdirmə limitiniz {{count}} ədəddir. Limit bitdikdə yeni paket alaraq və ya balansınızı artıraraq davam edə bilərsiniz.",
     "noStoreError": "Bu bölməyə daxil olmaq üçün aktiv mağazanız olmalıdır.",
-    "buySuccess": "Biznes paketi uğurla alındı"
+    "buySuccess": "Biznes paketi uğurla alındı",
+    "notifications": {
+      "title": "Bildirişlər",
+      "subtitle": "Bütün bildirişlərinizi buradan idarə edə bilərsiniz",
+      "markAllRead": "Hamısını oxundu et",
+      "deleteAll": "Hamısını sil",
+      "noNotifications": "Bildiriş yoxdur",
+      "noNotificationsDesc": "Hələ ki heç bir bildirişiniz yoxdur.",
+      "deleteConfirm": "Bu bildirişi silmək istədiyinizə əminsiniz?",
+      "deleteAllConfirm": "Bütün bildirişləri silmək istədiyinizə əminsiniz?"
+    },
+    "messages": {
+      "title": "Mesajlar",
+      "tabs": {
+        "all": "Hamısı",
+        "buying": "Alış",
+        "selling": "Satış"
+      },
+      "noMessages": "Hələ ki mesajınız yoxdur",
+      "noMessagesBuying": "Alış bölməsində mesajınız yoxdur",
+      "noMessagesSelling": "Satış bölməsində mesajınız yoxdur",
+      "newChat": "Yeni söhbət",
+      "online": "Onlayn",
+      "offline": "Oflayn",
+      "userAds": "İstifadəçinin elanları",
+      "blockUser": "Blok et",
+      "unblockUser": "Blokdan çıxar",
+      "deleteChat": "Yazışmanı sil",
+      "deleteConfirm": "Bu yazışmanı silmək istədiyinizə əminsiniz?",
+      "blockConfirm": "Bu istifadəçini bloklamaq istədiyinizə əminsiniz?",
+      "unblockConfirm": "Bu istifadəçini blokdan çıxarmaq istədiyinizə əminsiniz?",
+      "viewAd": "Elana bax",
+      "isTyping": "yazır...",
+      "blockedByMe": "Siz bu istifadəçini bloklamısınız. Mesaj yazmaq üçün bloku açın.",
+      "hasBlockedMe": "Siz bu istifadəçi tərəfindən bloklanmısınız.",
+      "inputPlaceholder": "Mesaj yazın...",
+      "selectChat": "Söhbət seçin",
+      "chatDesc": "Satıcı və alıcılarla birbaşa saytda ünsiyyət qurun",
+      "imageTooLarge": "{{name}} ölçüsü 5MB-dan çoxdur",
+      "imageUploadError": "Şəkillər yüklənmədi",
+      "messageSendError": "Mesaj göndərilmədi",
+      "loadError": "Mesajlar yüklənərkən xəta baş verdi",
+      "chatLoadError": "Söhbət yüklənərkən xəta baş verdi"
+    }
   },
   "promoteModal": {
     "title": "Elanı Önə Çıxar",
@@ -730,5 +776,12 @@
       "desc": "Mağazalar üçün təqdim edilən xüsusi abunə paketləridir. Eyni anda çox sayda məhsul satanlar üçün daha uyğun və sərfəlidir. Hər paketdə əlavə xidmət balansı mövcuddur.",
       "link": "Paketlərlə tanış olun"
     }
+  },
+  "notifications": {
+    "title": "Bildirişlər",
+    "markAllRead": "Hamısını oxundu et",
+    "noNotifications": "Yeni bildiriş yoxdur",
+    "seeAll": "Bütün bildirişlər",
+    "newNotification": "Yeni bildiriş"
   }
 }

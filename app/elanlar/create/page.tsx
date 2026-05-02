@@ -750,7 +750,8 @@ export default function CreateListingPage() {
                       return (
                         <Select
                           key={field.id}
-                          label={(isRu && field.nameRu ? field.nameRu : field.name) + (field.isRequired ? ' *' : '')}
+                          label={isRu && field.nameRu ? field.nameRu : field.name}
+                          required={field.isRequired}
                           options={options}
                           value={options.find(o => o.value === displayValue)}
                           onChange={(opt) => {
@@ -773,7 +774,8 @@ export default function CreateListingPage() {
                       return (
                         <Input
                           key={field.id}
-                          label={(language === 'ru' && field.nameRu ? field.nameRu : field.name) + (field.isRequired ? ' *' : '')}
+                          label={language === 'ru' && field.nameRu ? field.nameRu : field.name}
+                          required={field.isRequired}
                           type="number"
                           value={dynamicFieldValues[field.id] || ''}
                           onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
@@ -798,7 +800,8 @@ export default function CreateListingPage() {
                     return (
                       <Input
                         key={field.id}
-                        label={(language === 'ru' && field.nameRu ? field.nameRu : field.name) + (field.isRequired ? ' *' : '')}
+                        label={language === 'ru' && field.nameRu ? field.nameRu : field.name}
+                        required={field.isRequired}
                         type="text"
                         value={dynamicFieldValues[field.id] || ''}
                         onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}

@@ -75,7 +75,7 @@ export default function BurgerMenu() {
       />
 
       <div
-        className={`absolute top-14 left-0 w-[calc(100vw-1.5rem)] sm:w-[800px] max-h-[85vh] sm:max-h-[calc(100vh-100px)] bg-white rounded-2xl sm:rounded-[2rem] shadow-[0_25px_70px_rgba(0,0,0,0.15)] border border-slate-100 overflow-y-auto no-scrollbar transform origin-top-left transition-all duration-300 ${isOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-4 pointer-events-none'
+        className={`fixed sm:absolute top-20 sm:top-14 left-3 sm:left-0 right-3 sm:right-auto sm:w-[800px] max-h-[80vh] sm:max-h-[calc(100vh-100px)] bg-white rounded-3xl sm:rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] sm:shadow-[0_25px_70px_rgba(0,0,0,0.15)] border border-slate-100 overflow-y-auto no-scrollbar transform origin-top transition-all duration-300 ease-out ${isOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-4 pointer-events-none'
           }`}
       >
         <div className="flex flex-col sm:flex-row gap-10 sm:gap-16 p-6 sm:p-10">

@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
   { href: '/cabinet/ad-placement-limits', icon: 'bar_chart_4_bars', labelKey: 'cabinet.nav.limits' },
   { href: '/cabinet/favorites', icon: 'favorite', labelKey: 'cabinet.nav.favorites' },
   { href: '/cabinet/messages', icon: 'chat_bubble', labelKey: 'cabinet.nav.messages' },
+  { href: '/cabinet/notifications', icon: 'notifications', labelKey: 'cabinet.nav.notifications' },
   { href: '/cabinet/settings', icon: 'settings', labelKey: 'cabinet.nav.settings' },
 ];
 
