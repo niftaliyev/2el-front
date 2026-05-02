@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Thumbs, FreeMode } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
@@ -38,6 +39,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { t, language } = useLanguage();
+  const router = useRouter();
 
   const formatBooleanValue = (name: string, value: string | boolean) => {
     const strVal = String(value).toLowerCase();
@@ -155,6 +157,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       console.error('Favorite toggle error:', err);
       // If not logged in redirect or show alert
     }
+  };
+
+  const handleSendMessage = () => {
+    if (!product.userId) return;
+    router.push(`/cabinet/messages?sellerId=${product.userId}&adId=${product.id}`);
   };
 
   return (
@@ -480,13 +487,24 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
                       {/* Seller Info */}
                       <div className="flex items-center gap-4">
-                        <div className="bg-primary/10 rounded-full size-14 flex items-center justify-center text-primary border border-primary/20 shrink-0">
-                          <span className="text-2xl font-black">
-                            {product.fullName?.charAt(0).toUpperCase()}
-                          </span>
+                        <div className="bg-primary/10 rounded-full size-14 flex items-center justify-center text-primary border border-primary/20 shrink-0 overflow-hidden relative">
+                          {product.isStore && product.storeLogoUrl ? (
+                            <Image
+                              src={getImageUrl(product.storeLogoUrl)}
+                              alt={product.storeName || ''}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <span className="text-2xl font-black">
+                              {(product.isStore ? product.storeName : product.fullName)?.charAt(0).toUpperCase()}
+                            </span>
+                          )}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-gray-900 font-bold text-lg truncate">{product.fullName}</p>
+                          <p className="text-gray-900 font-bold text-lg truncate">
+                            {product.isStore ? product.storeName : product.fullName}
+                          </p>
                           {product.isStore && (
                             <p className="text-xs font-semibold text-[#8D94AD] truncate mt-0.5">
                               {(language === 'ru' && product.storeHeadlineRu ? product.storeHeadlineRu : product.storeHeadline) || t('product.officialStore')}
@@ -540,7 +558,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                           )}
                         </div>
 
-                        <button className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-primary text-white text-[15px] font-bold leading-normal tracking-[0.015em] gap-2 hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/30 active:scale-[0.98]">
+                        <button
+                          onClick={handleSendMessage}
+                          className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-primary text-white text-[15px] font-bold leading-normal tracking-[0.015em] gap-2 hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/30 active:scale-[0.98]"
+                        >
                           <span className="material-symbols-outlined !text-[20px]">chat</span>
                           <span className="truncate">{t('product.sendMessage')}</span>
                         </button>

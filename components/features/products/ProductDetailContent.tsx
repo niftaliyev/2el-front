@@ -18,6 +18,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFormatRelativeTime } from '@/hooks/useFormatRelativeTime';
+import { chatService } from '@/services/chat.service';
+import { toast } from 'sonner';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -45,6 +47,27 @@ export default function ProductDetailContent({ id }: { id: string }) {
   const [isWorkHoursExpanded, setIsWorkHoursExpanded] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const handleStartChat = async () => {
+    if (!product) return;
+    try {
+      if (!isAuthenticated || !user) {
+        toast.error(t('product.loginRequired'));
+        return;
+      }
+
+      if (user.id === product.userId) {
+        toast.error(t('product.ownAdMessageError'));
+        return;
+      }
+
+      const chat = await chatService.startChat(product.userId, product.id);
+      router.push(`/cabinet/messages?chatId=${chat.chatId}`);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Mesaj göndərmək mümkün olmadı');
+    }
+  };
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isChangingFav, setIsChangingFav] = useState(false);
@@ -703,7 +726,10 @@ export default function ProductDetailContent({ id }: { id: string }) {
                           </div>
 
                           <div className="flex flex-col gap-2.5">
-                            <button className="w-full flex items-center justify-center rounded-xl h-12 bg-primary text-white text-[13px] font-black uppercase gap-2.5 hover:bg-primary/90 shadow-lg shadow-primary/20">
+                            <button
+                              onClick={handleStartChat}
+                              className="w-full flex items-center justify-center rounded-xl h-12 bg-primary text-white text-[13px] font-black uppercase gap-2.5 hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all"
+                            >
                               <span className="material-symbols-outlined !text-[18px]">chat</span>
                               <span>{t('product.sendMessage')}</span>
                             </button>
@@ -891,8 +917,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
 
       {/* Mobile Sticky Action Bar */}
       <div
-        className={`lg:hidden fixed left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${
-          isLightboxOpen ? 'translate-y-full opacity-0 pointer-events-none' :
+        className={`lg:hidden fixed left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${isLightboxOpen ? 'translate-y-full opacity-0 pointer-events-none' :
           isNavVisible
             ? 'bottom-[calc(54px+max(9px,env(safe-area-inset-bottom)))]'
             : 'bottom-0'
@@ -915,7 +940,10 @@ export default function ProductDetailContent({ id }: { id: string }) {
             {t('product.call')}
           </button>
         )}
-        <button className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#3B82F6] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(59,130,246,0.3)] active:scale-95 transition-all">
+        <button
+          onClick={handleStartChat}
+          className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#3B82F6] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(59,130,246,0.3)] active:scale-95 transition-all"
+        >
           <span className="material-symbols-outlined !text-[20px]">chat</span>
           {t('product.sendMessage')}
         </button>

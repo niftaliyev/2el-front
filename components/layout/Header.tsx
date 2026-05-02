@@ -1,23 +1,24 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ROUTES } from '@/constants';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { ROUTES } from '@/constants';
 import { getImageUrl } from '@/lib/utils';
-import CategoryDropdown from './CategoryDropdown';
-import BurgerMenu from './BurgerMenu';
-import SearchAutocomplete from '@/components/features/search/SearchAutocomplete';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { toast } from 'sonner';
-import { useLanguage } from '@/contexts/LanguageContext';
+import BurgerMenu from './BurgerMenu';
+import CategoryDropdown from './CategoryDropdown';
+import SearchAutocomplete from '@/components/features/search/SearchAutocomplete';
+import NotificationBell from './NotificationBell';
 
 export default function Header() {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
-  const { user, isAuthenticated } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const isVisible = useScrollDirection();
   const { t } = useLanguage();
 
@@ -51,43 +52,17 @@ export default function Header() {
           await navigator.clipboard.writeText(url);
           toast.success(t('product.linkCopied'));
         } catch (error) {
-          console.error('Error copying link:', error);
-          toast.error(t('product.copyError'));
-        }
-      } else {
-        // HTTP mühitləri üçün (Köhnə üsul)
-        try {
-          const textArea = document.createElement("textarea");
-          textArea.value = url;
-          textArea.style.position = "fixed";
-          textArea.style.left = "-9999px";
-          textArea.style.top = "0";
-          document.body.appendChild(textArea);
-          textArea.focus();
-          textArea.select();
-
-          const successful = document.execCommand('copy');
-          document.body.removeChild(textArea);
-
-          if (successful) {
-            toast.success(t('product.linkCopied'));
-          } else {
-            toast.error(t('product.copyError'));
-          }
-        } catch (err) {
-          console.error('Fallback copying failed', err);
-          toast.error(t('product.copyError'));
+          console.error('Error copying to clipboard:', error);
         }
       }
     }
   };
 
-
   return (
     <>
       <header className={`w-full bg-white border-b border-solid border-gray-200 sticky top-0 z-[100] transition-transform duration-300 ease-in-out md:transform-none ${isVisible || isCatalogOpen ? 'transform-none' : '-translate-y-full'}`}>
         {/* ─── Main Row ─── */}
-        <div className="flex items-center justify-between px-3 sm:px-6 lg:px-8 h-16 gap-3">
+        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 gap-3">
 
           {/* Left: back button (mobile) + burger + logo */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
@@ -160,7 +135,7 @@ export default function Header() {
               </button>
             </Link>
 
-            {/* Action Icons: Favorites & Messages */}
+            {/* Action Icons: Favorites & Messages & Notifications */}
             <div className="flex items-center gap-1.5 sm:gap-2">
               {/* Share Icon - only on detail pages on mobile */}
               {showShare && (
@@ -185,6 +160,9 @@ export default function Header() {
                   <span className="material-symbols-outlined !text-[22px]">chat_bubble</span>
                 </button>
               </Link>
+
+              {/* Notification Bell */}
+              <NotificationBell />
             </div>
 
             {/* Auth State: Profile or Login */}
@@ -220,7 +198,7 @@ export default function Header() {
 
 
         {/* ─── Mobile Search Row ─── */}
-        <div className="md:hidden px-3 pb-3">
+        <div className="md:hidden px-4 pb-3">
           <SearchAutocomplete
             placeholder={t('nav.searchPlaceholder')}
             buttonLabel={<span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>}
