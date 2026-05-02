@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import { chatService, ChatListItem, ChatDetail, ChatMessage } from '@/services/chat.service';
 import { authService } from '@/services/auth.service';
@@ -16,6 +16,18 @@ import Image from 'next/image';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 export default function MessagesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-[#F4F7FE]">
+        <div className="size-12 border-[4px] border-primary/20 border-t-primary animate-spin rounded-full"></div>
+      </div>
+    }>
+      <MessagesPageContent />
+    </Suspense>
+  );
+}
+
+function MessagesPageContent() {
   const { t, language } = useLanguage();
   const searchParams = useSearchParams();
   const [conversations, setConversations] = useState<ChatListItem[]>([]);
