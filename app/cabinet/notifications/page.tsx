@@ -31,8 +31,21 @@ export default function NotificationsPage() {
   const fetchNotifications = async () => {
     setIsLoading(true);
     try {
-      const data = await notificationService.getNotifications(1, 50);
-      setNotifications(data);
+      const data = await notificationService.getNotifications(1, 100);
+      
+      const filtered: NotificationListItem[] = [];
+      const seenSources = new Set<string>();
+      
+      for (const notif of data) {
+        if (!notif.sourceId) {
+          filtered.push(notif);
+        } else if (!seenSources.has(notif.sourceId)) {
+          seenSources.add(notif.sourceId);
+          filtered.push(notif);
+        }
+      }
+      
+      setNotifications(filtered);
     } catch (err) {
       console.error('Error fetching notifications:', err);
       setError(t('common.error'));
@@ -167,7 +180,13 @@ export default function NotificationsPage() {
                       }`}
                       onClick={() => {
                         if (!notif.isRead) handleMarkRead(notif.id);
-                        if (notif.link) router.push(notif.link);
+                        
+                        let targetLink = notif.link;
+                        if (notif.type === NotificationType.Message && notif.sourceId) {
+                          targetLink = `/cabinet/messages?chatId=${notif.sourceId}`;
+                        }
+
+                        if (targetLink) router.push(targetLink);
                       }}
                     >
                       <div className="flex gap-4">
