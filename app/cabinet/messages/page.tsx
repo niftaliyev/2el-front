@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { getImageUrl } from '@/lib/utils';
 import axiosInstance from '@/lib/axios';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
@@ -30,6 +30,7 @@ export default function MessagesPage() {
 function MessagesPageContent() {
   const { t, language } = useLanguage();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [conversations, setConversations] = useState<ChatListItem[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'buying' | 'selling'>('all');
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
@@ -104,29 +105,7 @@ function MessagesPageContent() {
   useEffect(() => {
     const user = authService.getUser();
     setCurrentUser(user);
-
-    const init = async () => {
-      await loadConversations();
-
-      // Handle direct chat from ad
-      const sellerId = searchParams.get('sellerId');
-      const adId = searchParams.get('adId');
-
-      if (sellerId && !initialLoadDone.current) {
-        initialLoadDone.current = true;
-        try {
-          const newChat = await chatService.startChat(sellerId, adId || undefined);
-          // Refresh conversations to include the new one if it's new
-          const updatedConversations = await chatService.getChats();
-          setConversations(updatedConversations);
-          setSelectedChatId(newChat.chatId);
-        } catch (err) {
-          console.error('Error starting chat from ad:', err);
-        }
-      }
-    };
-
-    init();
+    loadConversations();
 
     // SignalR connection setup (once)
     chatService.startConnection().then(() => {
@@ -152,9 +131,16 @@ function MessagesPageContent() {
           }
           setIsOtherUserTyping(false);
         } else {
-          setConversations((prev: ChatListItem[]) => prev.map(c =>
-            c.chatId === chatId ? { ...c, lastMessage: message.text, lastMessageDate: message.createdDate, unreadCount: c.unreadCount + 1 } : c
-          ));
+          setConversations((prev: ChatListItem[]) => {
+            const chatExists = prev.some(c => c.chatId === chatId);
+            if (!chatExists) {
+              loadConversations();
+              return prev;
+            }
+            return prev.map(c =>
+              c.chatId === chatId ? { ...c, lastMessage: message.text, lastMessageDate: message.createdDate, unreadCount: c.unreadCount + 1 } : c
+            );
+          });
         }
       });
 
@@ -217,6 +203,34 @@ function MessagesPageContent() {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, []);
+
+  // Handle direct chat from ad or chatId from URL
+  useEffect(() => {
+    const sellerId = searchParams.get('sellerId');
+    const adId = searchParams.get('adId');
+    const urlChatId = searchParams.get('chatId');
+
+    if (urlChatId) {
+      setSelectedChatId(urlChatId);
+      // Ensure the chat is in our list, otherwise refresh
+      if (conversations.length > 0 && !conversations.some(c => c.chatId === urlChatId)) {
+        loadConversations();
+      }
+    } else if (sellerId) {
+      const initDirectChat = async () => {
+        try {
+          const newChat = await chatService.startChat(sellerId, adId || undefined);
+          // Refresh conversations to include the new one if it's new
+          const updatedConversations = await chatService.getChats();
+          setConversations(updatedConversations);
+          setSelectedChatId(newChat.chatId);
+        } catch (err) {
+          console.error('Error starting chat from ad:', err);
+        }
+      };
+      initDirectChat();
+    }
+  }, [searchParams, router, t]);
 
   // Mark as read when focusing the window
   useEffect(() => {
@@ -605,9 +619,9 @@ function MessagesPageContent() {
                 </div>
 
                 {/* Chat Area */}
-                <div className={`flex-1 flex flex-col bg-white transition-all duration-500 ${(isMobile && !selectedChatId) ? 'hidden' : 'flex'}`}>
+                <div className={`flex-1 flex flex-col bg-white transition-all duration-500 ${(isMobile && !selectedChatId) ? 'hidden' : 'flex'} min-w-0`}>
                   {chatDetail ? (
-                    <div className="flex flex-col h-full overflow-hidden">
+                    <div className="flex flex-col h-full overflow-hidden min-w-0">
                       {/* Chat Header */}
                       <header className="flex-shrink-0 px-6 py-4 md:py-6 border-b border-gray-100 bg-white/80 backdrop-blur-xl z-30 flex items-center justify-between shadow-[0_1px_0_0_rgba(0,0,0,0.02)]">
                         <div className="flex items-center gap-4 min-w-0">
@@ -847,7 +861,7 @@ function MessagesPageContent() {
                       </div>
 
                       {/* Footer Area */}
-                      <footer className="flex-shrink-0 bg-white border-t border-gray-100/50 pb-safe z-30">
+                      <footer className="flex-shrink-0 bg-white border-t border-gray-100/50 pb-safe z-30 w-full max-w-[100vw] overflow-hidden min-w-0">
                         {(chatDetail.isBlockedByMe || chatDetail.hasBlockedMe) ? (
                           <div className="p-10 md:p-16 text-center flex flex-col items-center gap-6 bg-gray-50/30">
                             <div className="size-24 bg-red-50 text-red-500 rounded-[32px] flex items-center justify-center shadow-[inset_0_4px_12px_rgba(239,68,68,0.1)] transform -rotate-12">
@@ -865,19 +879,21 @@ function MessagesPageContent() {
                             </div>
                           </div>
                         ) : (
-                          <div className="flex flex-col">
+                          <div className="flex flex-col min-w-0 w-full max-w-[100vw] overflow-hidden min-h-0">
                             {/* Quick Replies */}
                             {chatDetail.messages.length === 0 && !messageInput && (
-                              <div className="px-6 py-4 flex gap-3 overflow-x-auto no-scrollbar border-b border-gray-50 bg-[#F4F7FE]/20">
-                                {[t('common.isStillAvailable'), t('common.isNegotiable'), t('common.hasDelivery'), t('common.whereToMeet')].map((text) => (
-                                  <button
-                                    key={text}
-                                    onClick={() => setMessageInput(text)}
-                                    className="text-[12px] font-black bg-white hover:bg-primary hover:text-white px-6 py-3 rounded-2xl transition-all duration-300 border border-gray-100 whitespace-nowrap shadow-sm cursor-pointer active:scale-95 hover:shadow-lg hover:shadow-primary/10"
-                                  >
-                                    {text}
-                                  </button>
-                                ))}
+                              <div className="w-full border-b border-gray-50 bg-[#F4F7FE]/20 overflow-x-auto scrollbar-hide">
+                                <div className="suggestions-scroll-container scrollbar-hide touch-pan-x px-6 py-4">
+                                  {[t('common.isStillAvailable'), t('common.isNegotiable'), t('common.hasDelivery'), t('common.whereToMeet')].map((text) => (
+                                    <button
+                                      key={text}
+                                      onClick={() => setMessageInput(text)}
+                                      className="text-[12px] font-black bg-white hover:bg-primary hover:text-white px-5 py-3 rounded-2xl transition-all duration-300 border border-gray-100 whitespace-nowrap shadow-sm cursor-pointer active:scale-95"
+                                    >
+                                      {text}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
                             )}
 
@@ -899,8 +915,8 @@ function MessagesPageContent() {
                             )}
 
                             {/* Input Area */}
-                            <div className="p-6 md:p-8">
-                              <div className={`flex gap-4 items-end bg-[#F4F7FE] p-2.5 rounded-[28px] border-2 transition-all duration-500 ${isSending ? 'opacity-70 pointer-events-none' : 'focus-within:border-primary/30 focus-within:bg-white focus-within:shadow-[0_24px_48px_rgba(var(--primary-rgb),0.1)]'}`}>
+                            <div className="p-4 md:p-8">
+                              <div className={`flex gap-2 sm:gap-4 items-center bg-[#F4F7FE] p-1.5 sm:p-2.5 rounded-[24px] sm:rounded-[32px] border-2 transition-all duration-500 ${isSending ? 'opacity-70 pointer-events-none' : 'focus-within:border-primary/30 focus-within:bg-white focus-within:shadow-[0_24px_48px_rgba(var(--primary-rgb),0.1)]'}`}>
                                 <div className="flex-shrink-0">
                                   <input
                                     type="file"
@@ -912,9 +928,9 @@ function MessagesPageContent() {
                                   />
                                   <label
                                     htmlFor="chat-image-upload"
-                                    className="size-12 sm:size-14 bg-white hover:bg-primary/5 text-gray-400 hover:text-primary rounded-2xl transition-all duration-300 cursor-pointer flex items-center justify-center shadow-sm border border-gray-100 active:scale-90"
+                                    className="size-11 sm:size-14 bg-white hover:bg-primary/5 text-gray-400 hover:text-primary rounded-xl sm:rounded-2xl transition-all duration-300 cursor-pointer flex items-center justify-center shadow-sm border border-gray-100 active:scale-90"
                                   >
-                                    <span className="material-symbols-outlined !text-[32px]">add_photo_alternate</span>
+                                    <span className="material-symbols-outlined !text-[24px] sm:!text-[32px]">add_photo_alternate</span>
                                   </label>
                                 </div>
                                 <textarea
@@ -930,31 +946,31 @@ function MessagesPageContent() {
                                     }
                                   }}
                                   placeholder={t('cabinet.messages.inputPlaceholder')}
-                                  className="flex-1 bg-transparent px-3 py-4 text-[15px] sm:text-base text-gray-900 focus:outline-none transition-all resize-none max-h-40 min-h-[56px] custom-scrollbar font-bold placeholder:text-gray-400"
+                                  className="flex-1 bg-transparent px-2 sm:px-3 py-2.5 sm:py-4 text-[15px] sm:text-base text-gray-900 focus:outline-none transition-all resize-none max-h-40 min-h-[44px] sm:min-h-[56px] custom-scrollbar font-bold placeholder:text-gray-400 leading-tight sm:leading-relaxed"
                                   rows={1}
                                 />
                                 <button
                                   onClick={handleSendMessage}
                                   disabled={(!messageInput.trim() && pendingImages.length === 0) || isSending}
-                                  className={`size-12 sm:size-14 rounded-2xl transition-all duration-500 flex-shrink-0 flex items-center justify-center shadow-xl active:scale-95 group ${(!messageInput.trim() && pendingImages.length === 0)
+                                  className={`size-11 sm:size-14 rounded-xl sm:rounded-2xl transition-all duration-500 flex-shrink-0 flex items-center justify-center shadow-xl active:scale-95 group ${(!messageInput.trim() && pendingImages.length === 0)
                                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                     : 'bg-gradient-to-tr from-primary to-primary-dark text-white hover:shadow-primary/30 hover:-translate-y-0.5'}`}
                                 >
                                   {isSending ? (
-                                    <div className="size-7 border-3 border-white/30 border-t-white animate-spin rounded-full"></div>
+                                    <div className="size-6 sm:size-7 border-3 border-white/30 border-t-white animate-spin rounded-full"></div>
                                   ) : (
                                     <div className="relative size-full flex items-center justify-center">
-                                      <div className="absolute inset-0 bg-white/20 scale-0 group-hover:scale-100 rounded-2xl transition-transform duration-500"></div>
+                                      <div className="absolute inset-0 bg-white/20 scale-0 group-hover:scale-100 rounded-xl sm:rounded-2xl transition-transform duration-500"></div>
                                       <svg
-                                        width="28"
-                                        height="28"
+                                        width="22"
+                                        height="22"
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         stroke="currentColor"
                                         strokeWidth="2.5"
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
-                                        className={`transition-all duration-500 ${(!messageInput.trim() && pendingImages.length === 0) ? '' : 'group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:rotate-12'}`}
+                                        className={`sm:w-7 sm:h-7 transition-all duration-500 ${(!messageInput.trim() && pendingImages.length === 0) ? '' : 'group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:rotate-12'}`}
                                       >
                                         <line x1="22" y1="2" x2="11" y2="13"></line>
                                         <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -1011,6 +1027,27 @@ function MessagesPageContent() {
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+        }
+        .suggestions-scroll-container {
+          display: flex !important;
+          flex-direction: row !important;
+          flex-wrap: nowrap !important;
+          overflow-x: auto !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+          gap: 12px;
+          -webkit-overflow-scrolling: touch !important;
+          touch-action: pan-x !important;
+          cursor: grab;
+          user-select: none;
+        }
+        .suggestions-scroll-container:active {
+          cursor: grabbing;
+        }
+        .suggestions-scroll-container > button {
+          flex: 0 0 auto !important;
         }
         :root {
           --primary-rgb: 61, 120, 200;

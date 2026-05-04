@@ -39,27 +39,38 @@ export default function NotificationBell() {
 
       // Start SignalR
       await notificationService.startConnection();
-      
+
       if (!isMounted) return;
 
       // Listen for new notifications
       notificationService.onNotificationReceived((newNotif) => {
         console.log('NotificationBell: processing new notification', newNotif);
         setNotifications(prev => {
-          // Avoid duplicates
-          if (prev.some(n => n.id === newNotif.id)) return prev;
-          return [newNotif, ...prev.slice(0, 19)];
+          // If we have a notification with the same sourceId, remove the old one(s)
+          const filteredPrev = newNotif.sourceId
+            ? prev.filter(n => n.sourceId !== newNotif.sourceId)
+            : prev;
+
+          // Avoid duplicates by ID
+          const finalPrev = filteredPrev.filter(n => n.id !== newNotif.id);
+
+          return [newNotif, ...finalPrev.slice(0, 19)];
         });
         setUnreadCount(prev => prev + 1);
-        
-        // Show toast
+
+        // Use link from notification if available, otherwise reconstruct for messages
+        let toastLink = newNotif.link;
+        if (!toastLink && newNotif.type === NotificationType.Message && newNotif.sourceId) {
+          toastLink = `/cabinet/messages?chatId=${newNotif.sourceId}`;
+        }
+
         toast(newNotif.title || t('notifications.newNotification') || 'Yeni bildiriş', {
           description: newNotif.text,
-          action: newNotif.link ? {
+          action: toastLink ? {
             label: t('common.details') || 'Bax',
             onClick: () => {
               if (newNotif.id) markRead(newNotif.id);
-              router.push(newNotif.link!);
+              router.push(toastLink!);
             }
           } : undefined
         });
@@ -86,8 +97,21 @@ export default function NotificationBell() {
 
   const fetchNotifications = async () => {
     try {
-      const data = await notificationService.getNotifications(1, 10);
-      setNotifications(data);
+      const data = await notificationService.getNotifications(1, 40);
+
+      const filtered: NotificationListItem[] = [];
+      const seenSources = new Set<string>();
+
+      for (const notif of data) {
+        if (!notif.sourceId) {
+          filtered.push(notif);
+        } else if (!seenSources.has(notif.sourceId)) {
+          seenSources.add(notif.sourceId);
+          filtered.push(notif);
+        }
+      }
+
+      setNotifications(filtered.slice(0, 15));
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
@@ -156,7 +180,7 @@ export default function NotificationBell() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button 
+      <button
         onClick={handleToggle}
         className="flex cursor-pointer items-center justify-center rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all active:scale-90 shadow-sm border border-gray-100 sm:border-transparent relative"
       >
@@ -173,7 +197,7 @@ export default function NotificationBell() {
           <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
             <h3 className="font-bold text-gray-900">{t('notifications.title') || 'Bildirişlər'}</h3>
             {unreadCount > 0 && (
-              <button 
+              <button
                 onClick={markAllRead}
                 className="text-xs text-primary font-semibold hover:underline cursor-pointer"
               >
@@ -190,21 +214,28 @@ export default function NotificationBell() {
               </div>
             ) : (
               notifications.map((notif) => (
-                <div 
+                <div
                   key={notif.id}
                   className={`p-4 border-b border-gray-50 flex gap-3 hover:bg-gray-50 transition-colors relative cursor-pointer ${!notif.isRead ? 'bg-primary/5' : ''}`}
                   onClick={() => {
                     if (!notif.isRead) markRead(notif.id);
-                    if (notif.link) {
+
+                    let targetLink = notif.link;
+                    // If it's a message and no link, ensure we go to the specific chat
+                    if (!targetLink && notif.type === NotificationType.Message && notif.sourceId) {
+                      targetLink = `/cabinet/messages?chatId=${notif.sourceId}`;
+                    }
+
+                    if (targetLink) {
                       setIsOpen(false);
-                      router.push(notif.link);
+                      router.push(targetLink);
                     }
                   }}
                 >
                   <div className={`flex-shrink-0 size-10 rounded-full bg-white shadow-sm flex items-center justify-center ${getColor(notif.type)}`}>
                     <span className="material-symbols-outlined !text-[20px]">{getIcon(notif.type)}</span>
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-1">
                       <h4 className={`text-sm font-bold truncate ${!notif.isRead ? 'text-gray-900' : 'text-gray-700'}`}>
@@ -218,7 +249,7 @@ export default function NotificationBell() {
                       {notif.text}
                     </p>
                   </div>
-                  
+
                   {!notif.isRead && (
                     <div className="size-2 bg-primary rounded-full absolute right-4 bottom-4"></div>
                   )}
@@ -228,8 +259,8 @@ export default function NotificationBell() {
           </div>
 
           <div className="p-3 border-t border-gray-100 bg-gray-50/30 text-center">
-            <Link 
-              href="/cabinet/notifications" 
+            <Link
+              href="/cabinet/notifications"
               onClick={() => setIsOpen(false)}
               className="text-xs font-bold text-gray-600 hover:text-primary transition-colors"
             >
