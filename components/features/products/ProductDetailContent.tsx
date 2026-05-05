@@ -12,6 +12,8 @@ import { AdDetail } from '@/types/api';
 import { Product } from '@/types';
 import { ROUTES } from '@/constants';
 import ProductGrid from '@/components/features/products/ProductGrid';
+import BannerAd from '@/components/features/ads/BannerAd';
+import { AdPosition } from '@/services/banner.service';
 import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
 import ReportModal from '@/components/features/ReportModal';
 import { useAuth } from '@/contexts/AuthContext';
@@ -329,9 +331,11 @@ export default function ProductDetailContent({ id }: { id: string }) {
           {/* Left Banner */}
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-24 pt-4">
-              <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-purple-200">
-                <p className="text-sm text-gray-500 text-center">{t('product.adSpace')}</p>
-              </div>
+              <BannerAd 
+                position={AdPosition.LeftSidebar} 
+                categoryId={product.categoryId}
+                cityId={product.cityId}
+              />
             </div>
           </aside>
 
@@ -863,9 +867,11 @@ export default function ProductDetailContent({ id }: { id: string }) {
           {/* Right Banner */}
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-24 pt-4">
-              <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-blue-200">
-                <p className="text-sm text-gray-500 text-center">{t('product.adSpace')}</p>
-              </div>
+              <BannerAd 
+                position={AdPosition.RightSidebar} 
+                categoryId={product.categoryId}
+                cityId={product.cityId}
+              />
             </div>
           </aside>
         </div>

@@ -8,6 +8,8 @@ import { adService } from '@/services/ad.service';
 import { AdListItem } from '@/types/api';
 import { getImageUrl } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import BannerAd from '@/components/features/ads/BannerAd';
+import { AdPosition } from '@/services/banner.service';
 
 function VipListingsContent() {
   const { t, language } = useLanguage();
@@ -105,9 +107,7 @@ function VipListingsContent() {
           {/* Left Banner */}
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-24 pt-8">
-              <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-purple-200">
-                <p className="text-sm text-gray-500 text-center font-medium">{t('home.adSpace')}</p>
-              </div>
+              <BannerAd position={AdPosition.LeftSidebar} />
             </div>
           </aside>
 
@@ -137,9 +137,7 @@ function VipListingsContent() {
           {/* Right Banner */}
           <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
             <div className="sticky top-24 pt-8">
-              <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl p-6 h-[600px] flex items-center justify-center border border-blue-200">
-                <p className="text-sm text-gray-500 text-center font-medium">{t('home.adSpace')}</p>
-              </div>
+              <BannerAd position={AdPosition.RightSidebar} />
             </div>
           </aside>
         </div>

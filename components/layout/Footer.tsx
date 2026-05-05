@@ -49,7 +49,7 @@ export default function Footer() {
               <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.rules')}</a></li>
               <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.privacyPolicy')}</a></li>
               <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href="/pages/limits_by_category">{t('footer.listingLimits')}</Link></li>
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.advertising')}</a></li>
+              <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href="/reklam-ver">{t('footer.advertising')}</Link></li>
             </ul>
           </div>
           <div>

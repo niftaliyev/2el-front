@@ -723,7 +723,6 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           </aside>
 
           <div className="lg:col-span-3">
-
             <div className="hidden lg:flex items-center mb-3 sm:mb-6">
               <div className="relative" ref={sortRef}>
                 <button
@@ -800,7 +799,6 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#607afb]"></div>
                   </div>
                 )}
-                {/* End of list message removed as per user request */}
               </>
             )}
           </div>
