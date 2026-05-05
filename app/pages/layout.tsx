@@ -2,6 +2,8 @@ import { helpService } from '@/services/help.service';
 import Container from '@/components/layout/Container';
 import PagesSidebar from './PagesSidebar';
 
+export const dynamic = 'force-dynamic';
+
 export default async function PagesLayout({
   children,
 }: {
