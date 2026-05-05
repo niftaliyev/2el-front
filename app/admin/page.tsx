@@ -156,6 +156,36 @@ export default function AdminDashboard() {
         </Link>
 
         <Link
+          href={ROUTES.ADMIN_BANNERS}
+          className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center size-12 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors">
+              <span className="material-symbols-outlined text-indigo-600 text-2xl">view_carousel</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">Banner Reklamları</h3>
+              <p className="text-sm text-gray-600">Sayt bannerlərini idarə et</p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          href={ROUTES.ADMIN_AD_APPLICATIONS}
+          className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center size-12 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
+              <span className="material-symbols-outlined text-orange-600 text-2xl">mail</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">Reklam Müraciətləri</h3>
+              <p className="text-sm text-gray-600">Yeni müraciətlərə bax</p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
           href="/admin/seed-data"
 
           className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"

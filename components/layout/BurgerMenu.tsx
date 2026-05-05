@@ -94,6 +94,9 @@ export default function BurgerMenu() {
             <Link href="/business" onClick={() => setIsOpen(false)} className="text-slate-700 hover:text-primary font-bold transition-all hover:translate-x-1 flex items-center gap-2 group">
               {t('burgerMenu.business')} <span className="bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider group-hover:scale-110 transition-transform">{t('burgerMenu.new')}</span>
             </Link>
+            <Link href="/reklam-ver" onClick={() => setIsOpen(false)} className="text-slate-700 hover:text-primary font-bold transition-all hover:translate-x-1 flex items-center gap-2">
+              {t('burgerMenu.placeAd')}
+            </Link>
           </div>
 
           {/* Column 2 */}

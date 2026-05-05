@@ -287,6 +287,44 @@ class AdminService {
   async deletePrivacyPolicy(id: string): Promise<void> {
     await axiosInstance.delete(`/admin/help/privacy/${id}`);
   }
+
+  // ── Advertising Applications ──────────────────────────────────────────────
+  async getAdApplications(page = 1, pageSize = 10, isProcessed?: boolean): Promise<any> {
+    const response = await axiosInstance.get('/admin/ad-applications', {
+      params: { page, pageSize, isProcessed },
+    });
+    return response.data;
+  }
+
+  async updateAdApplicationStatus(id: string, isProcessed: boolean, adminNote?: string): Promise<void> {
+    await axiosInstance.patch(`/admin/ad-applications/${id}/status`, { isProcessed, adminNote });
+  }
+
+  // ── Commercial Banners ────────────────────────────────────────────────────
+  async getBanners(): Promise<any[]> {
+    const response = await axiosInstance.get<any[]>('/admin/banners');
+    return response.data ?? [];
+  }
+
+  async upsertBanner(banner: any): Promise<void> {
+    const formData = new FormData();
+    Object.keys(banner).forEach(key => {
+      if (banner[key] !== null && banner[key] !== undefined) {
+        if (key === 'imageFile' && banner[key] instanceof File) {
+          formData.append('ImageFile', banner[key]);
+        } else {
+          formData.append(key.charAt(0).toUpperCase() + key.slice(1), banner[key]);
+        }
+      }
+    });
+    await axiosInstance.post('/admin/banners', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
+
+  async deleteBanner(id: string): Promise<void> {
+    await axiosInstance.delete(`/admin/banners/${id}`);
+  }
 }
 
 
