@@ -3,6 +3,8 @@ import Container from '@/components/layout/Container';
 import PagesSidebar from '@/app/pages/PagesSidebar';
 
 
+export const dynamic = 'force-dynamic';
+
 export default async function HelpLayout({
   children,
 }: {

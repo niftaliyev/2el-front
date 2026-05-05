@@ -1,9 +1,11 @@
 import { helpService } from '@/services/help.service';
 import { redirect } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 export default async function HelpPage() {
   const categories = await helpService.getContent();
-  
+
   if (categories.length > 0) {
     redirect(`/help/${categories[0].slug}`);
   }
