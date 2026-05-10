@@ -19,8 +19,10 @@ const axiosInstance: AxiosInstance = axios.create({
 // Request interceptor - Add auth token to requests
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Get token from localStorage
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    // Get token from storage (check both)
+    const token = typeof window !== 'undefined' 
+      ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')) 
+      : null;
 
     // Add token to headers if it exists
     if (token && config.headers) {
@@ -28,7 +30,6 @@ axiosInstance.interceptors.request.use(
     }
 
     // For FormData, let axios set Content-Type automatically with boundary
-    // Remove default Content-Type if data is FormData
     if (config.data instanceof FormData && config.headers) {
       delete config.headers['Content-Type'];
     }
@@ -43,7 +44,6 @@ axiosInstance.interceptors.request.use(
 // Response interceptor - Handle common errors and token refresh
 axiosInstance.interceptors.response.use(
   (response) => {
-    // Return successful response
     return response;
   },
   async (error: AxiosError) => {
@@ -54,8 +54,10 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Try to refresh the token
-        const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
+        // Try to refresh the token (check both storages)
+        const refreshToken = typeof window !== 'undefined' 
+          ? (localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken')) 
+          : null;
 
         if (refreshToken) {
           const response = await axios.post(`${BASE_URL}auth/refresh`, {
@@ -64,11 +66,12 @@ axiosInstance.interceptors.response.use(
 
           const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-          // Save new tokens
+          // Save new tokens to the SAME storage they were in
           if (typeof window !== 'undefined') {
-            localStorage.setItem('accessToken', accessToken);
+            const storage = localStorage.getItem('refreshToken') ? localStorage : sessionStorage;
+            storage.setItem('accessToken', accessToken);
             if (newRefreshToken) {
-              localStorage.setItem('refreshToken', newRefreshToken);
+              storage.setItem('refreshToken', newRefreshToken);
             }
           }
 
@@ -85,6 +88,9 @@ axiosInstance.interceptors.response.use(
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
+          sessionStorage.removeItem('accessToken');
+          sessionStorage.removeItem('refreshToken');
+          sessionStorage.removeItem('user');
           window.location.href = '/auth/login';
         }
         return Promise.reject(refreshError);

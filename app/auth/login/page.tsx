@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import Checkbox from '@/components/ui/Checkbox';
 import { ROUTES } from '@/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
@@ -30,6 +32,7 @@ export default function LoginPage() {
       await login({
         email: formData.email,
         password: formData.password,
+        rememberMe: rememberMe,
       });
 
       // Redirect to home page after successful login
@@ -96,7 +99,12 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between">
+              <Checkbox
+                label={t('auth.rememberMe')}
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
               <Link
                 href="#"
                 className="text-sm font-medium text-primary hover:underline"

@@ -13,7 +13,7 @@ class AuthService {
   async login(credentials: LoginRequest): Promise<AuthUser> {
     const response = await axiosInstance.post<AuthResponse>('/auth/login', credentials);
     if (response.data) {
-      this.setAuthData(response.data);
+      this.setAuthData(response.data, credentials.rememberMe);
       return response.data.user;
     }
     throw new Error('Invalid login response');
@@ -45,9 +45,16 @@ class AuthService {
     } as RefreshTokenRequest);
 
     if (response.data.accessToken) {
-      localStorage.setItem('accessToken', response.data.accessToken);
-      if (response.data.refreshToken) {
-        localStorage.setItem('refreshToken', response.data.refreshToken);
+      if (localStorage.getItem('accessToken')) {
+        localStorage.setItem('accessToken', response.data.accessToken);
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+        }
+      } else {
+        sessionStorage.setItem('accessToken', response.data.accessToken);
+        if (response.data.refreshToken) {
+          sessionStorage.setItem('refreshToken', response.data.refreshToken);
+        }
       }
     }
     return response.data;
@@ -57,7 +64,8 @@ class AuthService {
   async getCurrentUser(): Promise<AuthUser> {
     const response = await axiosInstance.get<AuthUser>('/auth/me');
     if (response.data) {
-      localStorage.setItem('user', JSON.stringify(response.data));
+      const storage = localStorage.getItem('accessToken') ? localStorage : sessionStorage;
+      storage.setItem('user', JSON.stringify(response.data));
       return response.data;
     }
     throw new Error('Failed to get current user');
@@ -75,17 +83,17 @@ class AuthService {
 
   getAccessToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('accessToken');
+    return localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
   }
 
   getRefreshToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('refreshToken');
+    return localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
   }
 
   getUser(): AuthUser | null {
     if (typeof window === 'undefined') return null;
-    const userStr = localStorage.getItem('user');
+    const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (!userStr) return null;
     try {
       return JSON.parse(userStr);
@@ -94,11 +102,12 @@ class AuthService {
     }
   }
 
-  private setAuthData(data: AuthResponse): void {
+  private setAuthData(data: AuthResponse, rememberMe: boolean = false): void {
     if (typeof window === 'undefined') return;
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.user));
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem('accessToken', data.accessToken);
+    storage.setItem('refreshToken', data.refreshToken);
+    storage.setItem('user', JSON.stringify(data.user));
   }
 
   private clearAuthData(): void {
@@ -106,6 +115,9 @@ class AuthService {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('user');
   }
 }
 

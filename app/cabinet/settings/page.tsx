@@ -285,7 +285,8 @@ export default function SettingsPage() {
       }));
       formData.append('WorkSchedulesJson', JSON.stringify(schedulesToSend));
 
-      if (storeCoverFile) formData.append('cover', storeCoverFile);
+      if (storeLogoFile) formData.append('Logo', storeLogoFile);
+      if (storeCoverFile) formData.append('Cover', storeCoverFile);
 
       newGalleryPhotos.forEach(file => {
         formData.append('GalleryPhotos', file);
@@ -312,6 +313,8 @@ export default function SettingsPage() {
 
       // Refresh data
       const updatedStore = await storeService.getMyStore();
+      if (updatedStore.logoUrl || updatedStore.LogoUrl) setStoreLogo(getImageUrl(updatedStore.logoUrl || updatedStore.LogoUrl));
+      if (updatedStore.coverUrl || updatedStore.CoverUrl) setStoreCover(getImageUrl(updatedStore.coverUrl || updatedStore.CoverUrl));
       setStoreGalleryPhotos(updatedStore.galleryPhotos || updatedStore.GalleryPhotos || []);
     } catch (err: any) {
       setError(err.response?.data?.message || t('cabinet.settings.storeSaveError'));
