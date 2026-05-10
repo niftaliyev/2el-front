@@ -346,13 +346,6 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                   <button className="flex items-center justify-center size-14 md:size-16 bg-white text-gray-400 rounded-[1.25rem] border border-gray-100 hover:border-primary/20 hover:text-primary active:scale-95 transition-all shadow-lg hover:shadow-xl group cursor-pointer">
                     <span className="material-symbols-outlined !text-[22px] md:!text-[26px] group-hover:rotate-12 transition-transform">share</span>
                   </button>
-                  <button 
-                    onClick={handleSendMessage}
-                    className="flex items-center justify-center size-14 md:size-16 bg-white text-gray-400 rounded-[1.25rem] border border-gray-100 hover:border-primary/20 hover:text-primary active:scale-95 transition-all shadow-lg hover:shadow-xl group cursor-pointer"
-                    title={t('product.sendMessage')}
-                  >
-                    <span className="material-symbols-outlined !text-[22px] md:!text-[26px] group-hover:rotate-12 transition-transform">chat</span>
-                  </button>
                   <button
                     onClick={() => setIsReportModalOpen(true)}
                     className="flex items-center justify-center size-14 md:size-16 bg-white text-gray-400 rounded-[1.25rem] border border-gray-100 hover:border-red-500/20 hover:text-red-500 active:scale-95 transition-all shadow-lg hover:shadow-xl group cursor-pointer"
@@ -682,7 +675,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
           <span className="material-symbols-outlined !text-[20px]">call</span>
           {t('product.call')}
         </a>
-        <button 
+        <button
           onClick={handleSendMessage}
           className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#3B82F6] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(59,130,246,0.3)] active:scale-95 transition-all cursor-pointer"
         >

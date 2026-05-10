@@ -205,6 +205,7 @@
     "password": "Пароль",
     "enterPassword": "Введите пароль",
     "forgotPassword": "Забыли пароль?",
+    "rememberMe": "Запомнить меня",
     "login": "Войти",
     "noAccount": "Нет аккаунта?",
     "register": "Зарегистрироваться",
