@@ -326,22 +326,23 @@ export default function ProductDetailContent({ id }: { id: string }) {
 
   return (
     <main className="w-full bg-gray-50 min-h-screen">
-      <div className="container mx-auto">
-        <div className="flex gap-4 lg:gap-6">
-          {/* Left Banner */}
-          <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
-            <div className="sticky top-24 pt-4">
-              <BannerAd 
-                position={AdPosition.LeftSidebar} 
-                categoryId={product.categoryId}
-                cityId={product.cityId}
-              />
-            </div>
-          </aside>
+      <div className="w-full flex">
+        {/* Left Banner */}
+        <aside className="hidden xl:block flex-1 min-w-[160px] 2xl:min-w-[200px]">
+          <div className="sticky top-[64px] h-[calc(100vh-64px)] w-full">
+            <BannerAd 
+              position={AdPosition.LeftSidebar} 
+              categoryId={product.categoryId}
+              cityId={product.cityId}
+              className="w-full h-full !rounded-none"
+              noBoard
+            />
+          </div>
+        </aside>
 
-          {/* Main Content Wrappers */}
-          <div className="flex-1 min-w-0 pt-5 pb-24 sm:py-10">
-            <div className="flex flex-col gap-6 max-w-[1200px] mx-auto">
+        {/* Main Content Wrappers */}
+        <div className="w-full max-w-[1024px] mx-auto px-4 lg:px-6">
+          <div className="flex flex-col gap-6 w-full pt-5 pb-24 sm:py-10">
               {/* Breadcrumb */}
               <div>
                 <div className="flex flex-wrap gap-1.5 items-center">
@@ -864,17 +865,18 @@ export default function ProductDetailContent({ id }: { id: string }) {
             </div>
           </div>
 
-          {/* Right Banner */}
-          <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
-            <div className="sticky top-24 pt-4">
-              <BannerAd 
-                position={AdPosition.RightSidebar} 
-                categoryId={product.categoryId}
-                cityId={product.cityId}
-              />
-            </div>
-          </aside>
-        </div>
+        {/* Right Banner */}
+        <aside className="hidden xl:block flex-1 min-w-[160px] 2xl:min-w-[200px]">
+          <div className="sticky top-[64px] h-[calc(100vh-64px)] w-full">
+            <BannerAd 
+              position={AdPosition.RightSidebar} 
+              categoryId={product.categoryId}
+              cityId={product.cityId}
+              className="w-full h-full !rounded-none"
+              noBoard
+            />
+          </div>
+        </aside>
       </div>
 
       {/* Modals */}

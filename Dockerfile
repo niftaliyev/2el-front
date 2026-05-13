@@ -1,14 +1,14 @@
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-#  ElanAz Frontend – Production Dockerfile
+#  2El.az Frontend – Production Dockerfile
 #  Next.js standalone output, multi-stage build
 #
 #  LOCAL BUILD & RUN:
-#    docker build -t elanaz-frontend .
-#    docker run -p 3000:3000 --env-file .env.local elanaz-frontend
+#    docker build -t 2el-frontend .
+#    docker run -p 3000:3000 --env-file .env.local 2el-frontend
 #
 #  SERVER (Ubuntu):
-#    docker build -t elanaz-frontend .
-#    docker run -d -p 3000:3000 --env-file .env --name elanaz-frontend --restart unless-stopped elanaz-frontend
+#    docker build -t 2el-frontend .
+#    docker run -d -p 3000:3000 --env-file .env --name 2el-frontend --restart unless-stopped 2el-frontend
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # ─── Stage 1: Install dependencies ───────────────────────────────────

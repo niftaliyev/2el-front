@@ -13,6 +13,7 @@ export default function AdminBannersPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedBanner, setSelectedBanner] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewScript, setPreviewScript] = useState<string>('');
 
   const [categories, setCategories] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
@@ -66,7 +67,8 @@ export default function AdminBannersPage() {
       priority: parseInt(formData.get('priority') as string) || 0,
       startDate: new Date(formData.get('startDate') as string).toISOString(),
       endDate: new Date(formData.get('endDate') as string).toISOString(),
-      isActive: formData.get('isActive') === 'on'
+      isActive: formData.get('isActive') === 'on',
+      scriptCode: formData.get('scriptCode') || null
     };
 
     if (imageFile) {
@@ -103,9 +105,6 @@ export default function AdminBannersPage() {
     switch (pos) {
       case 1: return 'Sol Sidebar';
       case 2: return 'Sağ Sidebar';
-      case 3: return 'Yuxarı (Top)';
-      case 4: return 'Aşağı (Bottom)';
-      case 5: return 'Məzmun Arası (Inner)';
       default: return 'Naməlum';
     }
   };
@@ -117,7 +116,7 @@ export default function AdminBannersPage() {
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">Banner Reklamları</h1>
           <p className="text-gray-500 text-sm font-medium">Saytda görünən bütün kommersiya reklamları</p>
         </div>
-        <Button onClick={() => { setSelectedBanner(null); setIsModalOpen(true); }} className="rounded-xl font-bold shadow-lg shadow-primary/20">
+        <Button onClick={() => { setSelectedBanner(null); setPreviewScript(''); setIsModalOpen(true); }} className="rounded-xl font-bold shadow-lg shadow-primary/20">
           <span className="material-symbols-outlined mr-2">add</span> Yeni Banner
         </Button>
       </div>
@@ -154,8 +153,16 @@ export default function AdminBannersPage() {
                 <div className="flex justify-between items-start gap-2 mb-2">
                   <h3 className="text-lg font-black text-gray-900 truncate" title={banner.title}>{banner.title}</h3>
                   <div className="flex flex-col items-end shrink-0">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter leading-none">Views</span>
-                    <span className="text-sm font-black text-primary">{banner.viewCount || 0}</span>
+                    <div className="flex gap-4">
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter leading-none">Views</span>
+                        <span className="text-sm font-black text-primary">{banner.viewCount || 0}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter leading-none">Clicks</span>
+                        <span className="text-sm font-black text-orange-500">{banner.clickCount || 0}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
@@ -173,7 +180,11 @@ export default function AdminBannersPage() {
                 </div>
 
                 <div className="mt-auto flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1 rounded-xl font-bold" onClick={() => { setSelectedBanner(banner); setIsModalOpen(true); }}>
+                  <Button variant="outline" size="sm" className="flex-1 rounded-xl font-bold" onClick={() => { 
+                    setSelectedBanner(banner); 
+                    setPreviewScript(banner.scriptCode || '');
+                    setIsModalOpen(true); 
+                  }}>
                     Redaktə
                   </Button>
                   <Button variant="ghost" size="sm" className="rounded-xl font-bold text-red-500 hover:bg-red-50" onClick={() => handleDelete(banner.id)}>
@@ -191,89 +202,160 @@ export default function AdminBannersPage() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         title={selectedBanner ? 'Banneri Redaktə Et' : 'Yeni Banner'}
-        size="lg"
+        size="xl"
       >
         <form onSubmit={handleSave} className="space-y-6 py-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Başlıq</label>
-              <Input name="title" defaultValue={selectedBanner?.title} required placeholder="Məs: Yaz endirimləri" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pozisiya</label>
-              <select name="position" defaultValue={selectedBanner?.position || 3} className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white font-bold text-sm focus:outline-none focus:border-primary transition-all">
-                <option value={3}>Yuxarı (Top)</option>
-                <option value={4}>Aşağı (Bottom)</option>
-                <option value={1}>Sol Sidebar</option>
-                <option value={2}>Sağ Sidebar</option>
-                <option value={5}>Məzmun Arası</option>
-              </select>
-            </div>
-          </div>
+          <div className={`grid grid-cols-1 ${previewScript ? 'xl:grid-cols-2' : ''} gap-8`}>
+            {/* Form Section */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Başlıq</label>
+                  <Input name="title" defaultValue={selectedBanner?.title} required placeholder="Məs: Yaz endirimləri" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pozisiya</label>
+                  <select name="position" defaultValue={selectedBanner?.position || 1} className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white font-bold text-sm focus:outline-none focus:border-primary transition-all">
+                    <option value={1}>Sol Sidebar</option>
+                    <option value={2}>Sağ Sidebar</option>
+                  </select>
+                </div>
+              </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Reklam Şəkli (Fayl)</label>
-            <div className="flex flex-col gap-2">
-               {selectedBanner?.imageUrl && (
-                 <div className="size-20 rounded-xl overflow-hidden border border-gray-100 shadow-sm mb-1 bg-gray-50">
-                    <img src={selectedBanner.imageUrl} alt="" className="size-full object-cover" />
-                 </div>
-               )}
-               <input type="file" name="imageFile" accept="image/*" className="w-full text-xs font-bold text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer" />
-               <p className="text-[9px] text-gray-400 font-bold italic ml-1">Şəkli dəyişmək istəmirsinizsə boş buraxın.</p>
-            </div>
-          </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Reklam Şəkli (Fayl)</label>
+                <div className="flex flex-col gap-2">
+                  {selectedBanner?.imageUrl && (
+                    <div className="size-20 rounded-xl overflow-hidden border border-gray-100 shadow-sm mb-1 bg-gray-50">
+                        <img src={selectedBanner.imageUrl} alt="" className="size-full object-cover" />
+                    </div>
+                  )}
+                  <input type="file" name="imageFile" accept="image/*" className="w-full text-xs font-bold text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer" />
+                  <p className="text-[9px] text-gray-400 font-bold italic ml-1">Şəkli dəyişmək istəmirsinizsə boş buraxın.</p>
+                </div>
+              </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Yönləndiriləcək Link (URL)</label>
-            <Input name="targetUrl" defaultValue={selectedBanner?.targetUrl} placeholder="https://..." />
-          </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Yönləndiriləcək Link (URL)</label>
+                <Input name="targetUrl" defaultValue={selectedBanner?.targetUrl} placeholder="https://..." />
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Başlama Tarixi</label>
-              <Input type="date" name="startDate" defaultValue={selectedBanner?.startDate ? new Date(selectedBanner.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]} required />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Bitmə Tarixi</label>
-              <Input type="date" name="endDate" defaultValue={selectedBanner?.endDate ? new Date(selectedBanner.endDate).toISOString().split('T')[0] : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]} required />
-            </div>
-          </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Xüsusi Kod (HTML/JS/CSS)</label>
+                <textarea 
+                  name="scriptCode" 
+                  defaultValue={selectedBanner?.scriptCode} 
+                  onChange={(e) => setPreviewScript(e.target.value)}
+                  placeholder="Reklam kodunu bura daxil edin..."
+                  className="w-full h-64 px-4 py-3 rounded-xl border border-gray-200 bg-[#1e1e1e] text-green-400 font-mono text-[11px] focus:outline-none focus:border-primary transition-all resize-y leading-relaxed"
+                />
+                <p className="text-[9px] text-gray-400 font-bold italic ml-1">Kod daxil edildikdə şəkil əvəzinə bu kod icra olunacaq.</p>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kateqoriya (Opsional)</label>
-              <select name="categoryId" defaultValue={selectedBanner?.categoryId || ''} className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white font-bold text-sm">
-                <option value="">Hamısı</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Şəhər (Opsional)</label>
-              <select name="cityId" defaultValue={selectedBanner?.cityId || ''} className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white font-bold text-sm">
-                <option value="">Hamısı</option>
-                {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Dil</label>
-              <select name="language" defaultValue={selectedBanner?.language || ''} className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white font-bold text-sm">
-                <option value="">Hamısı</option>
-                <option value="az">Azərbaycanca</option>
-                <option value="ru">Rusca</option>
-              </select>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Başlama Tarixi</label>
+                  <Input type="date" name="startDate" defaultValue={selectedBanner?.startDate ? new Date(selectedBanner.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]} required />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Bitmə Tarixi</label>
+                  <Input type="date" name="endDate" defaultValue={selectedBanner?.endDate ? new Date(selectedBanner.endDate).toISOString().split('T')[0] : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]} required />
+                </div>
+              </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-            <div className="flex items-center gap-2">
-              <input type="checkbox" name="isActive" defaultChecked={selectedBanner ? selectedBanner.isActive : true} className="size-5 accent-primary" />
-              <label className="font-bold text-sm text-gray-700">Aktivdir</label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kateqoriya (Opsional)</label>
+                  <select name="categoryId" defaultValue={selectedBanner?.categoryId || ''} className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white font-bold text-sm">
+                    <option value="">Hamısı</option>
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Şəhər (Opsional)</label>
+                  <select name="cityId" defaultValue={selectedBanner?.cityId || ''} className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white font-bold text-sm">
+                    <option value="">Hamısı</option>
+                    {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Dil</label>
+                  <select name="language" defaultValue={selectedBanner?.language || ''} className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white font-bold text-sm">
+                    <option value="">Hamısı</option>
+                    <option value="az">Azərbaycanca</option>
+                    <option value="ru">Rusca</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" name="isActive" defaultChecked={selectedBanner ? selectedBanner.isActive : true} className="size-5 accent-primary" />
+                  <label className="font-bold text-sm text-gray-700">Aktivdir</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Prioritet:</label>
+                  <input type="number" name="priority" defaultValue={selectedBanner?.priority || 0} className="w-16 h-8 px-2 rounded-lg border border-gray-200 font-bold text-xs" />
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Prioritet:</label>
-               <input type="number" name="priority" defaultValue={selectedBanner?.priority || 0} className="w-16 h-8 px-2 rounded-lg border border-gray-200 font-bold text-xs" />
-            </div>
+
+            {/* Preview Section */}
+            {previewScript && (
+              <div className="xl:sticky xl:top-0 space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Canlı Önizləmə (Live Preview)</label>
+                  <Badge variant="primary" className="font-black text-[10px] px-3 py-1">REAL-TIME</Badge>
+                </div>
+                
+                <div className="w-full aspect-[4/5] xl:aspect-auto xl:h-[calc(100vh-280px)] rounded-3xl border-4 border-gray-100 bg-white overflow-hidden shadow-2xl relative group">
+                  <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] -z-10 opacity-50" />
+                  <iframe
+                    key={previewScript.length} // Force re-render on script length change
+                    title="Banner Preview"
+                    srcDoc={`
+                      <html>
+                        <head>
+                          <style>
+                            body { 
+                              margin: 0; 
+                              display: flex; 
+                              justify-content: center; 
+                              align-items: center; 
+                              min-height: 100vh; 
+                              overflow-x: hidden;
+                              background: transparent;
+                              font-family: sans-serif; 
+                            }
+                            * { max-width: 100%; }
+                          </style>
+                        </head>
+                        <body>${previewScript}</body>
+                      </html>
+                    `}
+                    className="w-full h-full border-none"
+                  />
+                  
+                  {/* Overlay for interaction info */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-md p-4 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 border border-white/10">
+                    <div className="flex items-center justify-between text-white">
+                      <div>
+                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">Ölçü Rejimi</p>
+                        <p className="text-xs font-bold">Avtomatik Uyğunlaşdırma</p>
+                      </div>
+                      <span className="material-symbols-outlined text-primary">aspect_ratio</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3">
+                   <span className="material-symbols-outlined text-blue-500">info</span>
+                   <p className="text-[11px] font-medium text-blue-700 leading-relaxed">
+                     Bu önizləmə kodun saytda necə görünəcəyini simulyasiya edir. Kodu dəyişdikcə önizləmə anında yenilənir.
+                   </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <Button type="submit" className="w-full h-14 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-primary/20" isLoading={isProcessing}>

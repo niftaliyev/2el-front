@@ -1,4 +1,4 @@
-# İkinciel - Classified Ads Platform
+# 2El.az - Classified Ads Platform
 
 A modern, full-featured classified ads platform built with Next.js 15, TypeScript, and Tailwind CSS. Similar to platforms like tap.az, OLX, and Craigslist.
 
@@ -87,7 +87,7 @@ A modern, full-featured classified ads platform built with Next.js 15, TypeScrip
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd ikinciel-frontend
+cd 2el-frontend
 ```
 
 2. Install dependencies:

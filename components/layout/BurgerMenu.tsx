@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { accountService } from '@/services/account.service';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ROUTES } from '@/constants';
 
 export default function BurgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -107,14 +108,14 @@ export default function BurgerMenu() {
             </h4>
             {[
               { href: '/help/populyar-suallar', labelKey: 'burgerMenu.topQuestions' },
-              { href: '/pages/limits_by_category', labelKey: 'burgerMenu.categoryLimits' },
-              { href: '/pages/packages', labelKey: 'burgerMenu.paidServices' },
-              { href: '/pages/packages', labelKey: 'burgerMenu.packages' },
-              { href: '/pages/rules', labelKey: 'burgerMenu.rules' },
-              { href: '/pages/terms-and-conditions', labelKey: 'burgerMenu.userAgreement' },
-              { href: '/pages/proposal', labelKey: 'burgerMenu.publicOffer' },
-              { href: '/pages/privacy', labelKey: 'burgerMenu.privacyPolicy' },
-              { href: '/pages/about', labelKey: 'burgerMenu.aboutUs' },
+              { href: ROUTES.CATEGORY_LIMITS, labelKey: 'burgerMenu.categoryLimits' },
+              { href: ROUTES.PAID_SERVICES, labelKey: 'burgerMenu.paidServices' },
+              { href: ROUTES.PAID_SERVICES, labelKey: 'burgerMenu.packages' },
+              { href: ROUTES.RULES, labelKey: 'burgerMenu.rules' },
+              { href: ROUTES.TERMS, labelKey: 'burgerMenu.userAgreement' },
+              { href: ROUTES.PUBLIC_OFFER, labelKey: 'burgerMenu.publicOffer' },
+              { href: ROUTES.PRIVACY_POLICY, labelKey: 'burgerMenu.privacyPolicy' },
+              { href: ROUTES.ABOUT_US, labelKey: 'burgerMenu.aboutUs' },
             ].map((link) => (
               <Link
                 key={link.href + link.labelKey}
@@ -165,11 +166,11 @@ export default function BurgerMenu() {
                   </div>
                   {settings?.contactPhone || '(012) 345-67-89'}
                 </a>
-                <a href={`mailto:${settings?.email || 'elan@elan.az'}`} className="text-slate-600 font-bold hover:text-primary transition-all flex items-center gap-3 hover:translate-x-1">
+                <a href={`mailto:${settings?.email || 'info@2el.az'}`} className="text-slate-600 font-bold hover:text-primary transition-all flex items-center gap-3 hover:translate-x-1">
                   <div className="size-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
                     <span className="material-symbols-outlined !text-[18px]">mail</span>
                   </div>
-                  {settings?.email || 'elan@elan.az'}
+                  {settings?.email || 'info@2el.az'}
                 </a>
               </div>
             </div>

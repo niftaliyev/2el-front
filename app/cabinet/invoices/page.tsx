@@ -34,7 +34,7 @@ export default function InvoicesPage() {
       }
     };
 
-    document.title = `${t('cabinet.nav.invoices')} | ElanAz Cabinet`;
+    document.title = `${t('cabinet.nav.invoices')} | 2El.az Cabinet`;
 
     fetchInvoices();
   }, [page, activeTab, t]);

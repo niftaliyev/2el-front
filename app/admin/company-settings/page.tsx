@@ -57,7 +57,7 @@ export default function CompanySettingsPage() {
             value={settings.companyName}
             onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
             className="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#607afb] outline-none transition-all font-bold"
-            placeholder="ElanAz MMC"
+            placeholder="2El.az MMC"
             required
           />
         </div>
@@ -93,7 +93,7 @@ export default function CompanySettingsPage() {
               value={settings.email}
               onChange={(e) => setSettings({ ...settings, email: e.target.value })}
               className="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#607afb] outline-none transition-all font-bold"
-              placeholder="support@elan.az"
+              placeholder="support@2el.az"
               required
             />
           </div>

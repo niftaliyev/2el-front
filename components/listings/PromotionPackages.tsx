@@ -23,24 +23,24 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
   const renderPackageCard = (pkg: PackageItem) => {
     const isSelected = selectedPackageId === pkg.id;
     const typeLabel = pkg.packageType === 'Vip' ? t('promoteModal.vip') : pkg.packageType === 'Premium' ? t('promoteModal.premium') : t('promoteModal.boost');
-    const icon = pkg.packageType === 'Vip' ? 'grade' : pkg.packageType === 'Premium' ? 'diamond' : 'rocket_launch';
+    const icon = pkg.packageType === 'Vip' ? 'stars' : pkg.packageType === 'Premium' ? 'workspace_premium' : 'rocket_launch';
 
     let colorClass = 'border-gray-200 hover:border-primary/50';
     let iconClass = 'text-gray-400';
     let badgeClass = 'bg-gray-100 text-gray-600';
 
     if (pkg.packageType === 'Vip') {
-      colorClass = isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-primary/50';
-      iconClass = isSelected ? 'text-primary' : 'text-amber-500';
-      badgeClass = 'bg-amber-100 text-amber-700 font-bold';
+      colorClass = isSelected ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600' : 'border-gray-200 hover:border-blue-300';
+      iconClass = isSelected ? 'text-blue-600' : 'text-blue-500';
+      badgeClass = 'bg-blue-100 text-blue-700 font-bold';
     } else if (pkg.packageType === 'Premium') {
-      colorClass = isSelected ? 'border-purple-600 bg-purple-50 ring-1 ring-purple-600' : 'border-gray-200 hover:border-purple-300';
-      iconClass = isSelected ? 'text-purple-600' : 'text-purple-500';
-      badgeClass = 'bg-purple-100 text-purple-700 font-bold';
+      colorClass = isSelected ? 'border-yellow-600 bg-yellow-50 ring-1 ring-yellow-600' : 'border-gray-200 hover:border-yellow-300';
+      iconClass = isSelected ? 'text-yellow-600' : 'text-yellow-500';
+      badgeClass = 'bg-yellow-100 text-yellow-700 font-bold';
     } else if (pkg.packageType === 'Boost') {
-      colorClass = isSelected ? 'border-emerald-600 bg-emerald-50 ring-1 ring-emerald-600' : 'border-gray-200 hover:border-emerald-300';
-      iconClass = isSelected ? 'text-emerald-600' : 'text-emerald-500';
-      badgeClass = 'bg-emerald-100 text-emerald-700 font-bold';
+      colorClass = isSelected ? 'border-green-600 bg-green-50 ring-1 ring-green-600' : 'border-gray-200 hover:border-green-300';
+      iconClass = isSelected ? 'text-green-600' : 'text-green-500';
+      badgeClass = 'bg-green-100 text-green-700 font-bold';
     }
 
     const originalPrice = pkg.price || 0;
@@ -91,7 +91,7 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
           <div className={twMerge(
             "w-4 h-4 sm:w-5 sm:h-5 rounded-sm border-2 flex items-center justify-center transition-all",
             isSelected ? "border-current bg-current" : "border-gray-300 bg-white"
-          )} style={{ color: pkg.packageType === 'Premium' ? '#9333ea' : pkg.packageType === 'Boost' ? '#059669' : '#607afb' }}>
+          )} style={{ color: pkg.packageType === 'Premium' ? '#eab308' : pkg.packageType === 'Boost' ? '#16a34a' : '#2563eb' }}>
             {isSelected && <span className="material-symbols-outlined !text-[12px] sm:!text-[14px] text-white font-bold">check</span>}
           </div>
           <span className={twMerge("text-[10px] sm:text-xs font-bold", isSelected ? "opacity-100" : "opacity-40")}>

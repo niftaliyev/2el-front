@@ -3,9 +3,6 @@ import axiosInstance from '@/lib/axios';
 export enum AdPosition {
   LeftSidebar = 1,
   RightSidebar = 2,
-  Top = 3,
-  Bottom = 4,
-  InnerContent = 5,
 }
 
 export interface BannerDto {
@@ -14,6 +11,7 @@ export interface BannerDto {
   imageUrl?: string;
   targetUrl?: string;
   position: AdPosition;
+  scriptCode?: string;
 }
 
 export interface AdApplicationRequest {

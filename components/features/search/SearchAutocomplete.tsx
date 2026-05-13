@@ -59,7 +59,7 @@ function highlightText(text: string, query: string): React.ReactNode {
 
 // ─── LocalStorage: Axtarış tarixi ─────────────────────────────────────────────
 
-const HISTORY_KEY = 'elanaz_search_history';
+const HISTORY_KEY = '2elaz_search_history';
 const MAX_HISTORY = 6;
 
 function getSearchHistory(): HistoryItem[] {

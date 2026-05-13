@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Elan.az - Azərbaycanın ən böyük elan saytı",
+  title: "2El.az - Azərbaycanın ən böyük elan saytı",
   description: "Asan, sürətli və etibarlı alış-verişin ünvanı. Nəqliyyat, daşınmaz əmlak, elektronika və daha çox.",
 };
 

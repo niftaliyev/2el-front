@@ -9,7 +9,7 @@ import { adService } from '@/services/ad.service';
 import { toast } from 'sonner';
 import { Modal, Button, Input, Textarea } from '@/components/ui';
 import { CategoryDto, BusinessPackageDto } from '@/types/api';
-import { CATEGORIES } from '@/constants';
+import { CATEGORIES, ROUTES } from '@/constants';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 
@@ -450,7 +450,7 @@ function BusinessPageInner() {
                                             {isLoading ? t('businessLanding.sending') : t('businessLanding.send')}
                                         </Button>
                                         <p className="text-[10px] text-gray-400 text-center mt-5 px-4 leading-relaxed font-bold uppercase tracking-wider">
-                                            {t('businessLanding.agreementPrefix')} <Link href="#" className="text-primary hover:underline">{t('businessLanding.userAgreement')}</Link> {t('businessLanding.agreementSuffix')}
+                                            {t('businessLanding.agreementPrefix')} <Link href={ROUTES.TERMS} className="text-primary hover:underline">{t('businessLanding.userAgreement')}</Link> {t('businessLanding.agreementSuffix')}
                                         </p>
                                     </>
                                 )}

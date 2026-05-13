@@ -19,7 +19,7 @@ export default function Footer() {
                   <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path>
                 </svg>
               </div>
-              <h2 className="text-gray-900 text-lg font-bold leading-tight tracking-[-0.015em]">Elan.az</h2>
+              <h2 className="text-gray-900 text-lg font-bold leading-tight tracking-[-0.015em]">2El.az</h2>
             </div>
             <p className="mt-4 text-sm text-gray-500">
               {t('footer.description')}
@@ -45,10 +45,10 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">{t('footer.information')}</h3>
             <ul className="mt-4 space-y-3">
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.aboutUs')}</a></li>
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.rules')}</a></li>
-              <li><a className="text-sm text-gray-500 hover:text-primary transition-colors" href="#">{t('footer.privacyPolicy')}</a></li>
-              <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href="/pages/limits_by_category">{t('footer.listingLimits')}</Link></li>
+              <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href={ROUTES.ABOUT_US}>{t('footer.aboutUs')}</Link></li>
+              <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href={ROUTES.RULES}>{t('footer.rules')}</Link></li>
+              <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href={ROUTES.PRIVACY_POLICY}>{t('footer.privacyPolicy')}</Link></li>
+              <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href={ROUTES.CATEGORY_LIMITS}>{t('footer.listingLimits')}</Link></li>
               <li><Link className="text-sm text-gray-500 hover:text-primary transition-colors" href="/reklam-ver">{t('footer.advertising')}</Link></li>
             </ul>
           </div>
@@ -79,7 +79,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t border-gray-200 pt-8 text-center text-sm text-gray-500">
-          <p>© {currentYear} Elan.az. {t('footer.rights')}</p>
+          <p>© {currentYear} 2El.az. {t('footer.rights')}</p>
         </div>
       </div>
     </footer>
