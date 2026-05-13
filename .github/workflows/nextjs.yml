@@ -31,6 +31,9 @@ jobs:
             set -e
 
             cd /root/2el-front
+            
+            # Remove old files that might cause build errors
+            rm -f components/layout/BrandingAd.tsx
 
             echo "Building docker..."
             docker compose down || true
