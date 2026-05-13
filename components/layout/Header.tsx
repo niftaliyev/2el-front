@@ -84,7 +84,7 @@ export default function Header() {
                 </svg>
               </div>
               <span className="text-gray-900 text-[18px] sm:text-[21px] font-black leading-tight tracking-tight block">
-                Elan<span className="text-primary">.az</span>
+                2El<span className="text-primary">.az</span>
               </span>
             </Link>
           </div>

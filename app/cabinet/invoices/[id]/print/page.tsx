@@ -91,7 +91,7 @@ export default function InvoicePrintPage() {
         <div className="p-8 sm:p-12 border-b-8 border-[#607afb]">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div>
-              <h1 className="text-4xl font-black text-[#607afb] tracking-tighter uppercase italic">{company?.companyName || 'ELAN.AZ'}</h1>
+              <h1 className="text-4xl font-black text-[#607afb] tracking-tighter uppercase italic">{company?.companyName || '2EL.AZ'}</h1>
               <p className="text-gray-500 font-medium text-sm mt-1">Rəsmi Ödəniş Sənədi</p>
             </div>
             <div className="text-right">
@@ -107,10 +107,10 @@ export default function InvoicePrintPage() {
             <div>
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">KİMDƏN / FROM</h3>
               <div className="space-y-1">
-                <p className="text-xl font-bold text-gray-900">{company?.companyName || 'ElanAz MMC'}</p>
+                <p className="text-xl font-bold text-gray-900">{company?.companyName || '2El.az MMC'}</p>
                 <p className="text-gray-600 text-sm">{company?.address || 'Bakı şəhəri, Azərbaycan'}</p>
                 <p className="text-gray-600 text-sm font-medium">VÖEN: <span className="text-gray-900">{company?.voen || '1234567890'}</span></p>
-                <p className="text-gray-600 text-sm font-medium">Email: <span className="text-gray-900">{company?.email || 'support@elan.az'}</span></p>
+                <p className="text-gray-600 text-sm font-medium">Email: <span className="text-gray-900">{company?.email || 'support@2el.az'}</span></p>
               </div>
             </div>
             <div className="text-left">
@@ -155,7 +155,7 @@ export default function InvoicePrintPage() {
                 <tr className="border-b border-gray-100 group">
                   <td className="py-8 align-top">
                     <p className="font-bold text-xl text-gray-900 mb-2 leading-tight">{invoice.serviceType}</p>
-                    <p className="text-gray-400 text-sm font-medium">ElanAz platformasında göstərilən elektron xidmət haqqı</p>
+                    <p className="text-gray-400 text-sm font-medium">2El.az platformasında göstərilən elektron xidmət haqqı</p>
                   </td>
                   <td className="py-8 text-right align-top">
                     <p className="text-2xl font-black text-gray-900">{invoice.amount.toFixed(2)} ₼</p>
@@ -186,7 +186,7 @@ export default function InvoicePrintPage() {
           {/* Footer Note */}
           <div className="mt-20 pt-8 border-t border-gray-100">
             <p className="text-gray-400 text-xs italic leading-relaxed max-w-sm">
-              Bu sənəd elektron qaydada tərtib edilmişdir və ElanAz platformasında aparılmış ödənişi təsdiq edir. Sənəd rəsmi hüquqi qüvvəyə malikdir.
+              Bu sənəd elektron qaydada tərtib edilmişdir və 2El.az platformasında aparılmış ödənişi təsdiq edir. Sənəd rəsmi hüquqi qüvvəyə malikdir.
             </p>
           </div>
         </div>

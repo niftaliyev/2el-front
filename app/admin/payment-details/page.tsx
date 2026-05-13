@@ -20,7 +20,7 @@ export default function AdminPaymentDetailsPage() {
           accountService.getPaymentDetail(),
           storeService.getMinStoreBalance()
         ]);
-        
+
         if (paymentRes && paymentRes.content) {
           setContent(paymentRes.content);
         }
@@ -81,7 +81,7 @@ export default function AdminPaymentDetailsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        
+
         {/* Payment Details Editor (Large Section) */}
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/20 border border-gray-100 overflow-hidden">
@@ -96,7 +96,7 @@ export default function AdminPaymentDetailsPage() {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   className="w-full h-80 px-8 py-8 rounded-3xl border-2 border-gray-100 bg-gray-50/30 focus:bg-white focus:ring-[1rem] focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900 text-lg leading-relaxed placeholder:text-gray-300"
-                  placeholder={'Məsələn:\n🔹 BANK: ABB\n🔹 HESAB: 1234...\n🔹 AD: ElanAz'}
+                  placeholder={'Məsələn:\n🔹 BANK: ABB\n🔹 HESAB: 1234...\n🔹 AD: 2El.az'}
                   required
                 />
               </div>
@@ -114,50 +114,50 @@ export default function AdminPaymentDetailsPage() {
 
         {/* System Settings (Sidebar Section) */}
         <div className="space-y-8">
-           <div className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/20 border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/20 border border-gray-100 overflow-hidden">
             <div className="bg-gray-50/50 px-8 py-6 border-b border-gray-100 flex items-center gap-4 text-gray-900">
               <span className="material-symbols-outlined">store</span>
               <h3 className="font-black text-xs uppercase tracking-[0.25em]">Mağaza Tələbləri</h3>
             </div>
 
             <form onSubmit={handleSettingsSubmit} className="p-8 space-y-8">
-               <div className="space-y-4">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Minimum Balans (₼)</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={minBalance}
-                      onChange={(e) => setMinBalance(Number(e.target.value))}
-                      className="w-full h-16 px-8 rounded-2xl border-2 border-gray-100 bg-gray-50/30 focus:bg-white focus:ring-[1rem] focus:ring-primary/5 focus:border-primary transition-all outline-none font-black text-gray-900 text-2xl"
-                      placeholder="50"
-                      min={0}
-                      required
-                    />
-                    <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-gray-300 text-sm">₼</span>
-                  </div>
-                  <p className="text-[10px] text-gray-400 font-bold leading-relaxed px-2">
-                    İstifadəçi mağaza müraciəti göndərmək üçün balansında ən azı bu məbləğ olmalıdır.
-                  </p>
-               </div>
+              <div className="space-y-4">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Minimum Balans (₼)</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={minBalance}
+                    onChange={(e) => setMinBalance(Number(e.target.value))}
+                    className="w-full h-16 px-8 rounded-2xl border-2 border-gray-100 bg-gray-50/30 focus:bg-white focus:ring-[1rem] focus:ring-primary/5 focus:border-primary transition-all outline-none font-black text-gray-900 text-2xl"
+                    placeholder="50"
+                    min={0}
+                    required
+                  />
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-gray-300 text-sm">₼</span>
+                </div>
+                <p className="text-[10px] text-gray-400 font-bold leading-relaxed px-2">
+                  İstifadəçi mağaza müraciəti göndərmək üçün balansında ən azı bu məbləğ olmalıdır.
+                </p>
+              </div>
 
-               <button
-                  type="submit"
-                  disabled={isSettingsSubmitting}
-                  className="w-full h-16 rounded-2xl bg-primary text-white font-black uppercase tracking-[0.2em] hover:bg-primary/90 transition-all flex items-center justify-center gap-4 disabled:opacity-50"
-                >
-                  {isSettingsSubmitting ? <div className="animate-spin h-6 w-6 border-2 border-white/30 border-t-white rounded-full" /> : 'Yenilə'}
-                </button>
+              <button
+                type="submit"
+                disabled={isSettingsSubmitting}
+                className="w-full h-16 rounded-2xl bg-primary text-white font-black uppercase tracking-[0.2em] hover:bg-primary/90 transition-all flex items-center justify-center gap-4 disabled:opacity-50"
+              >
+                {isSettingsSubmitting ? <div className="animate-spin h-6 w-6 border-2 border-white/30 border-t-white rounded-full" /> : 'Yenilə'}
+              </button>
             </form>
           </div>
 
           <div className="bg-indigo-900 rounded-[2.5rem] p-8 text-white">
-             <div className="flex items-center gap-4 mb-6">
-                <span className="material-symbols-outlined text-amber-400">info</span>
-                <h4 className="font-black text-sm uppercase tracking-widest">Məlumat</h4>
-             </div>
-             <p className="text-indigo-100 text-xs font-bold leading-loose opacity-80">
-                Minimum balans tələbi "Spam" sorğuların qarşısını almaq üçündür. Buradakı dəyişiklik real vaxtda müraciət sisteminə tətbiq olunur.
-             </p>
+            <div className="flex items-center gap-4 mb-6">
+              <span className="material-symbols-outlined text-amber-400">info</span>
+              <h4 className="font-black text-sm uppercase tracking-widest">Məlumat</h4>
+            </div>
+            <p className="text-indigo-100 text-xs font-bold leading-loose opacity-80">
+              Minimum balans tələbi "Spam" sorğuların qarşısını almaq üçündür. Buradakı dəyişiklik real vaxtda müraciət sisteminə tətbiq olunur.
+            </p>
           </div>
         </div>
 

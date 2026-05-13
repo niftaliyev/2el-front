@@ -50,6 +50,13 @@ export const ROUTES = {
   ADMIN_AD_APPLICATIONS: '/admin/ad-applications',
   ADMIN_HELP: '/admin/help',
   STORE_DETAIL: (slug: string) => `/shops/${slug}`,
+  TERMS: '/pages/terms-and-conditions',
+  RULES: '/pages/rules',
+  PUBLIC_OFFER: '/pages/proposal',
+  PRIVACY_POLICY: '/pages/privacy',
+  ABOUT_US: '/pages/about',
+  CATEGORY_LIMITS: '/pages/limits_by_category',
+  PAID_SERVICES: '/pages/packages',
 } as const;
 
 

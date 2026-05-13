@@ -98,7 +98,7 @@
     "reachThousands": "Məhsul və xidmətlərinizi hər gün minlərlə potensial müştəriyə göstərin",
     "learnMore": "Daha ətraflı",
     "applyNow": "Reklam verin",
-    "heroTitle": "Biznesinizi <span class=\"text-primary\">ElanAz</span> ilə böyüdün",
+    "heroTitle": "Biznesinizi <span class=\"text-primary\">2El.az</span> ilə böyüdün",
     "heroSubtitle": "Hər ay milyonlarla istifadəçi tərəfindən ziyarət edilən platformamızda reklam yerləşdirərək daha çox müştəriyə çatın.",
     "whyUs": "Niyə bizimlə reklam etməlisiniz?",
     "feature1Title": "Geniş Auditoriya",
@@ -230,7 +230,8 @@
     "registrationError": "Qeydiyyat zamanı xəta baş verdi",
     "passwordsNotMatch": "Şifrələr uyğun gəlmir",
     "emailInvalid": "Düzgün e-poçt ünvanı daxil edin",
-    "errorOccurred": "Xəta baş verdi:"
+    "errorOccurred": "Xəta baş verdi:",
+    "loginRequired": "Zəhmət olmasa, əvvəlcə sayta daxil olun."
   },
   "product": {
     "today": "Bugün",
@@ -283,7 +284,8 @@
     "safetyNote": "Diqqət:",
     "safetyText": "Qiymət çox aşağıdırsa ehtiyatlı olun və şübhəli elanları report edin.",
     "whatsapp": "WhatsApp",
-    "ownAdMessageError": "Öz elanınıza mesaj yaza bilməzsiniz"
+    "ownAdMessageError": "Öz elanınıza mesaj yaza bilməzsiniz",
+    "loginRequired": "Zəhmət olmasa, əvvəlcə sayta daxil olun."
   },
   "shops": {
     "title": "Mağazalar",
@@ -345,6 +347,7 @@
     "cityNotShown": "Şəhər göstərilməyib",
     "balance": "Balansınız",
     "balanceShort": "Balans",
+    "dayShort": "g.",
     "topUp": "Artır",
     "login": "Daxil ol",
     "loginRegister": "Daxil ol / Qeydiyyat",
@@ -628,11 +631,12 @@
     "errorGeneric": "Zəhmət olmasa biraz sonra yenidən cəhd edin.",
     "errorBalance": "Xəta baş verdi. Balansınız kifayət etməyə bilər.",
     "premiumDesc": "VIP + Gündəlik irəli çəkmə daxil",
+    "vipDesc": "Gündəlik irəli çəkilmə daxil",
     "boostDesc": "Elanı siyahıda birinci yerə qaldırın"
   },
   "businessLanding": {
     "title": "Biznesə sürətli giriş!",
-    "desc": "Mağazanızı ElanAz-ın əlverişli şərtləri, fərdi xidmət, unikal URL və bonuslarla açın.",
+    "desc": "Mağazanızı 2El.az-ın əlverişli şərtləri, fərdi xidmət, unikal URL və bonuslarla açın.",
     "whyStore": "Niyə Mağaza Açmalı?",
     "viewPackages": "Biznes Paketlərinə Bax",
     "learnMore": "Daha ətraflı",
@@ -648,7 +652,7 @@
     "mobileNumberPlaceholder": "Nümunə: 0501234567 və ya +994501234567",
     "mobileNumberError": "Səhv format. Nümunə: 0501234567 və ya +994501234567",
     "email": "E-mail",
-    "emailPlaceholder": "example@elanaz.az",
+    "emailPlaceholder": "example@2el.az",
     "logo": "Logo (istəyə görə)",
     "cover": "Cover (istəyə görə)",
     "upload": "Yüklə",
@@ -661,7 +665,7 @@
     "pendingRequestDesc": "Sizin artıq gözləmədə olan bir mağaza müraciətiniz var. Qısa zamanda sizinlə əlaqə saxlayacağıq.",
     "sending": "Göndərilir...",
     "send": "Göndər",
-    "agreementPrefix": "\"Göndər\" düyməsini sıxmaqla Siz ElanAz",
+    "agreementPrefix": "\"Göndər\" düyməsini sıxmaqla Siz 2El.az",
     "userAgreement": "İstifadəçi razılaşmasını",
     "agreementSuffix": "qəbul edirsiniz.",
     "modalTitle": "Biznes Paketlərimiz",
@@ -782,8 +786,8 @@
     "periodDesc": "Pulsul limitlər 30 gün üçün hesablanır.",
     "packagesTitle": "Sərfəli Paketlər",
     "packagesDesc": "Çox sayda elan üçün paketlər daha qənaətlidir.",
-    "vipTitle": "VIP = Limitsiz",
-    "vipDesc": "VIP/Premium elanlar limitdən çıxılmır.",
+    "vipTitle": "VIP / Premium = Limitsiz",
+    "vipDesc": "VIP / Premium elanlar limitdən çıxılmır.",
     "table": {
       "category": "KATEQORİYA",
       "limit": "LİMİT",
@@ -791,28 +795,26 @@
     }
   },
   "paidServices": {
+    "boost": {
+      "desc": "Elanınızın siyahıda geriyə düşməsinə imkan verməyin! 'İrəli çək' xidməti elanınızın dərc olunma tarixini cari vaxta yeniləyir və onu dərhal axtarış siyahısında (Premium elanlardan aşağıya) ən üst sıraya qaldırır. Bu, elanınızın yenidən 'yeni' kimi görünməsini və daha çox baxış toplamasını təmin edir.",
+      "benefit1": "Dərc olunma tarixinin saniyələr içində yenilənməsi",
+      "benefit2": "Axtarış siyahısında təkrar ən üst sıralara qayıtmaq",
+      "benefit3": "Potensial müştərilərin elanınızı ilk görmə şansı",
+      "bonus": ""
+    },
     "vip": {
-      "desc": "VIP elanlar saytın ana səhifəsində xüsusi VIP blokunda təsadüfi şəkildə göstərilir. Onlayn olan alıcıların birbaşa diqqətini cəlb etdiyi üçün, adi elanlara nisbətən 20 dəfə daha çox baxış və müraciət qazanır.",
-      "benefit1": "Ana səhifədə prioritet nümayiş",
-      "benefit2": "Tez və asan müştəri tapmaq imkanı",
-      "benefit3": "Axtarış nəticələrində fərqləndirilmə"
+      "desc": "Elanınızı saytın ən görkəmli və ən çox ziyarət olunan hissəsində — Bütün elanlar səhifəsindəki xüsusi VIP blokunda nümayiş etdirin. Bu xidmət sayəsində elanınız platformaya daxil olan hər bir istifadəçinin diqqətini dərhal cəlb edir. Statistikaya görə, VIP elanlar adi elanlardan 20-30 dəfə daha çox baxış toplayır.",
+      "benefit1": "Bütün elanlar səhifəsinin ən üst və xüsusi ayrılmış sahəsində nümayiş",
+      "benefit2": "Bütün platforma və kateqoriyalar üzrə maksimum görünürlük",
+      "benefit3": "Sürətli və effektiv satış üçün ən ideal seçim",
+      "bonus": "BONUS: VIP xidmətinə həmçinin hər gün pulsuz 'İrəli çək' xidməti daxildir!"
     },
     "premium": {
-      "desc": "Premium elanlar xüsusi rənglə axtarış nəticələrinin ən üstündə bərkidilir və yeni pulsuz elanlar onları aşağı sala bilmir. Bu sizin elanınızın uzun müddət eyni reytinqdə qalmasını təmin edir.",
-      "benefit1": "Axtarışın ilk səhifəsində premium seqmentdə göstərilir",
-      "benefit2": "Standart rəngdən fərqli, parlaq fonda çıxır",
-      "benefit3": "Adətən 3, 7, 15 günlük təklif olunur"
-    },
-    "boost": {
-      "desc": "Elanınız siyahıda aşağıya düşübsə, onu təkrar pulsuz və axtarış siyahısının ən üstünə qaytarmaq üçün istifadə edilir.",
-      "benefit1": "Elanın tarixi yenilənir",
-      "benefit2": "Axtarışda dərhal ən üst sıralara çıxarılır",
-      "benefit3": "Gündə avtomatik irəli çəkilmə paketi ilə də birləşdirilə bilər"
-    },
-    "business": {
-      "title": "Biznes Paketləri (Mağaza)",
-      "desc": "Mağazalar üçün təqdim edilən xüsusi abunə paketləridir. Eyni anda çox sayda məhsul satanlar üçün daha uyğun və sərfəlidir. Hər paketdə əlavə xidmət balansı mövcuddur.",
-      "link": "Paketlərlə tanış olun"
+      "desc": "Elanınızı axtarış nəticələrinin ən zirvəsində — Premium blokunda bərkidilməsini təmin edin. Xüsusi sarı fon və stabil mövqe sayəsində elanınız həmişə diqqət mərkəzində qalacak. Yeni əlavə edilən pulsuz elanlar sizin elanınızı aşağı sala bilməz, bu isə uzunmüddətli və stabil baxış sayı deməkdir.",
+      "benefit1": "Axtarış siyahısında ən üst və sabit (bərkidilmiş) mövqe",
+      "benefit2": "Gözoxşayan sarı fon və xüsusi 'Premium' etiketi",
+      "benefit3": "Xidmət müddəti ərzində 100% stabil reytinq və nümayiş",
+      "bonus": "BONUS: Premium xidmətinə həmçinin VIP və 'İrəli çək' xidmətləri daxildir!"
     }
   },
   "notifications": {

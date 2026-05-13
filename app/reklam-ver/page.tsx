@@ -76,7 +76,7 @@ export default function AdvertisingPage() {
       <section className="relative h-[400px] sm:h-[500px] w-full bg-gray-900 overflow-hidden">
         <Image
           src="/ads/hero.png"
-          alt="Advertising on Elan.az"
+          alt="Advertising on 2El.az"
           fill
           className="object-cover opacity-60"
           priority
@@ -144,7 +144,7 @@ export default function AdvertisingPage() {
                   <div className="size-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm border border-gray-100">
                     <span className="material-symbols-outlined text-[20px]">mail</span>
                   </div>
-                  <p className="text-gray-700 font-semibold">{settings?.email || 'ads@elan.az'}</p>
+                  <p className="text-gray-700 font-semibold">{settings?.email || 'ads@2el.az'}</p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="size-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm border border-gray-100">

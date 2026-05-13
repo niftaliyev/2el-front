@@ -102,17 +102,17 @@ function VipListingsContent() {
         </Container>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex gap-4 lg:gap-6">
-          {/* Left Banner */}
-          <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
-            <div className="sticky top-24 pt-8">
-              <BannerAd position={AdPosition.LeftSidebar} />
-            </div>
-          </aside>
+      <div className="w-full flex">
+        {/* Left Banner */}
+        <aside className="hidden xl:block flex-1 min-w-[160px] 2xl:min-w-[200px]">
+          <div className="sticky top-[64px] h-[calc(100vh-64px)] w-full">
+            <BannerAd position={AdPosition.LeftSidebar} className="w-full h-full !rounded-none" noBoard />
+          </div>
+        </aside>
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0 py-8">
+        {/* Main Content */}
+        <div className="w-full max-w-[1024px] mx-auto px-4 lg:px-6 pb-6">
+          <div className="w-full py-8">
             {/* Products Grid */}
             {loading && page === 1 ? (
               <div className="flex justify-center items-center py-20">
@@ -132,15 +132,15 @@ function VipListingsContent() {
                 )}
               </>
             )}
+            </div>
           </div>
 
-          {/* Right Banner */}
-          <aside className="hidden xl:block w-48 2xl:w-64 flex-shrink-0">
-            <div className="sticky top-24 pt-8">
-              <BannerAd position={AdPosition.RightSidebar} />
-            </div>
-          </aside>
-        </div>
+        {/* Right Banner */}
+        <aside className="hidden xl:block flex-1 min-w-[160px] 2xl:min-w-[200px]">
+          <div className="sticky top-[64px] h-[calc(100vh-64px)] w-full">
+            <BannerAd position={AdPosition.RightSidebar} className="w-full h-full !rounded-none" noBoard />
+          </div>
+        </aside>
       </div>
     </div>
   );

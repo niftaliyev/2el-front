@@ -178,7 +178,7 @@ export default function RegisterPage() {
 
             <p className="mt-4 text-center text-xs text-gray-500">
               {t('auth.agreeTerms')}{' '}
-              <Link href="#" className="font-medium text-primary hover:underline">
+              <Link href={ROUTES.TERMS} className="font-medium text-primary hover:underline">
                 {t('auth.userAgreement')}
               </Link>{' '}
               {t('auth.agreeTermsEnd')}

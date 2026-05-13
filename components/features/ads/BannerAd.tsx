@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { bannerService, BannerDto, AdPosition } from '@/services/banner.service';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Skeleton } from '@/components/ui';
@@ -11,14 +11,16 @@ interface BannerAdProps {
   cityId?: string;
   search?: string;
   className?: string;
+  noBoard?: boolean;
 }
 
-export default function BannerAd({ position, categoryId, cityId, search, className = '' }: BannerAdProps) {
+export default function BannerAd({ position, categoryId, cityId, search, className = '', noBoard = false }: BannerAdProps) {
   const { t, language } = useLanguage();
   const [banners, setBanners] = useState<BannerDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const componentId = useId();
 
   useEffect(() => {
     const fetchBanners = async () => {
@@ -67,9 +69,33 @@ export default function BannerAd({ position, categoryId, cityId, search, classNa
     return () => clearInterval(interval);
   }, [banners]);
 
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'ad-click' && event.data.sourceId === componentId) {
+        const adId = event.data.id;
+        const targetUrl = event.data.url;
+        
+        if (adId) {
+          bannerService.incrementClick(adId).catch(console.error);
+        }
+        
+        if (targetUrl && targetUrl.trim() !== '') {
+          let url = targetUrl;
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+          }
+          window.open(url, '_blank');
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   if (isLoading) {
     return (
-      <div className={`w-full overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center min-h-[200px] ${className}`}>
+      <div className={`w-full overflow-hidden ${noBoard ? '' : 'rounded-2xl bg-gray-50 border border-gray-100'} flex items-center justify-center min-h-[200px] ${className}`}>
         <Skeleton className="w-full h-full" />
       </div>
     );
@@ -78,7 +104,7 @@ export default function BannerAd({ position, categoryId, cityId, search, classNa
   if (error || banners.length === 0) {
     // Show a premium-looking placeholder for empty ads
     return (
-      <div className={`w-full overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/50 flex flex-col items-center justify-center p-6 text-center min-h-[250px] shadow-sm ${className}`}>
+      <div className={`w-full overflow-hidden ${noBoard ? '' : 'rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/50 shadow-sm'} flex flex-col items-center justify-center p-6 text-center min-h-[250px] ${className}`}>
         <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-gray-100">
           <span className="material-symbols-outlined text-[#607afb] !text-[24px]">campaign</span>
         </div>
@@ -98,6 +124,7 @@ export default function BannerAd({ position, categoryId, cityId, search, classNa
   }
 
   const currentBanner = banners[currentIndex];
+  const isCodeAd = !!currentBanner.scriptCode;
 
   const handleBannerClick = async () => {
     try {
@@ -107,30 +134,58 @@ export default function BannerAd({ position, categoryId, cityId, search, classNa
     }
   };
 
-  return (
-    <div className={`group relative w-full overflow-hidden rounded-2xl bg-white border border-gray-200/50 shadow-sm transition-all hover:shadow-md ${className}`}>
-      <a
-        href={currentBanner.targetUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={handleBannerClick}
-        className="block w-full h-full"
-      >
-        <img
-          src={currentBanner.imageUrl}
-          alt={currentBanner.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          onError={(e) => {
-            // Handle image load error
-            (e.target as HTMLImageElement).src = '/placeholders/ad-placeholder.png';
-          }}
-        />
+  const getAbsoluteUrl = (url?: string) => {
+    if (!url) return '#';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
+  };
 
-        {/* Ad Badge */}
-        <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-          AD
-        </div>
-      </a>
+  return (
+    <div className={`group relative w-full overflow-hidden transition-all ${noBoard ? '' : 'rounded-2xl bg-white border border-gray-200/50 shadow-sm hover:shadow-md'} ${className}`}>
+      {/* Ad Badge Removed */}
+
+      {isCodeAd ? (
+        <iframe
+          title={currentBanner.title}
+          srcDoc={`
+            <html>
+              <head>
+                <style>
+                  body { margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
+                  * { max-width: 100%; }
+                </style>
+              </head>
+              <body>
+                ${currentBanner.scriptCode}
+                <script>
+                  document.body.onclick = function() { window.parent.postMessage({ type: 'ad-click', id: '${currentBanner.id}', sourceId: '${componentId}', url: '${currentBanner.targetUrl || ''}' }, '*'); };
+                </script>
+              </body>
+            </html>
+          `}
+          className="w-full h-full min-h-[200px] border-none overflow-hidden"
+          sandbox="allow-scripts allow-popups allow-forms"
+        />
+      ) : (
+        <a
+          href={getAbsoluteUrl(currentBanner.targetUrl)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={handleBannerClick}
+          className="block w-full h-full"
+        >
+          <img
+            src={currentBanner.imageUrl}
+            alt={currentBanner.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            onError={(e) => {
+              // Handle image load error
+              (e.target as HTMLImageElement).src = '/placeholders/ad-placeholder.png';
+            }}
+          />
+        </a>
+      )}
+
 
       {/* Pagination Indicators if multiple banners */}
       {banners.length > 1 && (
@@ -148,3 +203,4 @@ export default function BannerAd({ position, categoryId, cityId, search, classNa
     </div>
   );
 }
+

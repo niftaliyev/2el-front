@@ -39,7 +39,7 @@ function getNestedValue(obj: Record<string, any>, key: string): string {
 function getInitialLanguage(): Language {
   if (typeof window === 'undefined') return 'az';
   try {
-    const stored = localStorage.getItem('elanaz_language') as Language | null;
+    const stored = localStorage.getItem('2elaz_language') as Language | null;
     return stored === 'az' || stored === 'ru' ? stored : 'az';
   } catch {
     return 'az';
@@ -62,7 +62,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
     try {
-      localStorage.setItem('elanaz_language', lang);
+      localStorage.setItem('2elaz_language', lang);
     } catch {}
     document.documentElement.lang = lang;
   }, []);
