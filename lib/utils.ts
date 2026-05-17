@@ -221,3 +221,108 @@ export function parseCurrency(value: string): number {
   
   return parseFloat(sanitized) || 0;
 }
+
+/**
+ * Declines an Azerbaijani noun to the accusative case (təsirli hal)
+ * Standard categories matching Azerbaijani grammar:
+ * - "Elektronika" -> "elektronikanı"
+ * - "Nəqliyyat" -> "nəqliyyatı"
+ * - "Daşınmaz əmlak" -> "daşınmaz əmlakı"
+ * - "Ev və bağ üçün" -> "ev və bağ üçün məhsulları"
+ * - "Ehtiyat hissələri və aksesuarlar (avto)" -> "ehtiyat hissələri və aksesuarları"
+ * - "Şəxsi əşyalar" -> "şəxsi əşyaları"
+ * - "Hobbi və asudə" -> "hobbi və asudə mallarını"
+ * - "Uşaq aləmi" -> "uşaq aləmi məhsullarını"
+ * - "Heyvanlar" -> "heyvanları"
+ * - "Xidmətlər və biznes" -> "xidmətlər və biznes təkliflərini"
+ * - "İş elanları" -> "iş elanlarını"
+ * - "Məktəblilər üçün" -> "məktəbli ləvazimatlarını"
+ * - "Mağazalar" -> "mağazaları"
+ */
+export function toAccusativeCaseAz(categoryName: string): string {
+  if (!categoryName) return '';
+  const clean = categoryName.trim().toLowerCase();
+  
+  // Custom exact mappings for standard categories on 2el.az
+  const exactMappings: Record<string, string> = {
+    'elektronika': 'elektronikanı',
+    'neqliyyat': 'nəqliyyatı',
+    'nəqliyyat': 'nəqliyyatı',
+    'daşınmaz əmlak': 'daşınmaz əmlakı',
+    'dasinmaz emlak': 'daşınmaz əmlakı',
+    'ev və bağ üçün': 'ev və bağ üçün məhsulları',
+    'ev ve bag ucun': 'ev və bağ üçün məhsulları',
+    'ehtiyat hissələri və aksesuarlar (avto)': 'ehtiyat hissələri və aksesuarları',
+    'ehtiyat hisseleri ve aksesuarlar (avto)': 'ehtiyat hissələri və aksesuarları',
+    'şəxsi əşyalar': 'şəxsi əşyaları',
+    'sexsi esyalar': 'şəxsi əşyaları',
+    'hobbi və asudə': 'hobbi və asudə mallarını',
+    'hobbi ve asude': 'hobbi və asudə mallarını',
+    'uşaq aləmi': 'uşaq aləmi məhsullarını',
+    'usaq alemi': 'uşaq aləmi məhsullarını',
+    'heyvanlar': 'heyvanları',
+    'xidmətlər və biznes': 'xidmətlər və biznes təkliflərini',
+    'xidmetler ve biznes': 'xidmətlər və biznes təkliflərini',
+    'iş elanları': 'iş elanlarını',
+    'is elanlari': 'iş elanlarını',
+    'məktəblilər üçün': 'məktəbli ləvazimatlarını',
+    'mektebliler ucun': 'məktəbli ləvazimatlarını',
+    'mağazalar': 'mağazaları',
+    'magazalar': 'mağazaları'
+  };
+
+  if (exactMappings[clean]) {
+    return exactMappings[clean];
+  }
+
+  // Fallback programmatic declension rule for simple Azerbaijani words
+  // Accusative case endings: -ı, -i, -u, -ü (after consonants), -nı, -ni, -nu, -nü (after vowels)
+  const vowels = ['a', 'ı', 'o', 'u', 'e', 'ə', 'i', 'ö', 'ü'];
+  const backVowels = ['a', 'ı', 'o', 'u'];
+  const frontUnroundedVowels = ['e', 'ə', 'i'];
+  const frontRoundedVowels = ['ö', 'ü'];
+  
+  const lastChar = clean[clean.length - 1];
+  const isLastVowel = vowels.includes(lastChar);
+  
+  // Find the last vowel in the word
+  let lastVowel = '';
+  for (let i = clean.length - 1; i >= 0; i--) {
+    if (vowels.includes(clean[i])) {
+      lastVowel = clean[i];
+      break;
+    }
+  }
+  
+  if (!lastVowel) lastVowel = 'a'; // default fallback
+  
+  let suffix = '';
+  if (backVowels.includes(lastVowel)) {
+    suffix = isLastVowel ? 'nı' : 'ı';
+  } else if (frontUnroundedVowels.includes(lastVowel)) {
+    suffix = isLastVowel ? 'ni' : 'i';
+  } else if (frontRoundedVowels.includes(lastVowel) || lastVowel === 'o' || lastVowel === 'u') {
+    // rounded vowels
+    if (lastVowel === 'ö' || lastVowel === 'ü') {
+      suffix = isLastVowel ? 'nü' : 'ü';
+    } else {
+      suffix = isLastVowel ? 'nu' : 'u';
+    }
+  } else {
+    suffix = isLastVowel ? 'nı' : 'ı';
+  }
+  
+  return categoryName + suffix;
+}
+
+/**
+ * Safely formats a number with standard comma thousands separator.
+ * This guarantees 100% identical outputs on both Server (Node) and Client (Browser) environments,
+ * completely preventing React SSR hydration mismatches.
+ */
+export function formatNumberSafe(num: number): string {
+  if (num === null || num === undefined) return '';
+  const parts = num.toString().split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+}

@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Thumbs, FreeMode } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
-import { formatPrice, getImageUrl, generateSlug } from '@/lib/utils';
+import { formatPrice, getImageUrl, generateSlug, formatNumberSafe } from '@/lib/utils';
 import { adService } from '@/services/ad.service';
 import { AdDetail } from '@/types/api';
 import { Product } from '@/types';
@@ -31,14 +31,14 @@ import 'swiper/css/free-mode';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { VipIcon, PremiumIcon } from '@/components/ui/AdIcons';
 
-export default function ProductDetailContent({ id }: { id: string }) {
+export default function ProductDetailContent({ id, initialProduct }: { id: string; initialProduct?: AdDetail }) {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const { t, language } = useLanguage();
   const formatRelativeTime = useFormatRelativeTime();
 
-  const [product, setProduct] = useState<AdDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [product, setProduct] = useState<AdDetail | null>(initialProduct || null);
+  const [loading, setLoading] = useState(!initialProduct);
   const [error, setError] = useState<string | null>(null);
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
   const [showFullPhone, setShowFullPhone] = useState(false);
@@ -93,11 +93,18 @@ export default function ProductDetailContent({ id }: { id: string }) {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        setLoading(true);
-        const data = await adService.getAdById(id);
-        setProduct(data);
-        setIsFavorite(data.isFavourite);
-        setIsFollowingStore(data.isFollowingStore || false);
+        let data = product;
+        if (!data) {
+          setLoading(true);
+          data = await adService.getAdById(id);
+          setProduct(data);
+          setIsFavorite(data.isFavourite);
+          setIsFollowingStore(data.isFollowingStore || false);
+        } else {
+          setIsFavorite(data.isFavourite);
+          setIsFollowingStore(data.isFollowingStore || false);
+        }
+
         // Increment view count when viewed
         adService.incrementViewCount(id).catch(err => console.error('Error incrementing view count:', err));
 
@@ -201,7 +208,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
     };
 
     if (id) fetchProduct();
-  }, [id, language]);
+  }, [id, language, product]);
 
   if (loading) {
     return (
@@ -606,7 +613,7 @@ export default function ProductDetailContent({ id }: { id: string }) {
                           <div className="min-w-0">
                             <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('product.price')}</p>
                             <h3 className="text-3xl font-black text-gray-900 tracking-tight flex items-baseline gap-1.5 whitespace-nowrap">
-                              <span>{product.price.toLocaleString('az-AZ')}</span>
+                              <span>{formatNumberSafe(product.price)}</span>
                               <span className="text-2xl">₼</span>
                             </h3>
                           </div>
