@@ -6,12 +6,15 @@ import { ROUTES } from '@/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { chatService } from '@/services/chat.service';
+import { useState, useEffect } from 'react';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   const isVisible = useScrollDirection();
   const { t } = useLanguage();
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   const NAV_ITEMS = [
     { key: 'home', icon: 'home', labelKey: 'nav.home', authDest: ROUTES.HOME },
@@ -35,6 +38,45 @@ export default function MobileBottomNav() {
 
     return pathname.startsWith(href);
   };
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setUnreadMessagesCount(0);
+      return;
+    }
+
+    const handleUpdate = (count: number) => {
+      setUnreadMessagesCount(count);
+    };
+
+    const setupChatNotifications = async () => {
+      try {
+        // Initial fetch
+        const count = await chatService.getTotalUnreadCount();
+        setUnreadMessagesCount(count);
+
+        // Start SignalR
+        await chatService.startConnection();
+
+        // Listen for updates
+        chatService.onUnreadCountUpdate(handleUpdate);
+      } catch (err) {
+        console.error('Error setting up chat notifications:', err);
+      }
+    };
+
+    setupChatNotifications();
+
+    // Reset count locally when on messages page
+    if (pathname.startsWith(ROUTES.MESSAGES)) {
+      setUnreadMessagesCount(0);
+    }
+
+    return () => {
+      chatService.off('UpdateUnreadCount', handleUpdate);
+    };
+  }, [isAuthenticated, pathname]);
+
 
   return (
     <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : 'translate-y-[150%]'}`}
@@ -81,6 +123,11 @@ export default function MobileBottomNav() {
                 >
                   {item.icon}
                 </span>
+                {item.key === 'messages' && unreadMessagesCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] flex items-center justify-center rounded-full px-1 border border-white">
+                    {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                  </span>
+                )}
               </div>
               <span className={`text-[10px] font-medium transition-colors ${active ? 'text-primary' : 'text-gray-500'}`}>
                 {item.labelKey ? t(item.labelKey) : ''}

@@ -18,9 +18,8 @@ export const ROUTES = {
       segments.push(childSlug);
     }
     
-    // 3. Ad Slug + ID
-    const adSlug = product.slug || (product.title ? generateSlug(product.title) : 'elan');
-    segments.push(`${adSlug}-${product.id}`);
+    // 3. PinCode (tap.az style)
+    segments.push(product.pinCode?.toString() || product.adPinCode?.toString() || product.id || product.adId);
     
     // Build path, PURGE any 'elanlar' from inside segments
     const path = segments
@@ -39,16 +38,6 @@ export const ROUTES = {
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
   CREATE_LISTING: '/elanlar/create',
-  ADMIN: '/admin',
-  ADMIN_DASHBOARD: '/admin',
-  ADMIN_ADS: '/admin/ads',
-  ADMIN_USERS: '/admin/users',
-  ADMIN_STORE_REQUESTS: '/admin/store-requests',
-  ADMIN_BUSINESS_PACKAGES: '/admin/business-packages',
-  ADMIN_REPORTS: '/admin/reports',
-  ADMIN_BANNERS: '/admin/banners',
-  ADMIN_AD_APPLICATIONS: '/admin/ad-applications',
-  ADMIN_HELP: '/admin/help',
   STORE_DETAIL: (slug: string) => `/shops/${slug}`,
   TERMS: '/pages/terms-and-conditions',
   RULES: '/pages/rules',
@@ -89,34 +78,6 @@ export const POPULAR_CATEGORIES = [
   'Fashion',
   'Home & Garden',
   'Sports',
-] as const;
-
-export const ADMIN_NAV_ITEMS = [
-  { href: '/admin', icon: 'dashboard', label: 'Dashboard', filled: true },
-  { href: '/admin/ads', icon: 'article', label: 'Elan İdarəetməsi', filled: false },
-  { href: '/admin/users', icon: 'group', label: 'İstifadəçi İdarəetməsi', filled: false },
-  { href: '/admin/store-requests', icon: 'storefront', label: 'Mağaza Sorğuları', filled: false },
-  { href: '/admin/business-packages', icon: 'inventory_2', label: 'Biznes Paketləri', filled: false },
-  { href: '/admin/reports', icon: 'report', label: 'Şikayətlər', filled: false },
-  { href: '/admin/banners', icon: 'view_carousel', label: 'Banner Reklamları', filled: false },
-  { href: '/admin/ad-applications', icon: 'mail', label: 'Reklam Müraciətləri', filled: false },
-  { href: '/admin/help', icon: 'help_outline', label: 'Yardım və Səhifələr', filled: false },
-] as const;
-
-
-export const AD_STATUSES = [
-  { value: 'all', label: 'Hamısı', color: 'default' as const },
-  { value: 'pending', label: 'Gözləmədə', color: 'warning' as const },
-  { value: 'active', label: 'Aktiv', color: 'success' as const },
-  { value: 'rejected', label: 'Rədd edilmiş', color: 'danger' as const },
-  { value: 'expired', label: 'Vaxtı keçmiş', color: 'default' as const },
-] as const;
-
-export const USER_STATUSES = [
-  { value: 'all', label: 'Hamısı', color: 'default' as const },
-  { value: 'active', label: 'Aktiv', color: 'success' as const },
-  { value: 'suspended', label: 'Dayandırılıb', color: 'warning' as const },
-  { value: 'banned', label: 'Blok edilib', color: 'danger' as const },
 ] as const;
 
 export const CATEGORIES = [

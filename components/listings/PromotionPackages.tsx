@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { formatPrice } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { VipIcon, PremiumIcon } from '@/components/ui/AdIcons';
 
 interface PromotionPackagesProps {
   packages: PackageItem[];
@@ -23,20 +24,19 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
   const renderPackageCard = (pkg: PackageItem) => {
     const isSelected = selectedPackageId === pkg.id;
     const typeLabel = pkg.packageType === 'Vip' ? t('promoteModal.vip') : pkg.packageType === 'Premium' ? t('promoteModal.premium') : t('promoteModal.boost');
-    const icon = pkg.packageType === 'Vip' ? 'stars' : pkg.packageType === 'Premium' ? 'workspace_premium' : 'rocket_launch';
 
     let colorClass = 'border-gray-200 hover:border-primary/50';
     let iconClass = 'text-gray-400';
     let badgeClass = 'bg-gray-100 text-gray-600';
 
     if (pkg.packageType === 'Vip') {
-      colorClass = isSelected ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600' : 'border-gray-200 hover:border-blue-300';
-      iconClass = isSelected ? 'text-blue-600' : 'text-blue-500';
-      badgeClass = 'bg-blue-100 text-blue-700 font-bold';
+      colorClass = isSelected ? 'border-[#FF4F08] bg-orange-50 ring-1 ring-[#FF4F08]' : 'border-gray-200 hover:border-orange-300';
+      iconClass = isSelected ? 'text-[#FF4F08]' : 'text-[#FF4F08]';
+      badgeClass = 'bg-orange-100 text-orange-700 font-bold';
     } else if (pkg.packageType === 'Premium') {
-      colorClass = isSelected ? 'border-yellow-600 bg-yellow-50 ring-1 ring-yellow-600' : 'border-gray-200 hover:border-yellow-300';
-      iconClass = isSelected ? 'text-yellow-600' : 'text-yellow-500';
-      badgeClass = 'bg-yellow-100 text-yellow-700 font-bold';
+      colorClass = isSelected ? 'border-[#FF9D00] bg-amber-50 ring-1 ring-[#FF9D00]' : 'border-gray-200 hover:border-amber-300';
+      iconClass = isSelected ? 'text-[#FF9D00]' : 'text-[#FF9D00]';
+      badgeClass = 'bg-amber-100 text-amber-700 font-bold';
     } else if (pkg.packageType === 'Boost') {
       colorClass = isSelected ? 'border-green-600 bg-green-50 ring-1 ring-green-600' : 'border-gray-200 hover:border-green-300';
       iconClass = isSelected ? 'text-green-600' : 'text-green-500';
@@ -60,8 +60,14 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
           <span className={twMerge("text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full uppercase tracking-wider font-bold", badgeClass)}>
             {typeLabel}
           </span>
-          <span className={twMerge("material-symbols-outlined !text-xl sm:!text-2xl transition-transform group-hover:scale-110", iconClass)}>
-            {icon}
+          <span className={twMerge("transition-all group-hover:scale-110 flex items-center justify-center", iconClass)}>
+            {pkg.packageType === 'Vip' ? (
+              <VipIcon size={28} />
+            ) : pkg.packageType === 'Premium' ? (
+              <PremiumIcon size={28} />
+            ) : (
+              <span className="material-symbols-outlined !text-xl sm:!text-2xl">rocket_launch</span>
+            )}
           </span>
         </div>
 
@@ -91,7 +97,7 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
           <div className={twMerge(
             "w-4 h-4 sm:w-5 sm:h-5 rounded-sm border-2 flex items-center justify-center transition-all",
             isSelected ? "border-current bg-current" : "border-gray-300 bg-white"
-          )} style={{ color: pkg.packageType === 'Premium' ? '#eab308' : pkg.packageType === 'Boost' ? '#16a34a' : '#2563eb' }}>
+          )} style={{ color: pkg.packageType === 'Premium' ? '#FF9D00' : pkg.packageType === 'Boost' ? '#16a34a' : '#FF4F08' }}>
             {isSelected && <span className="material-symbols-outlined !text-[12px] sm:!text-[14px] text-white font-bold">check</span>}
           </div>
           <span className={twMerge("text-[10px] sm:text-xs font-bold", isSelected ? "opacity-100" : "opacity-40")}>
@@ -172,8 +178,8 @@ export default function PromotionPackages({ packages, selectedPackageId, onSelec
 
         {/* Show one for each type */}
         {boosts.length > 0 && renderPackageCard(boosts[0])}
-        {vips.length > 0 && renderPackageCard(vips[0])}
         {premiums.length > 0 && renderPackageCard(premiums[0])}
+        {vips.length > 0 && renderPackageCard(vips[0])}
       </div>
 
       {/* Show hint that it's optional */}

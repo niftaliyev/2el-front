@@ -7,6 +7,7 @@ import { PaginatedResponse } from '@/types/api';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { translateCabinetService } from '@/lib/utils';
+import { ROUTES } from '@/constants';
 
 type Tab = 'PersonalAccount' | 'PaidPlacements';
 
@@ -114,7 +115,12 @@ export default function TransactionsPage() {
                             <td className="py-5 px-6">
                               {tItem.adId ? (
                                 <Link
-                                  href={`/elanlar/${tItem.adId}`}
+                                  href={ROUTES.PRODUCT({
+                                    pinCode: tItem.adPinCode,
+                                    id: tItem.adId,
+                                    parentCategorySlug: tItem.parentCategorySlug,
+                                    childCategorySlug: tItem.childCategorySlug
+                                  })}
                                   className="text-blue-600 hover:underline font-semibold text-sm line-clamp-1"
                                 >
                                   {tItem.adTitle || 'Elan'}
@@ -169,7 +175,17 @@ export default function TransactionsPage() {
                         {tItem.adTitle && (
                           <div className="mb-3">
                             <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider block mb-0.5">{t('cabinet.transactions.adLabel')}</span>
-                            <Link href={`/elanlar/${tItem.adId}`} className="text-blue-600 text-xs font-semibold line-clamp-1">{tItem.adTitle}</Link>
+                            <Link 
+                              href={ROUTES.PRODUCT({
+                                pinCode: tItem.adPinCode,
+                                id: tItem.adId,
+                                parentCategorySlug: tItem.parentCategorySlug,
+                                childCategorySlug: tItem.childCategorySlug
+                              })} 
+                              className="text-blue-600 text-xs font-semibold line-clamp-1"
+                            >
+                              {tItem.adTitle}
+                            </Link>
                           </div>
                         )}
 

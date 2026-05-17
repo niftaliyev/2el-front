@@ -20,12 +20,21 @@ export default function ElanlarDynamicPage({ params }: { params: Promise<{ slug?
     const resolvePath = async () => {
       if (slug.length > 0) {
         const lastSegment = slug[slug.length - 1];
+        
+        // Check for PinCode (tap.az style)
         const numericMatch = lastSegment.match(/(?:^|-)([0-9]{5,})$/);
-        const guidMatch = lastSegment.match(/(?:^|-)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
-        const detectedId = guidMatch ? guidMatch[1] : (numericMatch ? numericMatch[1] : null);
+        const detectedPinCode = numericMatch ? numericMatch[1] : null;
 
-        if (detectedId) {
-          setProductId(detectedId);
+        if (detectedPinCode) {
+          setProductId(detectedPinCode);
+          setIsReady(true);
+          return;
+        }
+
+        // Check for GUID (legacy support for notifications/old links)
+        const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (guidRegex.test(lastSegment)) {
+          setProductId(lastSegment);
           setIsReady(true);
           return;
         }

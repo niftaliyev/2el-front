@@ -44,11 +44,23 @@ function VipListingsContent() {
         const mappedProducts: Product[] = items.map((item: AdListItem) => ({
           id: item.id.toString(),
           title: item.title,
+          pinCode: item.pinCode,
+          parentCategorySlug: item.parentCategorySlug,
+          childCategorySlug: item.childCategorySlug,
           description: item.description ?? '',
           price: item.price,
           currency: '₼',
           images: item.image ? [getImageUrl(item.image)] : [],
-          category: { id: item.categoryId ?? '0', name: (language === 'ru' && item.categoryRu ? item.categoryRu : item.category) ?? t('common.unknown'), slug: 'unknown' },
+          category: { 
+            id: item.categoryId ?? '0', 
+            name: (language === 'ru' && item.categoryRu ? item.categoryRu : item.category) ?? t('common.unknown'), 
+            slug: item.parentCategorySlug || 'unknown' 
+          },
+          subCategory: item.childCategorySlug ? {
+            id: '0',
+            name: '',
+            slug: item.childCategorySlug
+          } : undefined,
           location: { id: '0', city: item.city ?? 'Bakı', cityRu: item.cityRu, region: '', country: 'Azerbaijan' },
           seller: { id: '0', name: item.fullName ?? t('common.user'), email: item.email ?? '', createdAt: new Date(), isVerified: false },
           condition: item.isNew ? 'new' : 'used',

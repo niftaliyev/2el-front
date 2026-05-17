@@ -13,6 +13,7 @@ import BurgerMenu from './BurgerMenu';
 import CategoryDropdown from './CategoryDropdown';
 import SearchAutocomplete from '@/components/features/search/SearchAutocomplete';
 import NotificationBell from './NotificationBell';
+import { chatService } from '@/services/chat.service';
 
 export default function Header() {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
@@ -21,11 +22,13 @@ export default function Header() {
   const { user, isAuthenticated } = useAuth();
   const isVisible = useScrollDirection();
   const { t } = useLanguage();
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   const isHome = pathname === '/';
 
   // Detect if we are on Ad Detail or Store Detail page
-  const isAdDetail = pathname.includes('/elanlar/') && pathname.split('/').pop()?.length! > 20; // IDs are long
+  const lastSegment = pathname.split('/').pop() || '';
+  const isAdDetail = pathname.includes('/elanlar/') && /^[0-9]{5,}$/.test(lastSegment);
   const isStoreDetail = pathname.startsWith('/shops/') && pathname.split('/').filter(Boolean).length === 2;
   const showShare = isAdDetail || isStoreDetail;
 
@@ -57,6 +60,44 @@ export default function Header() {
       }
     }
   };
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setUnreadMessagesCount(0);
+      return;
+    }
+
+    const handleUpdate = (count: number) => {
+      setUnreadMessagesCount(count);
+    };
+
+    const setupChatNotifications = async () => {
+      try {
+        // Initial fetch
+        const count = await chatService.getTotalUnreadCount();
+        setUnreadMessagesCount(count);
+
+        // Start SignalR
+        await chatService.startConnection();
+
+        // Listen for updates
+        chatService.onUnreadCountUpdate(handleUpdate);
+      } catch (err) {
+        console.error('Error setting up chat notifications:', err);
+      }
+    };
+
+    setupChatNotifications();
+
+    // Reset count locally when on messages page
+    if (pathname.startsWith(ROUTES.MESSAGES)) {
+      setUnreadMessagesCount(0);
+    }
+
+    return () => {
+      chatService.off('UpdateUnreadCount', handleUpdate);
+    };
+  }, [isAuthenticated, pathname]);
 
   return (
     <>
@@ -156,8 +197,13 @@ export default function Header() {
 
               {/* Messages Icon - Hidden on mobile, as it is in bottom nav */}
               <Link href={isAuthenticated ? ROUTES.MESSAGES : ROUTES.LOGIN} className="hidden md:flex">
-                <button className="flex cursor-pointer items-center justify-center rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all active:scale-90 shadow-sm border border-gray-100 sm:border-transparent">
+                <button className="flex relative cursor-pointer items-center justify-center rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all active:scale-90 shadow-sm border border-gray-100 sm:border-transparent">
                   <span className="material-symbols-outlined !text-[22px]">chat_bubble</span>
+                  {unreadMessagesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 border-2 border-white animate-in zoom-in">
+                      {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                    </span>
+                  )}
                 </button>
               </Link>
 

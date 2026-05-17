@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useFormatRelativeTime } from '@/hooks/useFormatRelativeTime';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { VipIcon, PremiumIcon } from '@/components/ui/AdIcons';
 
 interface ProductCardProps {
   product: Product;
@@ -165,11 +166,11 @@ export default function ProductCard({ product }: ProductCardProps) {
               {product.isBoosted && (
                 <span className="material-symbols-outlined !text-[15px] text-green-600" title="Boosted">rocket_launch</span>
               )}
-              {product.isFeatured && (
-                <span className="material-symbols-outlined !text-[15px] sm:!text-[16px] text-[#0057e6] font-bold" title="VIP">stars</span>
-              )}
               {product.isPremium && (
-                <span className="material-symbols-outlined !text-[15px] sm:!text-[16px] text-[#ff9900]" title="Premium">workspace_premium</span>
+                <PremiumIcon size={18} title="Premium" className="shrink-0" />
+              )}
+              {product.isFeatured && (
+                <VipIcon size={16} title="VIP" className="shrink-0" />
               )}
             </div>
           </div>

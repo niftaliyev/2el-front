@@ -14,6 +14,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { ROUTES } from '@/constants';
 
 export default function MessagesPage() {
   return (
@@ -495,12 +496,12 @@ function MessagesPageContent() {
   }
 
   return (
-    <main className="bg-[#F4F7FE] min-h-screen md:h-[100dvh] font-sans flex flex-col overflow-x-hidden selection:bg-primary/20">
-      <div className="flex-1 flex flex-col w-full max-w-[1600px] mx-auto md:py-6 md:px-6 overflow-hidden">
-        <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
+    <main className="bg-gray-50 min-h-screen md:h-[calc(100dvh-64px)] font-sans flex flex-col selection:bg-primary/20 md:overflow-hidden">
+      <div className="flex-1 flex flex-col w-full container mx-auto py-4 sm:py-8 px-2 sm:px-4 md:overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 flex-1 md:overflow-hidden">
 
           {/* User Sidebar */}
-          <div className="hidden md:block flex-shrink-0">
+          <div className="hidden lg:block flex-shrink-0 self-start">
             <UserSidebar />
           </div>
 
@@ -665,7 +666,12 @@ function MessagesPageContent() {
                         <div className="flex items-center gap-2 md:gap-4">
                           {chatDetail.adId && (
                             <Link
-                              href={`/elanlar/${chatDetail.adId}`}
+                              href={ROUTES.PRODUCT({
+                                pinCode: chatDetail.adPinCode,
+                                id: chatDetail.adId,
+                                parentCategorySlug: chatDetail.parentCategorySlug,
+                                childCategorySlug: chatDetail.childCategorySlug
+                              })}
                               className="hidden lg:flex items-center gap-4 p-2 pr-6 hover:bg-[#F4F7FE] rounded-2xl transition-all border border-gray-100 group max-w-[320px] bg-white shadow-sm"
                             >
                               <div className="size-11 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-white shadow-sm">
@@ -710,7 +716,12 @@ function MessagesPageContent() {
                                   {chatDetail.adId && (
                                     <button
                                       onClick={() => {
-                                        window.open(`/elanlar/${chatDetail.adId}`, '_blank');
+                                        window.open(ROUTES.PRODUCT({
+                                          pinCode: chatDetail.adPinCode,
+                                          id: chatDetail.adId,
+                                          parentCategorySlug: chatDetail.parentCategorySlug,
+                                          childCategorySlug: chatDetail.childCategorySlug
+                                        }), '_blank');
                                         setShowMenu(false);
                                       }}
                                       className="w-full text-left px-6 py-4 text-sm text-gray-700 hover:bg-[#F4F7FE] flex items-center gap-4 transition-colors font-black"
@@ -752,7 +763,12 @@ function MessagesPageContent() {
                       {/* Mobile Ad Info Bar */}
                       {isMobile && chatDetail.adId && (
                         <Link
-                          href={`/elanlar/${chatDetail.adId}`}
+                          href={ROUTES.PRODUCT({
+                            pinCode: chatDetail.adPinCode,
+                            id: chatDetail.adId,
+                            parentCategorySlug: chatDetail.parentCategorySlug,
+                            childCategorySlug: chatDetail.childCategorySlug
+                          })}
                           className="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-gray-100 active:bg-gray-50 transition-colors flex-shrink-0"
                         >
                           <div className="size-10 rounded-lg bg-gray-50 overflow-hidden border border-gray-100 flex-shrink-0 shadow-sm">

@@ -11,7 +11,7 @@ export interface AdImage {
 export interface AdListItem {
   id: string;
   title: string;
-  slug?: string;
+  pinCode: number;
   parentCategoryName?: string;
   parentCategoryNameRu?: string;
   parentCategorySlug?: string;
@@ -57,7 +57,7 @@ export interface AdDetail {
   id: string;
   userId: string;
   title: string;
-  slug?: string;
+  pinCode: number;
   parentCategoryName?: string;
   parentCategoryNameRu?: string;
   parentCategorySlug?: string;
@@ -254,7 +254,7 @@ export interface StoreListItem {
 export interface StoreAdItem {
   id: string;
   title: string;
-  slug?: string;
+  pinCode: number;
   price: number;
   image?: string;
   createdDate: string;
@@ -268,6 +268,8 @@ export interface StoreAdItem {
   isPremium?: boolean;
   isBoosted?: boolean;
   isFavourite: boolean;
+  parentCategorySlug?: string;
+  childCategorySlug?: string;
 }
 
 export interface StoreDetail {

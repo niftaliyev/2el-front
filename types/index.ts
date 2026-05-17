@@ -40,7 +40,7 @@ export interface Store {
 export interface Product {
   id: string;
   title: string;
-  slug?: string;
+  pinCode: number;
   description: string;
   price: number;
   currency: string;
@@ -64,6 +64,8 @@ export interface Product {
   boostedAt?: Date;
   isFavourite?: boolean;
   store?: Store;
+  parentCategorySlug?: string;
+  childCategorySlug?: string;
 }
 
 export interface SearchFilters {

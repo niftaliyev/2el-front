@@ -24,6 +24,9 @@ export interface ChatListItem {
   adTitle?: string;
   adPrice?: number;
   adImageUrl?: string;
+  adPinCode?: number;
+  parentCategorySlug?: string;
+  childCategorySlug?: string;
   lastMessage?: string;
   lastMessageDate?: string;
   unreadCount: number;
@@ -35,7 +38,6 @@ export interface ChatListItem {
 
 export interface ChatDetail extends ChatListItem {
   messages: ChatMessage[];
-  adSlug?: string;
   isBlockedByMe: boolean;
   hasBlockedMe: boolean;
 }
@@ -47,8 +49,8 @@ class ChatService {
     ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') 
     : 'http://84.247.184.186:5000';
   
-  // Store handlers to re-attach on reconnect/new connection - only one handler per method
-  private handlers: Map<string, (...args: any[]) => void> = new Map();
+  // Store handlers to re-attach on reconnect/new connection - multiple handlers per method
+  private handlers: Map<string, Set<(...args: any[]) => void>> = new Map();
 
   /** REST API: Mesaj siyahısını gətir */
   async getChats(): Promise<ChatListItem[]> {
@@ -61,6 +63,12 @@ class ChatService {
     const response = await axiosInstance.get<ChatDetail>(`/chat/${chatId}`, {
       params: { page, pageSize }
     });
+    return response.data;
+  }
+
+  /** REST API: Ümumi oxunmamış mesaj sayını gətir */
+  async getTotalUnreadCount(): Promise<number> {
+    const response = await axiosInstance.get<number>('/chat/unread-count');
     return response.data;
   }
 
@@ -100,19 +108,25 @@ class ChatService {
       return this.startPromise;
     }
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    if (!token) return;
-
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(`${this.baseUrl}/api/chatHub`, {
-        accessTokenFactory: () => token
+        accessTokenFactory: () => {
+          const token = typeof window !== 'undefined' 
+            ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')) 
+            : null;
+          return token || '';
+        },
+        skipNegotiation: false,
+        transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling
       })
       .withAutomaticReconnect()
       .build();
 
     // Re-attach all stored handlers to the new connection instance
-    this.handlers.forEach((callback, methodName) => {
-      this.connection?.on(methodName, callback);
+    this.handlers.forEach((callbacks, methodName) => {
+      this.connection?.on(methodName, (...args: any[]) => {
+        callbacks.forEach(cb => cb(...args));
+      });
     });
 
     this.startPromise = this.connection.start()
@@ -156,11 +170,18 @@ class ChatService {
 
   /** Registers a handler and attaches it to current connection if exists */
   private registerHandler(methodName: string, callback: (...args: any[]) => void) {
-    this.handlers.set(methodName, callback);
-    if (this.connection) {
-      this.connection.off(methodName);
-      this.connection.on(methodName, callback);
+    if (!this.handlers.has(methodName)) {
+      this.handlers.set(methodName, new Set());
+      
+      // If connection exists, set up the master listener for this method
+      if (this.connection) {
+        this.connection.on(methodName, (...args: any[]) => {
+          this.handlers.get(methodName)?.forEach(cb => cb(...args));
+        });
+      }
     }
+    
+    this.handlers.get(methodName)?.add(callback);
   }
 
   /** SignalR: Mesaj göndər */
@@ -226,9 +247,17 @@ class ChatService {
     this.registerHandler('UpdateUnreadCount', callback);
   }
 
-  off(methodName: string) {
-    this.handlers.delete(methodName);
-    this.connection?.off(methodName);
+  off(methodName: string, callback?: (...args: any[]) => void) {
+    if (callback) {
+      this.handlers.get(methodName)?.delete(callback);
+      if (this.handlers.get(methodName)?.size === 0) {
+        this.handlers.delete(methodName);
+        this.connection?.off(methodName);
+      }
+    } else {
+      this.handlers.delete(methodName);
+      this.connection?.off(methodName);
+    }
   }
 }
 
