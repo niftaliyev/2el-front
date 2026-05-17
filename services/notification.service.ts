@@ -26,7 +26,7 @@ class NotificationService {
   private hubConnection: HubConnection | null = null;
   private baseUrl = process.env.NEXT_PUBLIC_API_URL 
     ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') 
-    : 'http://localhost:5156';
+    : 'http://84.247.184.186:5000';
   private hubUrl = `${this.baseUrl}/api/notificationHub`;
 
   // Real-time
