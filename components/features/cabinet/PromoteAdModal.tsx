@@ -5,6 +5,7 @@ import { PackageItem } from '@/types/api';
 import { adService } from '@/services/ad.service';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { VipIcon, PremiumIcon } from '@/components/ui/AdIcons';
 
 interface PromoteAdModalProps {
   isOpen: boolean;
@@ -84,20 +85,20 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
         {/* Tabs */}
         <div className="flex border-b border-gray-200">
           <button
-            onClick={() => setActiveTab('vip')}
-            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 cursor-pointer ${activeTab === 'vip' ? 'text-blue-600 border-blue-600 bg-blue-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
+            onClick={() => setActiveTab('premium')}
+            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 cursor-pointer ${activeTab === 'premium' ? 'text-[#FF9D00] border-[#FF9D00] bg-amber-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
               }`}
           >
-            <span className="material-symbols-outlined !text-[20px] font-bold">stars</span>
-            <span>{t('promoteModal.vip')}</span>
+            <PremiumIcon size={22} />
+            <span>{t('promoteModal.premium')}</span>
           </button>
           <button
-            onClick={() => setActiveTab('premium')}
-            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 cursor-pointer ${activeTab === 'premium' ? 'text-amber-500 border-amber-500 bg-amber-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
+            onClick={() => setActiveTab('vip')}
+            className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all flex flex-col items-center gap-1.5 border-b-2 cursor-pointer ${activeTab === 'vip' ? 'text-[#FF4F08] border-[#FF4F08] bg-orange-50/50' : 'text-gray-400 border-transparent hover:bg-gray-50'
               }`}
           >
-            <span className="material-symbols-outlined !text-[20px] font-bold">workspace_premium</span>
-            <span>{t('promoteModal.premium')}</span>
+            <VipIcon size={20} />
+            <span>{t('promoteModal.vip')}</span>
           </button>
           <button
             onClick={() => setActiveTab('boost')}

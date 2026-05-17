@@ -262,7 +262,9 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
         const mappedProducts: Product[] = ads.map((item: AdListItem) => ({
           id: item.id.toString(),
           title: item.title,
-          slug: item.slug,
+          pinCode: item.pinCode,
+          parentCategorySlug: item.parentCategorySlug,
+          childCategorySlug: item.childCategorySlug,
           description: item.description ?? '',
           price: item.price,
           currency: '₼',
@@ -333,7 +335,9 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
         const mappedProducts: Product[] = items.map((item: AdListItem) => ({
           id: item.id.toString(),
           title: item.title,
-          slug: item.slug,
+          pinCode: item.pinCode,
+          parentCategorySlug: item.parentCategorySlug,
+          childCategorySlug: item.childCategorySlug,
           description: item.description ?? '',
           price: item.price,
           currency: '₼',

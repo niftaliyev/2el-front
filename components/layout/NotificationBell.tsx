@@ -56,7 +56,14 @@ export default function NotificationBell() {
 
           return [newNotif, ...finalPrev.slice(0, 19)];
         });
-        setUnreadCount(prev => prev + 1);
+        const nType = newNotif.type as any;
+        const isMessage = nType === NotificationType.Message || 
+                         nType === 'Message' || 
+                         nType === NotificationType.Message.toString();
+
+        if (!isMessage) {
+          setUnreadCount(prev => prev + 1);
+        }
 
         // Use link from notification if available, otherwise reconstruct for messages
         let toastLink = newNotif.link;
@@ -103,6 +110,9 @@ export default function NotificationBell() {
       const seenSources = new Set<string>();
 
       for (const notif of data) {
+        // Only show unread notifications in the bell dropdown
+        if (notif.isRead) continue;
+
         if (!notif.sourceId) {
           filtered.push(notif);
         } else if (!seenSources.has(notif.sourceId)) {
@@ -147,31 +157,59 @@ export default function NotificationBell() {
   const markAllRead = async () => {
     try {
       await notificationService.markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setNotifications([]); // Clear from bell as they are now read
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all as read:', error);
     }
   };
 
-  const getIcon = (type: NotificationType) => {
-    switch (type) {
-      case NotificationType.Message: return 'chat';
-      case NotificationType.Info: return 'info';
-      case NotificationType.Warning: return 'warning';
-      case NotificationType.Error: return 'error';
-      case NotificationType.Confirm: return 'check_circle';
+  const deleteNotification = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await notificationService.deleteNotification(id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+      toast.success(t('common.delete') || 'Silindi');
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
+  const getIcon = (type: any) => {
+    // Handle both numeric and string enums
+    const typeStr = typeof type === 'string' ? type : NotificationType[type];
+
+    switch (typeStr) {
+      case 'Message':
+      case NotificationType.Message.toString(): return 'chat';
+      case 'Info':
+      case NotificationType.Info.toString(): return 'info';
+      case 'Warning':
+      case NotificationType.Warning.toString(): return 'warning';
+      case 'Error':
+      case NotificationType.Error.toString(): return 'error';
+      case 'Confirm':
+      case NotificationType.Confirm.toString(): return 'check_circle';
       default: return 'notifications';
     }
   };
 
-  const getColor = (type: NotificationType) => {
-    switch (type) {
-      case NotificationType.Message: return 'text-blue-500';
-      case NotificationType.Info: return 'text-primary';
-      case NotificationType.Warning: return 'text-yellow-500';
-      case NotificationType.Error: return 'text-red-500';
-      case NotificationType.Confirm: return 'text-green-500';
+  const getColor = (type: any) => {
+    // Handle both numeric and string enums
+    const typeStr = typeof type === 'string' ? type : NotificationType[type];
+
+    switch (typeStr) {
+      case 'Message':
+      case NotificationType.Message.toString(): return 'text-blue-500';
+      case 'Info':
+      case NotificationType.Info.toString(): return 'text-primary';
+      case 'Warning':
+      case NotificationType.Warning.toString(): return 'text-yellow-500';
+      case 'Error':
+      case NotificationType.Error.toString(): return 'text-red-500';
+      case 'Confirm':
+      case NotificationType.Confirm.toString(): return 'text-green-500';
       default: return 'text-gray-500';
     }
   };
@@ -238,21 +276,27 @@ export default function NotificationBell() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-1">
-                      <h4 className={`text-sm font-bold truncate ${!notif.isRead ? 'text-gray-900' : 'text-gray-700'}`}>
+                      <h4 className="text-sm font-bold truncate text-gray-900">
                         {notif.title || (notif.type === NotificationType.Message ? 'Yeni mesaj' : 'Bildiriş')}
                       </h4>
                       <span className="text-[10px] text-gray-400 whitespace-nowrap mt-0.5">
                         {formatDistanceToNow(new Date(notif.createdDate), { addSuffix: true, locale: getLocale() })}
                       </span>
                     </div>
-                    <p className={`text-xs mt-1 line-clamp-2 leading-relaxed ${!notif.isRead ? 'text-gray-800' : 'text-gray-500'}`}>
+                    <p className="text-xs mt-1 line-clamp-2 leading-relaxed text-gray-800">
                       {notif.text}
                     </p>
                   </div>
 
-                  {!notif.isRead && (
-                    <div className="size-2 bg-primary rounded-full absolute right-4 bottom-4"></div>
-                  )}
+                  <button
+                    onClick={(e) => deleteNotification(notif.id, e)}
+                    className="size-8 rounded-full hover:bg-red-50 text-gray-300 hover:text-red-500 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
+                    title={t('common.delete') || 'Sil'}
+                  >
+                    <span className="material-symbols-outlined !text-[18px]">delete</span>
+                  </button>
+
+                  <div className="size-2 bg-primary rounded-full absolute right-4 bottom-2 group-hover:hidden"></div>
                 </div>
               ))
             )}

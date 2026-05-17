@@ -72,6 +72,7 @@ export default function HomeContent() {
           return {
             id: ad.id.toString(),
             title: ad.title,
+            pinCode: ad.pinCode,
             description: ad.description ?? '',
             price: ad.price,
             currency: '₼',

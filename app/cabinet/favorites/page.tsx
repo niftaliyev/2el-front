@@ -12,6 +12,7 @@ import { AdListItem, StoreListItem } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFormatRelativeTime } from '@/hooks/useFormatRelativeTime';
+import { VipIcon, PremiumIcon } from '@/components/ui/AdIcons';
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<AdListItem[]>([]);
@@ -137,14 +138,14 @@ export default function FavoritesPage() {
 
                                 {/* Featured Badges */}
                                 <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex gap-0.5 sm:gap-1 z-10">
-                                  {ad.isVip && (
-                                    <div className="bg-blue-600 text-white p-0.5 sm:p-1 rounded-md sm:rounded-lg shadow-lg">
-                                      <span className="material-symbols-outlined !text-[11px] sm:!text-sm">stars</span>
+                                  {ad.isPremium && (
+                                    <div className="bg-[#FF9D00] text-white p-0.5 sm:p-1 rounded-md sm:rounded-lg shadow-lg">
+                                      <PremiumIcon size={16} />
                                     </div>
                                   )}
-                                  {ad.isPremium && (
-                                    <div className="bg-yellow-500 text-white p-0.5 sm:p-1 rounded-md sm:rounded-lg shadow-lg">
-                                      <span className="material-symbols-outlined !text-[11px] sm:!text-sm">workspace_premium</span>
+                                  {ad.isVip && (
+                                    <div className="bg-[#FF4F08] text-white p-0.5 sm:p-1 rounded-md sm:rounded-lg shadow-lg">
+                                      <VipIcon size={14} />
                                     </div>
                                   )}
                                 </div>

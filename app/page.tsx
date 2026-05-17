@@ -94,7 +94,9 @@ export default function Home() {
           return {
             id: ad.id.toString(),
             title: ad.title,
-            slug: ad.slug,
+            pinCode: ad.pinCode,
+            parentCategorySlug: ad.parentCategorySlug,
+            childCategorySlug: ad.childCategorySlug,
             description: ad.description ?? '',
             price: ad.price,
             currency: '₼',

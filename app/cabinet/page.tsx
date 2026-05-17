@@ -15,7 +15,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface Listing {
   id: string;
   title: string;
-  slug?: string;
   parentCategorySlug?: string;
   childCategorySlug?: string;
   location: string;
@@ -31,6 +30,7 @@ interface Listing {
   totalBoostsRemaining: number;
   vipExpiresAt?: string;
   premiumExpiresAt?: string;
+  pinCode?: number;
 }
 
 export default function CabinetPage() {
@@ -86,7 +86,6 @@ export default function CabinetPage() {
         return {
           id: ad.id.toString(),
           title: ad.title,
-          slug: ad.slug,
           parentCategorySlug: ad.parentCategorySlug,
           childCategorySlug: ad.childCategorySlug,
           location: ad.city || t('cabinet.cityNotShown'),
@@ -102,6 +101,7 @@ export default function CabinetPage() {
           totalBoostsRemaining: ad.totalBoostsRemaining,
           vipExpiresAt: ad.vipExpiresAt,
           premiumExpiresAt: ad.premiumExpiresAt,
+          pinCode: ad.pinCode,
         };
       });
 

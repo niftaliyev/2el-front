@@ -12,6 +12,9 @@ export interface Transaction {
   descriptionRu?: string;
   adId?: string;
   adTitle?: string;
+  adPinCode?: number;
+  parentCategorySlug?: string;
+  childCategorySlug?: string;
 }
 
 export interface AdPlacementLimit {

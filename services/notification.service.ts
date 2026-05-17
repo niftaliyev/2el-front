@@ -34,13 +34,17 @@ class NotificationService {
     if (this.hubConnection?.state === 'Connected') return;
     if (this.hubConnection?.state === 'Connecting') return;
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    if (!token) return;
-
     if (!this.hubConnection) {
       this.hubConnection = new HubConnectionBuilder()
         .withUrl(this.hubUrl, {
-          accessTokenFactory: () => token
+          accessTokenFactory: () => {
+            const token = typeof window !== 'undefined' 
+              ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')) 
+              : null;
+            return token || '';
+          },
+          skipNegotiation: false,
+          transport: HttpTransportType.WebSockets | HttpTransportType.LongPolling
         })
         .withAutomaticReconnect()
         .configureLogging(LogLevel.Information)

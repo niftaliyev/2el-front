@@ -17,8 +17,41 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "2El.az - Azərbaycanın ən böyük elan saytı",
+  title: {
+    default: "2El.az - Azərbaycanın ən böyük elan saytı",
+    template: "%s | 2El.az",
+  },
   description: "Asan, sürətli və etibarlı alış-verişin ünvanı. Nəqliyyat, daşınmaz əmlak, elektronika və daha çox.",
+  keywords: "elanlar, 2El.az, elanlar, pulsuz elan, ikinci el, daşınmaz əmlak, maşın elanları, iş elanları, ticarət, satmaq, almaq",
+  authors: [{ name: "2El.az" }],
+  creator: "2El.az",
+  // openGraph: {
+  //   type: "website",
+  //   locale: "az_AZ",
+  //   url: "https://2el.az",
+  //   siteName: "2El.az",
+  //   title: "2El.az - Azərbaycanın ən müasir elan platforması",
+  //   description: "Asan, sürətli və etibarlı alış-verişin ünvanı. Nəqliyyat, daşınmaz əmlak, elektronika və daha çox.",
+  //   images: [
+  //     {
+  //       url: "/logo.png",
+  //       width: 1200,
+  //       height: 630,
+  //       alt: "2El.az - Azərbaycanın ən müasir elan saytı",
+  //     },
+  //   ],
+  // },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export const viewport: Viewport = {

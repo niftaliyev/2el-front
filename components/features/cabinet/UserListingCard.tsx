@@ -24,6 +24,7 @@ interface Listing {
   totalBoostsRemaining: number;
   vipExpiresAt?: string;
   premiumExpiresAt?: string;
+  pinCode?: number;
 }
 
 interface UserListingCardProps {
@@ -139,14 +140,14 @@ export default function UserListingCard({
           )}
           {listing.vipExpiresAt && getDaysLeft(listing.vipExpiresAt) > 0 && (
             <div className="flex flex-col">
-              <span className="text-[7px] text-orange-600 font-medium">VIP</span>
-              <span>{getDaysLeft(listing.vipExpiresAt)} {t('listings.dayShort')}</span>
+              <span className="text-[7px] text-[#FF4F08] font-bold">VIP</span>
+              <span className="text-[#FF4F08]">{getDaysLeft(listing.vipExpiresAt)} {t('listings.dayShort')}</span>
             </div>
           )}
           {listing.premiumExpiresAt && getDaysLeft(listing.premiumExpiresAt) > 0 && (
             <div className="flex flex-col">
-              <span className="text-[7px] text-indigo-600 font-medium">{t('listings.premium')}</span>
-              <span>{getDaysLeft(listing.premiumExpiresAt)} {t('listings.dayShort')}</span>
+              <span className="text-[7px] text-[#FF9D00] font-bold">{t('listings.premium')}</span>
+              <span className="text-[#FF9D00]">{getDaysLeft(listing.premiumExpiresAt)} {t('listings.dayShort')}</span>
             </div>
           )}
         </div>

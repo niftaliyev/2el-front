@@ -81,11 +81,14 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
         const mappedAds: Product[] = storeAds.map((ad: StoreAdItem) => ({
           id: ad.id,
           title: ad.title,
+          pinCode: ad.pinCode,
           price: ad.price,
           currency: '₼',
           images: ad.image ? [getImageUrl(ad.image)] : [],
           createdAt: new Date(ad.createdDate),
-          category: { name: (language === 'ru' && ad.categoryNameRu ? ad.categoryNameRu : ad.categoryName) || '', slug: '' },
+          parentCategorySlug: ad.parentCategorySlug,
+          childCategorySlug: ad.childCategorySlug,
+          category: { name: (language === 'ru' && ad.categoryNameRu ? ad.categoryNameRu : ad.categoryName) || '', slug: ad.parentCategorySlug || '' },
           location: { city: ad.city || '', cityRu: ad.cityRu },
           seller: { name: data.storeName, id: data.id, createdAt: new Date(), email: '', isVerified: true },
           condition: ad.isNew ? 'new' : 'used',
@@ -234,8 +237,8 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
 
   return (
     <main className="min-h-screen bg-gray-50 pb-32 sm:pb-20">
-      {/* Cover and Profile Header */}
-      <div className="relative">
+      {/* Cover and Profile Header Section */}
+      <div className="bg-white border-b border-gray-200/60 shadow-sm mb-8">
         <div className="h-56 md:h-96 w-full relative bg-gray-200 overflow-hidden">
           {store.storeCoverUrl ? (
             <Image
@@ -248,13 +251,14 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
           ) : (
             <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-indigo-50" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          {/* Subtle overlay for depth - much lighter to keep cover clear but provide some definition */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
         </div>
 
         <div className="container mx-auto px-4 md:px-10">
-          <div className="relative -mt-16 md:-mt-28 flex flex-col md:flex-row items-center md:items-end gap-6 pb-8">
-            {/* Logo Section */}
-            <div className="relative group shrink-0">
+          <div className="relative flex flex-col md:flex-row items-center md:items-end gap-6 pb-8">
+            {/* Logo Section - Overlapping the cover */}
+            <div className="relative group shrink-0 -mt-16 md:-mt-28 z-10">
               <div className="size-32 md:size-52 rounded-[2rem] border-[6px] border-white bg-white shadow-2xl relative overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:scale-[1.02]">
                 {store.storeLogoUrl ? (
                   <Image
@@ -272,13 +276,13 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
               <div className={`absolute bottom-2 right-2 md:bottom-5 md:right-5 size-5 md:size-6 rounded-full border-4 border-white shadow-lg ${storeStatus?.isOpen ? 'bg-green-500' : 'bg-red-500'} z-10`} />
             </div>
 
-            {/* Branding & Info Section */}
+            {/* Branding & Info Section - Now stays on white background */}
             <div className="flex-1 w-full md:pb-2">
               <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                 <div className="flex flex-col items-center md:items-start space-y-3">
                   {/* Title and Badge */}
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                    <h1 className="text-2xl md:text-5xl font-black text-gray-900 tracking-tight drop-shadow-sm text-center md:text-left">
+                    <h1 className="text-2xl md:text-5xl font-black text-gray-900 tracking-tight text-center md:text-left">
                       {store.storeName}
                     </h1>
                     <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-600 rounded-full shadow-lg shadow-blue-600/20">
@@ -301,7 +305,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
 
                   {/* Highlights / Stats */}
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4 mt-2">
-                    <div className="flex items-center px-4 py-2 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
+                    <div className="flex items-center px-4 py-2 bg-gray-50/80 rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
                       <div className="flex items-center gap-4 text-gray-600">
                         <div className="flex items-center gap-1.5">
                           <span className="text-gray-900 font-black text-base md:text-lg">{store.adCount || 0}</span>
@@ -320,7 +324,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ slug: st
                       </div>
                     </div>
 
-                    <div className="bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="bg-gray-50/80 px-4 py-2 rounded-2xl border border-gray-100 shadow-sm">
                       <div className={`flex items-center gap-2 font-black text-[10px] md:text-[11px] uppercase tracking-widest ${storeStatus?.isOpen ? 'text-green-600' : 'text-red-500'}`}>
                         <div className={`size-2 rounded-full ${storeStatus?.isOpen ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)] animate-pulse' : 'bg-red-500'}`} />
                         {storeStatus?.text}
