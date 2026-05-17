@@ -45,6 +45,18 @@ export default function UserSidebar() {
 
   const isAuthenticated = !!authUser;
 
+  const isAdminOrModerator = authUser?.roles?.some(role =>
+    ['SuperAdmin', 'Admin', 'Moderator'].includes(role)
+  );
+
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://84.247.184.186:3002';
+  const token = typeof window !== 'undefined' ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')) : '';
+  const refreshToken = typeof window !== 'undefined' ? (localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken')) : '';
+
+  const adminAutoLoginUrl = token && refreshToken
+    ? `${adminUrl}/autologin?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`
+    : `${adminUrl}/signin`;
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -179,6 +191,25 @@ export default function UserSidebar() {
               })}
             </nav>
           </div>
+
+          {/* Admin Panel Link */}
+          {isAdminOrModerator && (
+            <div className="lg:border-t lg:border-gray-100 lg:pt-4 mt-2">
+              <a
+                href={adminAutoLoginUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-row items-center justify-center lg:justify-start gap-3 px-4 py-3 lg:py-2.5 rounded-xl transition-all bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold shadow-lg shadow-indigo-100 dark:shadow-none hover:scale-[1.02] active:scale-[0.98] cursor-pointer w-full"
+              >
+                <span className="material-symbols-outlined !text-[22px] text-white">
+                  admin_panel_settings
+                </span>
+                <p className="text-sm font-bold text-center lg:text-left leading-tight text-white">
+                  {t('cabinet.nav.adminPanel')}
+                </p>
+              </a>
+            </div>
+          )}
 
           {/* Logout */}
           {isAuthenticated && (

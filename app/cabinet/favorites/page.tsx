@@ -137,16 +137,12 @@ export default function FavoritesPage() {
                                 </div>
 
                                 {/* Featured Badges */}
-                                <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex gap-0.5 sm:gap-1 z-10">
+                                <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex gap-1 sm:gap-1.5 items-center z-10">
                                   {ad.isPremium && (
-                                    <div className="bg-[#FF9D00] text-white p-0.5 sm:p-1 rounded-md sm:rounded-lg shadow-lg">
-                                      <PremiumIcon size={16} />
-                                    </div>
+                                    <PremiumIcon size={20} title="Premium" className="shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" />
                                   )}
                                   {ad.isVip && (
-                                    <div className="bg-[#FF4F08] text-white p-0.5 sm:p-1 rounded-md sm:rounded-lg shadow-lg">
-                                      <VipIcon size={14} />
-                                    </div>
+                                    <VipIcon size={18} title="VIP" className="shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" />
                                   )}
                                 </div>
                               </div>

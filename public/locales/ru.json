@@ -272,7 +272,8 @@
       "messages": "Сообщения",
       "settings": "Настройки",
       "packages": "Пакеты",
-      "notifications": "Уведомления"
+      "notifications": "Уведомления",
+      "adminPanel": "Панель управления"
     },
     "favorites": {
       "title": "Избранное",

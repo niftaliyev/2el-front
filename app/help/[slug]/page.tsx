@@ -1,65 +1,90 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import { Metadata } from 'next';
+import HelpCategoryClient from './HelpCategoryClient';
 import { helpService } from '@/services/help.service';
-import HelpAccordion from '@/app/help/HelpAccordion';
-import { notFound, useParams } from 'next/navigation';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { HelpCategory } from '@/types/help';
 
-export default function HelpCategoryPage() {
-  const { slug } = useParams() as { slug: string };
-  const { language, t } = useLanguage();
-  const [category, setCategory] = useState<HelpCategory | null>(null);
-  const [loading, setLoading] = useState(true);
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
 
-  useEffect(() => {
-    const fetchCategory = async () => {
-      setLoading(true);
-      try {
-        const data = await helpService.getCategory(slug);
-        setCategory(data);
-      } catch (err) {
-        console.error('Error fetching help category:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategory();
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <div className="py-20 flex flex-col items-center gap-4">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-primary border-t-transparent"></div>
-      </div>
-    );
-  }
-
-  if (!category) {
-    notFound();
+async function resolveCategory(slug: string) {
+  try {
+    return await helpService.getCategory(slug);
+  } catch (err) {
+    console.error('Error resolving FAQ category:', err);
     return null;
   }
+}
 
-  const displayName = language === 'ru' && (category.nameRu || category.NameRu) ? (category.nameRu || category.NameRu) : category.name;
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const unwrappedParams = await params;
+  const slug = unwrappedParams.slug;
+  const category = await resolveCategory(slug);
+
+  if (!category) {
+    return {
+      title: 'Yardım və Dəstək — 2El.az',
+      description: 'Yardım və Dəstək elanlar portalı 2El.az.'
+    };
+  }
+
+  const titleText = `Yardım — ${category.name} — 2El.az`;
+  const cleanDesc = category.helpItems && category.helpItems.length > 0 
+    ? category.helpItems.map(item => item.question).join(', ').slice(0, 160)
+    : `2El.az elan portalında ${category.name} ilə əlaqəli kömək və tez-tez verilən suallar.`;
+
+  return {
+    title: {
+      absolute: titleText
+    },
+    description: cleanDesc,
+    openGraph: {
+      title: titleText,
+      description: cleanDesc,
+      type: 'website',
+      url: `https://2el.az/help/${slug}`
+    }
+  };
+}
+
+export default async function HelpCategoryPage({ params }: PageProps) {
+  const unwrappedParams = await params;
+  const slug = unwrappedParams.slug;
+  const category = await resolveCategory(slug);
+
+  const jsonLdData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Ana Səhifə",
+        "item": "https://2el.az"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Yardım və Dəstək",
+        "item": "https://2el.az/help"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": category ? category.name : "Kateqoriya",
+        "item": `https://2el.az/help/${slug}`
+      }
+    ]
+  };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-8 border-b pb-4">
-        {displayName}
-      </h2>
-      
-      <div className="flex flex-col gap-4">
-        {category.helpItems.length > 0 ? (
-          category.helpItems.map((item) => (
-            <HelpAccordion key={item.id} item={item} />
-          ))
-        ) : (
-          <p className="text-gray-500 italic">
-            {language === 'ru' ? 'В этой категории пока нет вопросов.' : 'Bu kateqoriya üzrə hələ ki, sual yoxdur.'}
-          </p>
-        )}
-      </div>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLdData)
+        }}
+      />
+      <HelpCategoryClient initialData={category} slug={slug} />
+    </>
   );
 }

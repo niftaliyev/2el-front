@@ -83,6 +83,38 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "2El.az",
+                "url": "https://2el.az",
+                "potentialAction": {
+                  "@type": "SearchAction",
+                  "target": "https://2el.az/elanlar?search={search_term_string}",
+                  "query-input": "required name=search_term_string"
+                }
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "2El.az",
+                "url": "https://2el.az",
+                "logo": "https://2el.az/logo.png",
+                "contactPoint": {
+                  "@type": "ContactPoint",
+                  "telephone": "+994-50-123-45-67",
+                  "contactType": "customer service",
+                  "areaServed": "AZ",
+                  "availableLanguage": ["Azerbaijani", "Russian"]
+                }
+              }
+            ])
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen pb-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] md:pb-0`}

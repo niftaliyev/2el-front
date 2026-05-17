@@ -367,7 +367,8 @@
       "messages": "Mesajlar",
       "settings": "Parametrlər",
       "packages": "Paketlər",
-      "notifications": "Bildirişlər"
+      "notifications": "Bildirişlər",
+      "adminPanel": "Admin Panel"
     },
     "favorites": {
       "title": "Seçilmişlər",
