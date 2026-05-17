@@ -32,6 +32,13 @@ jobs:
 
             cd /root/2el-front
 
+            # Remove deleted admin files and folders to prevent stale build context
+            rm -rf app/admin
+            rm -rf components/features/admin
+            rm -f types/admin.ts
+            rm -f lib/adminData.ts
+            rm -f services/admin.service.ts
+
             echo "Building docker..."
             docker compose down || true
             docker compose build --no-cache
