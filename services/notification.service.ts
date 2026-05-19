@@ -24,8 +24,8 @@ export interface NotificationListItem {
 
 class NotificationService {
   private hubConnection: HubConnection | null = null;
-  private baseUrl = process.env.NEXT_PUBLIC_API_URL 
-    ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') 
+  private baseUrl = process.env.NEXT_PUBLIC_API_URL
+    ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
     : 'http://84.247.184.186:5000';
   private hubUrl = `${this.baseUrl}/api/notificationHub`;
 
@@ -38,8 +38,8 @@ class NotificationService {
       this.hubConnection = new HubConnectionBuilder()
         .withUrl(this.hubUrl, {
           accessTokenFactory: () => {
-            const token = typeof window !== 'undefined' 
-              ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')) 
+            const token = typeof window !== 'undefined'
+              ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken'))
               : null;
             return token || '';
           },

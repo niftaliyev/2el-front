@@ -45,10 +45,10 @@ export interface ChatDetail extends ChatListItem {
 class ChatService {
   private connection: signalR.HubConnection | null = null;
   private startPromise: Promise<void> | null = null;
-  private baseUrl = process.env.NEXT_PUBLIC_API_URL 
-    ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') 
+  private baseUrl = process.env.NEXT_PUBLIC_API_URL
+    ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
     : 'http://84.247.184.186:5000';
-  
+
   // Store handlers to re-attach on reconnect/new connection - multiple handlers per method
   private handlers: Map<string, Set<(...args: any[]) => void>> = new Map();
 
@@ -97,7 +97,7 @@ class ChatService {
   async startConnection(): Promise<void> {
     // If already connected/connecting, just return the existing promise or success
     if (this.connection && (
-      this.connection.state === signalR.HubConnectionState.Connected || 
+      this.connection.state === signalR.HubConnectionState.Connected ||
       this.connection.state === signalR.HubConnectionState.Connecting ||
       this.connection.state === signalR.HubConnectionState.Reconnecting
     )) {
@@ -111,8 +111,8 @@ class ChatService {
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(`${this.baseUrl}/api/chatHub`, {
         accessTokenFactory: () => {
-          const token = typeof window !== 'undefined' 
-            ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')) 
+          const token = typeof window !== 'undefined'
+            ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken'))
             : null;
           return token || '';
         },
@@ -136,10 +136,10 @@ class ChatService {
       })
       .catch((err) => {
         this.startPromise = null;
-        
+
         if (err instanceof Error && (
-          err.name === 'AbortError' || 
-          err.message.includes('stopped during negotiation') || 
+          err.name === 'AbortError' ||
+          err.message.includes('stopped during negotiation') ||
           err.message.includes('The connection was stopped before the start operation completed')
         )) {
           // This is expected during Fast Refresh/HMR, don't log as error
@@ -172,7 +172,7 @@ class ChatService {
   private registerHandler(methodName: string, callback: (...args: any[]) => void) {
     if (!this.handlers.has(methodName)) {
       this.handlers.set(methodName, new Set());
-      
+
       // If connection exists, set up the master listener for this method
       if (this.connection) {
         this.connection.on(methodName, (...args: any[]) => {
@@ -180,14 +180,14 @@ class ChatService {
         });
       }
     }
-    
+
     this.handlers.get(methodName)?.add(callback);
   }
 
   /** SignalR: Mesaj göndər */
   async sendMessage(chatId: string, text?: string, imageUrls?: string[], messageType: number = 0): Promise<void> {
     await this.startConnection();
-    
+
     if (this.connection && this.connection.state === signalR.HubConnectionState.Connected) {
       try {
         await this.connection.invoke('SendMessage', { chatId, text, imageUrls, messageType });

@@ -20,8 +20,8 @@ const axiosInstance: AxiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // Get token from storage (check both)
-    const token = typeof window !== 'undefined' 
-      ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')) 
+    const token = typeof window !== 'undefined'
+      ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken'))
       : null;
 
     // Add token to headers if it exists
@@ -55,8 +55,8 @@ axiosInstance.interceptors.response.use(
 
       try {
         // Try to refresh the token (check both storages)
-        const refreshToken = typeof window !== 'undefined' 
-          ? (localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken')) 
+        const refreshToken = typeof window !== 'undefined'
+          ? (localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken'))
           : null;
 
         if (refreshToken) {
@@ -108,7 +108,7 @@ axiosInstance.interceptors.response.use(
           message = Object.values(data.errors).flat().join(', ');
           (error as any).validationErrors = data.errors;
         } else {
-          message = data.message || data.title || 'Bir xəta baş verdi';
+          message = data.message || data.Message || data.title || data.Title || 'Bir xəta baş verdi';
         }
       } else if (typeof data === 'string') {
         message = data;
