@@ -21,7 +21,7 @@ export function formatDate(date: Date | string): string {
 export function formatRelativeTime(date: Date | string, language: string = 'az'): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
-  
+
   // Calculate calendar days difference
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -82,33 +82,33 @@ export function formatRelativeTime(date: Date | string, language: string = 'az')
  */
 export function translateCabinetService(text: string, language: string): string {
   if (language !== 'ru') return text;
-  
+
   let translated = text;
-  
+
   // Promotion types
   translated = translated.replace(/Irəli çək xidməti/g, 'Услуга поднятия');
   translated = translated.replace(/VIP xidməti/g, 'VIP услуга');
   translated = translated.replace(/Premium xidməti/g, 'Premium услуга');
-  
+
   // Limits
   translated = translated.replace(/Limitdən artıq elan yerləşdirilməsi/g, 'Размещение объявления сверх лимита');
-  
+
   // Discounts
   translated = translated.replace(/Biznes Endirimi/g, 'Бизнес-скидка');
-  
+
   // Entities
   translated = translated.replace(/\(Elan:/g, '(Объявление:');
-  
+
   // Package names
   translated = translated.replace(/Mini paketi/g, 'Мини пакет');
   translated = translated.replace(/Standart paketi/g, 'Стандартный пакет');
   translated = translated.replace(/Premium paketi/g, 'Премиум пакет');
   translated = translated.replace(/Full paketi/g, 'Полный пакет');
   translated = translated.replace(/paketi/g, 'пакет');
-  
+
   // Common phrases
   translated = translated.replace(/Razılaşma yolu ilə/g, 'По договоренности');
-  
+
   return translated;
 }
 
@@ -131,7 +131,7 @@ export function generateSlug(text: string | null | undefined): string {
     'ə': 'e', 'ı': 'i', 'ö': 'o', 'ü': 'u', 'ç': 'c', 'ş': 's', 'ğ': 'g',
     'Ə': 'e', 'I': 'i', 'Ö': 'o', 'Ü': 'u', 'Ç': 'c', 'Ş': 's', 'Ğ': 'g'
   };
-  
+
   return text
     .split('')
     .map(char => azMap[char] || char)
@@ -160,21 +160,21 @@ export function debounce<T extends (...args: any[]) => any>(
 export function getImageUrl(imagePath: string | undefined | null): string {
   // Handle missing, empty, or whitespace-only paths
   if (!imagePath || !imagePath.trim()) return '';
-  
+
   // If already a full URL (including blobs), return as is
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('blob:')) {
     return imagePath;
   }
-  
+
   // Local Development: 'http://localhost:5156'
   // Local  Docker: 'http://localhost:5000'
   // Prod Development: 'http://84.247.184.186:5000'
   const baseUrl = 'http://84.247.184.186:5000';
-  
+
   // Build normalized path (ensuring it starts with / and doesn't overlap)
   const cleanPath = imagePath.trim();
   const normalizedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
-  
+
   return `${baseUrl}${normalizedPath}`;
 }
 
@@ -183,10 +183,10 @@ export function getImageUrl(imagePath: string | undefined | null): string {
  */
 export function parseCurrency(value: string): number {
   if (!value) return 0;
-  
+
   // Remove all non-digit and non-punctuation characters (like spaces, currency symbols)
   let sanitized = value.replace(/[^\d.,-]/g, '');
-  
+
   // If it has both , and .
   if (sanitized.includes(',') && sanitized.includes('.')) {
     // Assume the last one is the decimal separator
@@ -218,7 +218,7 @@ export function parseCurrency(value: string): number {
     }
     // Else it's 800.50 which is already fine for parseFloat
   }
-  
+
   return parseFloat(sanitized) || 0;
 }
 
@@ -242,7 +242,7 @@ export function parseCurrency(value: string): number {
 export function toAccusativeCaseAz(categoryName: string): string {
   if (!categoryName) return '';
   const clean = categoryName.trim().toLowerCase();
-  
+
   // Custom exact mappings for standard categories on 2el.az
   const exactMappings: Record<string, string> = {
     'elektronika': 'elektronikanı',
@@ -281,10 +281,10 @@ export function toAccusativeCaseAz(categoryName: string): string {
   const backVowels = ['a', 'ı', 'o', 'u'];
   const frontUnroundedVowels = ['e', 'ə', 'i'];
   const frontRoundedVowels = ['ö', 'ü'];
-  
+
   const lastChar = clean[clean.length - 1];
   const isLastVowel = vowels.includes(lastChar);
-  
+
   // Find the last vowel in the word
   let lastVowel = '';
   for (let i = clean.length - 1; i >= 0; i--) {
@@ -293,9 +293,9 @@ export function toAccusativeCaseAz(categoryName: string): string {
       break;
     }
   }
-  
+
   if (!lastVowel) lastVowel = 'a'; // default fallback
-  
+
   let suffix = '';
   if (backVowels.includes(lastVowel)) {
     suffix = isLastVowel ? 'nı' : 'ı';
@@ -311,7 +311,7 @@ export function toAccusativeCaseAz(categoryName: string): string {
   } else {
     suffix = isLastVowel ? 'nı' : 'ı';
   }
-  
+
   return categoryName + suffix;
 }
 
