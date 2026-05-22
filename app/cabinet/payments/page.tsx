@@ -249,13 +249,21 @@ export default function PaymentsPage() {
                               <div
                                 onClick={() => fileInputRef.current?.click()}
                                 className={`relative aspect-video sm:aspect-[16/7] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${preview
-                                    ? 'border-primary bg-white shadow-xl scale-[1.01]'
-                                    : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-primary/50'
+                                  ? 'border-primary bg-white shadow-xl scale-[1.01]'
+                                  : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-primary/50'
                                   }`}
                               >
                                 {preview ? (
                                   <>
-                                    <img src={preview} alt="Receipt Preview" className="w-full h-full object-contain p-4 rounded-2xl" />
+                                    {file?.type === 'application/pdf' || file?.name.toLowerCase().endsWith('.pdf') ? (
+                                      <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-white rounded-2xl">
+                                        <span className="material-symbols-outlined text-red-500 !text-5xl mb-2">picture_as_pdf</span>
+                                        <p className="text-gray-900 font-bold text-xs max-w-[90%] truncate text-center">{file.name}</p>
+                                        <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB • PDF Sənəd</p>
+                                      </div>
+                                    ) : (
+                                      <img src={preview} alt="Receipt Preview" className="w-full h-full object-contain p-4 rounded-2xl" />
+                                    )}
                                     <div className="absolute inset-0 bg-primary/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-[4px] rounded-2xl">
                                       <div className="size-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
                                         <span className="material-symbols-outlined !text-2xl animate-spin-slow">cached</span>
@@ -269,13 +277,13 @@ export default function PaymentsPage() {
                                       <span className="material-symbols-outlined text-primary !text-4xl">cloud_upload</span>
                                     </div>
                                     <p className="text-gray-900 font-black text-sm tracking-tight">{t('cabinet.payments.uploadReceipt')}</p>
-                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1 opacity-60">PNG, JPG, PDF (MAKS. 5MB)</p>
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1 opacity-60">PNG, JPG, JPEG, WEBP, PDF (MAKS. 5MB)</p>
                                   </div>
                                 )}
                                 <input
                                   ref={fileInputRef}
                                   type="file"
-                                  accept="image/*"
+                                  accept=".jpg,.jpeg,.png,.webp,.pdf"
                                   onChange={handleFileChange}
                                   className="hidden"
                                 />

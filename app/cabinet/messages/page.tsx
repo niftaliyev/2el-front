@@ -108,99 +108,156 @@ function MessagesPageContent() {
     setCurrentUser(user);
     loadConversations();
 
-    // SignalR connection setup (once)
-    chatService.startConnection().then(() => {
-      chatService.onMessageReceived((chatId: string, message: ChatMessage) => {
-        const currentSelected = selectedChatIdRef.current;
+    const handleMessageReceived = (chatId: string, message: ChatMessage) => {
+      const currentSelected = selectedChatIdRef.current;
 
-        if (chatId === currentSelected) {
-          setChatDetail((prev: ChatDetail | null) => {
-            if (!prev) return null;
-            const messages = [...prev.messages];
-            // Prevent duplicate messages or replace optimistic one
-            const tempIndex = messages.findIndex(m => m.id.startsWith('temp-') && m.text === message.text);
-            if (tempIndex !== -1) {
-              messages[tempIndex] = message;
-              return { ...prev, messages };
-            }
-            if (messages.some(m => m.id === message.id)) return prev;
-            return { ...prev, messages: [...messages, message] };
-          });
-          // If message is not from me, mark it as read ONLY if the window is focused
-          if (message.senderId !== authService.getUser()?.id && document.hasFocus()) {
-            chatService.markAsRead(chatId);
+      if (chatId === currentSelected) {
+        setChatDetail((prev: ChatDetail | null) => {
+          if (!prev) return null;
+          const messages = [...prev.messages];
+          // Prevent duplicate messages or replace optimistic one
+          const tempIndex = messages.findIndex(m => m.id.startsWith('temp-') && m.text === message.text);
+          if (tempIndex !== -1) {
+            messages[tempIndex] = message;
+            return { ...prev, messages };
           }
-          setIsOtherUserTyping(false);
-        } else {
-          setConversations((prev: ChatListItem[]) => {
-            const chatExists = prev.some(c => c.chatId === chatId);
-            if (!chatExists) {
-              loadConversations();
-              return prev;
-            }
-            return prev.map(c =>
-              c.chatId === chatId ? { ...c, lastMessage: message.text, lastMessageDate: message.createdDate, unreadCount: c.unreadCount + 1 } : c
-            );
-          });
+          if (messages.some(m => m.id === message.id)) return prev;
+          return { ...prev, messages: [...messages, message] };
+        });
+        // If message is not from me, mark it as read when the chat is open and page is visible
+        if (message.senderId !== authService.getUser()?.id && !document.hidden) {
+          chatService.markAsRead(chatId);
         }
-      });
+        setIsOtherUserTyping(false);
+      } else {
+        setConversations((prev: ChatListItem[]) => {
+          const chatExists = prev.some(c => c.chatId === chatId);
+          if (!chatExists) {
+            loadConversations();
+            return prev;
+          }
+          return prev.map(c =>
+            c.chatId === chatId ? { ...c, lastMessage: message.text, lastMessageDate: message.createdDate, unreadCount: c.unreadCount + 1 } : c
+          );
+        });
+      }
+    };
 
-      chatService.onMessagesRead((chatId: string, userId: string) => {
-        if (chatId === selectedChatIdRef.current) {
-          setChatDetail((prev: ChatDetail | null) => prev ? {
-            ...prev,
-            messages: prev.messages.map(m => m.isSelf ? { ...m, isRead: true } : m)
-          } : null);
+    const handleMessagesRead = (chatId: string, userId: string) => {
+      if (chatId === selectedChatIdRef.current) {
+        setChatDetail((prev: ChatDetail | null) => prev ? {
+          ...prev,
+          messages: prev.messages.map(m => m.isSelf ? { ...m, isRead: true } : m)
+        } : null);
+      }
+    };
+
+    const handleUserOnline = (userId: string) => {
+      setConversations((prev: ChatListItem[]) => prev.map(c => c.otherUserId === userId ? { ...c, isOtherUserOnline: true } : c));
+      setChatDetail((prev: ChatDetail | null) => {
+        if (prev && prev.otherUserId === userId) {
+          return { ...prev, isOtherUserOnline: true };
         }
+        return prev;
       });
+    };
 
-      chatService.onUserOnline((userId: string) => {
-        setConversations((prev: ChatListItem[]) => prev.map(c => c.otherUserId === userId ? { ...c, isOtherUserOnline: true } : c));
-        if (chatDetail?.otherUserId === userId) {
-          setChatDetail(prev => prev ? { ...prev, isOtherUserOnline: true } : null);
+    const handleUserOffline = (userId: string) => {
+      setConversations((prev: ChatListItem[]) => prev.map(c => c.otherUserId === userId ? { ...c, isOtherUserOnline: false } : c));
+      setChatDetail((prev: ChatDetail | null) => {
+        if (prev && prev.otherUserId === userId) {
+          return { ...prev, isOtherUserOnline: false };
         }
+        return prev;
       });
+    };
 
-      chatService.onUserOffline((userId: string) => {
-        setConversations((prev: ChatListItem[]) => prev.map(c => c.otherUserId === userId ? { ...c, isOtherUserOnline: false } : c));
-        if (chatDetail?.otherUserId === userId) {
-          setChatDetail(prev => prev ? { ...prev, isOtherUserOnline: false } : null);
-        }
-      });
+    const handleUserTyping = (chatId: string, userId: string) => {
+      if (chatId === selectedChatIdRef.current) {
+        setIsOtherUserTyping(true);
+        // Auto-clear typing after 3 seconds
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => setIsOtherUserTyping(false), 3000);
+      }
+    };
 
-      chatService.onUserTyping((chatId: string, userId: string) => {
-        if (chatId === selectedChatIdRef.current) {
-          setIsOtherUserTyping(true);
-          // Auto-clear typing after 3 seconds
-          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-          typingTimeoutRef.current = setTimeout(() => setIsOtherUserTyping(false), 3000);
-        }
-      });
+    const handleMessageSent = (chatId: string, message: ChatMessage) => {
+      if (chatId === selectedChatIdRef.current) {
+        setChatDetail((prev: ChatDetail | null) => {
+          if (!prev) return null;
+          const messages = [...prev.messages];
+          // Replace optimistic message (temp ID) with real one
+          const tempIndex = messages.findIndex(m => m.id.startsWith('temp-') && m.text === message.text);
+          if (tempIndex !== -1) {
+            messages[tempIndex] = message;
+            return { ...prev, messages };
+          }
+          if (messages.some(m => m.id === message.id)) return prev;
+          return { ...prev, messages: [...messages, message] };
+        });
+      }
+    };
 
-      chatService.onMessageSent((chatId: string, message: ChatMessage) => {
-        if (chatId === selectedChatIdRef.current) {
-          setChatDetail((prev: ChatDetail | null) => {
-            if (!prev) return null;
-            const messages = [...prev.messages];
-            // Replace optimistic message (temp ID) with real one
-            const tempIndex = messages.findIndex(m => m.id.startsWith('temp-') && m.text === message.text);
-            if (tempIndex !== -1) {
-              messages[tempIndex] = message;
-              return { ...prev, messages };
-            }
-            if (messages.some(m => m.id === message.id)) return prev;
-            return { ...prev, messages: [...messages, message] };
-          });
-        }
-      });
+    const handleUnreadCountUpdate = (count: number) => {
+      window.dispatchEvent(new CustomEvent('unreadCountUpdate', { detail: count }));
+    };
 
-      chatService.onUnreadCountUpdate((count: number) => {
-        window.dispatchEvent(new CustomEvent('unreadCountUpdate', { detail: count }));
-      });
-    });
+    const handleUserBlocked = (blockerId: string, blockedId: string) => {
+      const currentSelected = selectedChatIdRef.current;
+      const myId = authService.getUser()?.id;
+      if (currentSelected && myId) {
+        setChatDetail((prev: ChatDetail | null) => {
+          if (prev && (
+            (blockerId === myId && blockedId === prev.otherUserId) ||
+            (blockerId === prev.otherUserId && blockedId === myId)
+          )) {
+            loadChatDetail(currentSelected, 1, true);
+          }
+          return prev;
+        });
+      }
+    };
+
+    const handleUserUnblocked = (blockerId: string, blockedId: string) => {
+      const currentSelected = selectedChatIdRef.current;
+      const myId = authService.getUser()?.id;
+      if (currentSelected && myId) {
+        setChatDetail((prev: ChatDetail | null) => {
+          if (prev && (
+            (blockerId === myId && blockedId === prev.otherUserId) ||
+            (blockerId === prev.otherUserId && blockedId === myId)
+          )) {
+            loadChatDetail(currentSelected, 1, true);
+          }
+          return prev;
+        });
+      }
+    };
+
+    // SignalR event-lərini dərhal sinxron şəkildə qeydiyyatdan keçiririk ki, race condition yaranmasın!
+    chatService.onMessageReceived(handleMessageReceived);
+    chatService.onMessagesRead(handleMessagesRead);
+    chatService.onUserOnline(handleUserOnline);
+    chatService.onUserOffline(handleUserOffline);
+    chatService.onUserTyping(handleUserTyping);
+    chatService.onMessageSent(handleMessageSent);
+    chatService.onUnreadCountUpdate(handleUnreadCountUpdate);
+    chatService.onUserBlocked(handleUserBlocked);
+    chatService.onUserUnblocked(handleUserUnblocked);
+
+    // SignalR connection setup (once)
+    chatService.startConnection();
 
     return () => {
-      chatService.stopConnection();
+      chatService.off('ReceiveMessage', handleMessageReceived);
+      chatService.off('MessagesRead', handleMessagesRead);
+      chatService.off('UserOnline', handleUserOnline);
+      chatService.off('UserOffline', handleUserOffline);
+      chatService.off('UserTyping', handleUserTyping);
+      chatService.off('MessageSent', handleMessageSent);
+      chatService.off('UpdateUnreadCount', handleUnreadCountUpdate);
+      chatService.off('UserBlocked', handleUserBlocked);
+      chatService.off('UserUnblocked', handleUserUnblocked);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, []);
@@ -233,15 +290,19 @@ function MessagesPageContent() {
     }
   }, [searchParams, router, t]);
 
-  // Mark as read when focusing the window
+  // Mark as read when focusing the window or tab becomes visible
   useEffect(() => {
-    const handleFocus = () => {
-      if (selectedChatId && document.hasFocus()) {
+    const handleVisibilityOrFocus = () => {
+      if (selectedChatId && !document.hidden) {
         chatService.markAsRead(selectedChatId);
       }
     };
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    return () => {
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+    };
   }, [selectedChatId]);
 
   // Load chat detail when selection changes
@@ -294,10 +355,8 @@ function MessagesPageContent() {
         setChatDetail(data);
         // Reset unread count locally
         setConversations(prev => prev.map(c => c.chatId === chatId ? { ...c, unreadCount: 0 } : c));
-        // Notify server we read it (only if window is focused or we actively clicked it)
-        if (document.hasFocus()) {
-          chatService.markAsRead(chatId);
-        }
+        // Notify server we read it
+        chatService.markAsRead(chatId);
       } else {
         if (data.messages.length === 0) {
           setHasMore(false);
@@ -467,7 +526,7 @@ function MessagesPageContent() {
             await chatService.blockUser(chatDetail.otherUserId);
             toast.success(t('cabinet.messages.blockUser'));
           }
-          loadChatDetail(selectedChatId!);
+          loadChatDetail(selectedChatId!, 1, true);
           setShowMenu(false);
           setConfirmModal(prev => ({ ...prev, isOpen: false }));
         } catch (err) {
@@ -938,7 +997,7 @@ function MessagesPageContent() {
                                     type="file"
                                     id="chat-image-upload"
                                     className="hidden"
-                                    accept="image/*"
+                                    accept=".jpg,.jpeg,.png,.webp"
                                     multiple
                                     onChange={handleImageUpload}
                                   />

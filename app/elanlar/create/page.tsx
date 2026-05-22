@@ -851,7 +851,7 @@ export default function CreateListingPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept=".jpg,.jpeg,.png,.webp"
                 multiple
                 onChange={(e) => handleImageUpload(e.target.files)}
                 className="hidden"

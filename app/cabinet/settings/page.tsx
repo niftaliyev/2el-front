@@ -471,7 +471,7 @@ export default function SettingsPage() {
                         <input
                           ref={fileInputRef}
                           type="file"
-                          accept="image/*"
+                          accept=".jpg,.jpeg,.png,.webp"
                           onChange={handlePhotoChange}
                           className="hidden"
                         />
@@ -599,7 +599,7 @@ export default function SettingsPage() {
                           type="file"
                           ref={storeLogoInputRef}
                           className="hidden"
-                          accept="image/*"
+                          accept=".jpg,.jpeg,.png,.webp"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
@@ -635,7 +635,7 @@ export default function SettingsPage() {
                           type="file"
                           ref={storeCoverInputRef}
                           className="hidden"
-                          accept="image/*"
+                          accept=".jpg,.jpeg,.png,.webp"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
@@ -998,7 +998,7 @@ export default function SettingsPage() {
                           type="file"
                           ref={galleryInputRef}
                           multiple
-                          accept="image/*"
+                          accept=".jpg,.jpeg,.png,.webp"
                           className="hidden"
                           onChange={(e) => {
                             const files = Array.from(e.target.files || []);
