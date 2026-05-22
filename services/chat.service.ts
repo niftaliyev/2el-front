@@ -247,6 +247,14 @@ class ChatService {
     this.registerHandler('UpdateUnreadCount', callback);
   }
 
+  onUserBlocked(callback: (blockerId: string, blockedId: string) => void) {
+    this.registerHandler('UserBlocked', callback);
+  }
+
+  onUserUnblocked(callback: (blockerId: string, blockedId: string) => void) {
+    this.registerHandler('UserUnblocked', callback);
+  }
+
   off(methodName: string, callback?: (...args: any[]) => void) {
     if (callback) {
       this.handlers.get(methodName)?.delete(callback);

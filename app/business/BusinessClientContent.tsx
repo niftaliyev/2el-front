@@ -112,6 +112,10 @@ function BusinessPageInner() {
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Loqo həcmi 5MB-dan çox ola bilməz');
+                return;
+            }
             setLogo(file);
             setLogoPreview(URL.createObjectURL(file));
         }
@@ -120,6 +124,10 @@ function BusinessPageInner() {
     const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error('Cover şəkli həcmi 10MB-dan çox ola bilməz');
+                return;
+            }
             setCover(file);
             setCoverPreview(URL.createObjectURL(file));
         }
@@ -376,7 +384,7 @@ function BusinessPageInner() {
                                                     <span className="text-[10px] font-bold mt-1 uppercase">{t('businessLanding.upload')}</span>
                                                 </div>
                                             )}
-                                            <input type="file" className="hidden" accept="image/*" onChange={handleLogoChange} />
+                                            <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.webp" onChange={handleLogoChange} />
                                         </label>
                                     </div>
                                     <div className="space-y-2">
@@ -390,7 +398,7 @@ function BusinessPageInner() {
                                                     <span className="text-[10px] font-bold mt-1 uppercase">{t('businessLanding.upload')}</span>
                                                 </div>
                                             )}
-                                            <input type="file" className="hidden" accept="image/*" onChange={handleCoverChange} />
+                                            <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.webp" onChange={handleCoverChange} />
                                         </label>
                                     </div>
                                 </div>

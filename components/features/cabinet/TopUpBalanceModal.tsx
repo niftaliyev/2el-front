@@ -24,7 +24,7 @@ export default function TopUpBalanceModal({ isOpen, onClose, onSuccess }: TopUpB
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (selectedFile.size > 5 * 1024 * 1024) {
-        setError('Şəkil ölçüsü 5MB-dan çox olmamalıdır');
+        setError('Fayl ölçüsü 5MB-dan çox olmamalıdır');
         return;
       }
       setFile(selectedFile);
@@ -40,7 +40,7 @@ export default function TopUpBalanceModal({ isOpen, onClose, onSuccess }: TopUpB
       return;
     }
     if (!file) {
-      setError('Zəhmət olmasa ödəniş qəbzinin şəklini yükləyin');
+      setError('Zəhmət olmasa ödəniş qəbzini yükləyin');
       return;
     }
 
@@ -103,31 +103,38 @@ export default function TopUpBalanceModal({ isOpen, onClose, onSuccess }: TopUpB
 
             {/* File Upload */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Ödəniş qəbzi (şəkil)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Ödəniş qəbzi (şəkil və ya PDF)</label>
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden ${
-                  preview ? 'border-primary' : 'border-gray-300 hover:border-primary hover:bg-primary/5'
-                }`}
+                className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden ${preview ? 'border-primary' : 'border-gray-300 hover:border-primary hover:bg-primary/5'
+                  }`}
               >
                 {preview ? (
                   <>
-                    <img src={preview} alt="Receipt Preview" className="w-full h-full object-cover" />
+                    {file?.type === 'application/pdf' || file?.name.toLowerCase().endsWith('.pdf') ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-white">
+                        <span className="material-symbols-outlined text-red-500 !text-4xl mb-1">picture_as_pdf</span>
+                        <p className="text-gray-900 font-bold text-xs max-w-[90%] truncate text-center">{file.name}</p>
+                        <p className="text-gray-400 text-[10px] uppercase font-bold mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB • PDF</p>
+                      </div>
+                    ) : (
+                      <img src={preview} alt="Receipt Preview" className="w-full h-full object-cover" />
+                    )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">Şəkli dəyiş</span>
+                      <span className="text-white text-sm font-medium">Qəbzi dəyiş</span>
                     </div>
                   </>
                 ) : (
                   <div className="text-center px-4">
                     <span className="material-symbols-outlined text-gray-400 text-4xl mb-2">upload_file</span>
-                    <p className="text-sm text-gray-500">Qəbz şəklini bura yükləyin</p>
-                    <p className="text-xs text-gray-400 mt-1">Maks. 5MB (JPG, PNG)</p>
+                    <p className="text-sm text-gray-500">Qəbzi bura yükləyin</p>
+                    <p className="text-xs text-gray-400 mt-1">Maks. 5MB (JPG, PNG, JPEG, WEBP, PDF)</p>
                   </div>
                 )}
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept=".jpg,.jpeg,.png,.webp,.pdf"
                   onChange={handleFileChange}
                   className="hidden"
                 />
