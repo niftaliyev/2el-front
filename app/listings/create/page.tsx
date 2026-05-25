@@ -688,79 +688,79 @@ export default function CreateListingPage() {
                 <div className="space-y-4 pt-4 border-t border-gray-100">
                   <h3 className="text-gray-700 text-sm font-semibold">{t('createAd.dynamicInfo')}</h3>
                   {categoryFields.map((field) => {
-                        const isRu = language === 'ru';
-                        const fieldName = isRu && field.nameRu ? field.nameRu : field.name;
-                        const optionsJsonToUse = isRu && field.optionsJsonRu ? field.optionsJsonRu : field.optionsJson;
+                    const isRu = language === 'ru';
+                    const fieldName = isRu && field.nameRu ? field.nameRu : field.name;
+                    const optionsJsonToUse = isRu && field.optionsJsonRu ? field.optionsJsonRu : field.optionsJson;
 
-                        if (field.fieldType === 'select' || field.fieldType === 'dependent_select') {
-                          let parsedOptions: string[] = [];
-                          try {
-                            const parsed = optionsJsonToUse ? JSON.parse(optionsJsonToUse) : [];
+                    if (field.fieldType === 'select' || field.fieldType === 'dependent_select') {
+                      let parsedOptions: string[] = [];
+                      try {
+                        const parsed = optionsJsonToUse ? JSON.parse(optionsJsonToUse) : [];
 
-                            if (Array.isArray(parsed)) {
-                              parsedOptions = parsed;
-                            } else if (parsed && typeof parsed === 'object' && field.fieldType === 'dependent_select') {
-                              // For dependent select, we need to match the selected brand
-                              // The keys in optionsJson (and optionsJsonRu) correspond to the brand labels
-                              const selectedBrandLabel = brands.find(b => b.value === formData.brandId)?.label;
-                              if (selectedBrandLabel && Array.isArray(parsed[selectedBrandLabel])) {
-                                parsedOptions = parsed[selectedBrandLabel];
-                              }
-                            }
-                          } catch (e) {
-                            console.error('Error parsing optionsJson:', e);
+                        if (Array.isArray(parsed)) {
+                          parsedOptions = parsed;
+                        } else if (parsed && typeof parsed === 'object' && field.fieldType === 'dependent_select') {
+                          // For dependent select, we need to match the selected brand
+                          // The keys in optionsJson (and optionsJsonRu) correspond to the brand labels
+                          const selectedBrandLabel = brands.find(b => b.value === formData.brandId)?.label;
+                          if (selectedBrandLabel && Array.isArray(parsed[selectedBrandLabel])) {
+                            parsedOptions = parsed[selectedBrandLabel];
                           }
+                        }
+                      } catch (e) {
+                        console.error('Error parsing optionsJson:', e);
+                      }
 
-                          const options: SelectOption[] = parsedOptions.map((opt: string) => ({ value: opt, label: opt }));
-                          return (
-                            <Select
-                              key={field.id}
-                              label={fieldName + (field.isRequired ? ' *' : '')}
-                              options={options}
-                              value={options.find(o => o.value === dynamicFieldValues[field.id])}
-                              onChange={(opt) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: opt?.value || '' }))}
-                              placeholder={t('common.select_placeholder', { name: fieldName })}
-                              isClearable
-                            />
-                          );
-                        }
-                        if (field.fieldType === 'number') {
-                          return (
-                            <Input
-                              key={field.id}
-                              label={fieldName + (field.isRequired ? ' *' : '')}
-                              type="number"
-                              value={dynamicFieldValues[field.id] || ''}
-                              onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                              placeholder={fieldName}
-                            />
-                          );
-                        }
-                        if (field.fieldType === 'checkbox') {
-                          return (
-                            <label key={field.id} className="flex items-center gap-3 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={dynamicFieldValues[field.id] === 'true'}
-                                onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.checked.toString() }))}
-                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
-                              />
-                              <span className="text-gray-900 text-sm font-medium">{fieldName}</span>
-                            </label>
-                          );
-                        }
-                        // Default: text field
-                        return (
-                          <Input
-                            key={field.id}
-                            label={fieldName + (field.isRequired ? ' *' : '')}
-                            type="text"
-                            value={dynamicFieldValues[field.id] || ''}
-                            onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                            placeholder={fieldName}
+                      const options: SelectOption[] = parsedOptions.map((opt: string) => ({ value: opt, label: opt }));
+                      return (
+                        <Select
+                          key={field.id}
+                          label={fieldName + (field.isRequired ? ' *' : '')}
+                          options={options}
+                          value={options.find(o => o.value === dynamicFieldValues[field.id])}
+                          onChange={(opt) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: opt?.value || '' }))}
+                          placeholder={t('common.select_placeholder', { name: fieldName })}
+                          isClearable
+                        />
+                      );
+                    }
+                    if (field.fieldType === 'number') {
+                      return (
+                        <Input
+                          key={field.id}
+                          label={fieldName + (field.isRequired ? ' *' : '')}
+                          type="number"
+                          value={dynamicFieldValues[field.id] || ''}
+                          onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                          placeholder={fieldName}
+                        />
+                      );
+                    }
+                    if (field.fieldType === 'checkbox') {
+                      return (
+                        <label key={field.id} className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={dynamicFieldValues[field.id] === 'true'}
+                            onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.checked.toString() }))}
+                            className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-2"
                           />
-                        );
-                      })}
+                          <span className="text-gray-900 text-sm font-medium">{fieldName}</span>
+                        </label>
+                      );
+                    }
+                    // Default: text field
+                    return (
+                      <Input
+                        key={field.id}
+                        label={fieldName + (field.isRequired ? ' *' : '')}
+                        type="text"
+                        value={dynamicFieldValues[field.id] || ''}
+                        onChange={(e) => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        placeholder={fieldName}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -5,6 +5,7 @@ import { Header, MobileBottomNav } from "@/components/layout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Toaster } from 'sonner';
+import TrafficTracker from "@/components/features/TrafficTracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -122,6 +123,7 @@ export default function RootLayout({
         <div className="flex flex-col min-h-screen w-full relative">
           <LanguageProvider>
             <AuthProvider>
+              <TrafficTracker />
               <Toaster richColors position="top-right" closeButton />
               <Header />
               <main className="flex-1 flex flex-col w-full relative">
