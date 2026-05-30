@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
+import CabinetMobileHeader from '@/components/features/cabinet/CabinetMobileHeader';
 import { adService } from '@/services/ad.service';
 import { accountService, Invoice } from '@/services/account.service';
 import { BusinessPackageDto, PaginatedResponse } from '@/types/api';
@@ -10,6 +11,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Check, Wallet, Rocket, Zap, Clock, Download, ChevronDown, Package, BadgePercent, Printer, FileText } from 'lucide-react';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import TopUpBalanceModal from '@/components/features/cabinet/TopUpBalanceModal';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 type TabType = 'packages' | 'balance' | 'invoices';
@@ -51,6 +53,7 @@ function BusinessPageInner() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<number>(30);
   const [confirmPkgId, setConfirmPkgId] = useState<string | null>(null);
+  const [isTopUpModalOpen, setIsTopUpModalOpen] = useState(false);
   const durations = [30, 60, 90, 180];
 
   useEffect(() => {
@@ -152,12 +155,13 @@ function BusinessPageInner() {
   };
 
   return (
-    <main className="bg-[#f8fafc] min-h-screen py-6 sm:py-10">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
+    <main className="bg-[#f8fafc] min-h-screen">
+      <CabinetMobileHeader title={t('cabinet.businessCabinet')} />
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-4 md:py-10">
         <div className="flex flex-col lg:flex-row gap-8">
           <UserSidebar />
           <div className="flex-1 min-w-0">
-              <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="hidden md:flex mb-6 sm:mb-8 flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{t('cabinet.businessCabinet')}</h1>
                   <p className="text-slate-500 text-xs sm:text-sm font-medium mt-1">{t('cabinet.businessSubtitle')}</p>
@@ -259,19 +263,33 @@ function BusinessPageInner() {
                           <h3 className="text-slate-900 text-xl sm:text-2xl font-black tracking-tight">{t('cabinet.selectNewPackage')}</h3>
                           <p className="text-slate-500 text-xs sm:text-sm font-medium h-auto mb-1">{t('cabinet.selectPackageDesc')}</p>
                         </div>
-                        <div className="bg-slate-100 p-1 rounded-xl sm:rounded-2xl flex items-center self-start overflow-x-auto scrollbar-hide max-w-full no-scrollbar">
-                          {durations.map(days => (
-                            <button
-                              key={days}
-                              onClick={() => setSelectedDuration(days)}
-                              className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] sm:text-sm transition-all relative whitespace-nowrap cursor-pointer ${selectedDuration === days ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                            >
-                              {days} {t('cabinet.day')}
-                              {days > 30 && (
-                                <div className="absolute -top-1 -right-1 sm:-top-3 sm:-right-2 bg-green-500 text-white text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full font-black scale-90">-%</div>
-                              )}
-                            </button>
-                          ))}
+                        <div className="max-w-full overflow-x-auto scrollbar-hide no-scrollbar py-3 sm:py-4 -my-3 sm:-my-4">
+                          <div className="bg-slate-100 p-1 rounded-xl sm:rounded-2xl flex items-center self-start overflow-visible w-max">
+                            {durations.map(days => {
+                              const maxDiscount = packages.length > 0
+                                ? Math.max(...packages.map(pkg => {
+                                    if (days === 60) return pkg.discount60Days || 0;
+                                    if (days === 90) return pkg.discount90Days || 0;
+                                    if (days === 180) return pkg.discount180Days || 0;
+                                    return 0;
+                                  }))
+                                : 0;
+                              return (
+                                <button
+                                  key={days}
+                                  onClick={() => setSelectedDuration(days)}
+                                  className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] sm:text-sm transition-all relative whitespace-nowrap cursor-pointer ${selectedDuration === days ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                >
+                                  {days} {t('cabinet.day')}
+                                  {maxDiscount > 0 && (
+                                    <div className="absolute -top-1.5 -right-1 sm:-top-2 sm:-right-1.5 bg-green-500 text-white text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-full font-black leading-none shadow-sm animate-in fade-in zoom-in duration-300">
+                                      -{maxDiscount}%
+                                    </div>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
 
@@ -379,8 +397,11 @@ function BusinessPageInner() {
                             </h2>
                             <p className="text-slate-400 text-xs sm:text-sm font-medium">{t('cabinet.totalBalanceExplanation')}</p>
                           </div>
-                      <div className="relative z-10 w-full lg:w-auto">
-                        <button className="bg-white text-slate-900 px-12 py-5 rounded-2xl font-black text-lg hover:bg-primary hover:text-white transition-all shadow-2xl shadow-white/5 active:scale-95 w-full cursor-pointer">
+                      <div className="relative z-10 w-full lg:w-auto shrink-0 flex justify-center">
+                        <button 
+                          onClick={() => setIsTopUpModalOpen(true)}
+                          className="bg-white text-slate-900 px-6 py-3.5 lg:px-12 lg:py-5 rounded-2xl font-black text-sm lg:text-lg hover:bg-primary hover:text-white transition-all shadow-xl lg:shadow-2xl shadow-white/5 active:scale-95 w-full lg:w-auto cursor-pointer whitespace-nowrap"
+                        >
                           {t('cabinet.increaseBalance')}
                         </button>
                       </div>
@@ -568,6 +589,12 @@ function BusinessPageInner() {
         confirmText={t('cabinet.activateNow')}
         cancelText={t('common.cancel')}
         isLoading={isProcessing}
+      />
+
+      <TopUpBalanceModal
+        isOpen={isTopUpModalOpen}
+        onClose={() => setIsTopUpModalOpen(false)}
+        onSuccess={refreshUser}
       />
     </main>
   );

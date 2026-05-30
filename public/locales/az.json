@@ -141,7 +141,9 @@
     "faq": "Tez-tez verilən suallar",
     "sitemap": "Saytın xəritəsi",
     "apps": "Tətbiqlərimiz",
-    "rights": "Bütün hüquqlar qorunur."
+    "rights": "Bütün hüquqlar qorunur.",
+    "terms": "İstifadəçi razılaşması",
+    "proposal": "Ümumi oferta müqaviləsi"
   },
   "home": {
     "premiumAds": "Premium elanlar",
@@ -236,9 +238,9 @@
   "product": {
     "today": "Bugün",
     "yesterday": "Dünən",
-    "daysAgo": "gün əvvəl",
-    "weeksAgo": "həftə əvvəl",
-    "monthsAgo": "ay əvvəl",
+    "daysAgo": "gün",
+    "weeksAgo": "həftə",
+    "monthsAgo": "ay",
     "share": "Paylaş",
     "linkCopied": "Link kopyalandı!",
     "copyError": "Linki kopyalamaq mümkün olmadı",
@@ -346,7 +348,7 @@
     "reactivateSuccess": "Elan yeniləndi və baxışa göndərildi",
     "cityNotShown": "Şəhər göstərilməyib",
     "balance": "Balansınız",
-    "balanceShort": "Balans",
+    "balanceShort": "Şəxsi Hesab",
     "dayShort": "g.",
     "topUp": "Artır",
     "login": "Daxil ol",
@@ -355,12 +357,13 @@
     "userNameFallback": "İstifadəçi Adı",
     "guest": "Qonaq",
     "notLoggedIn": "Giriş etməmisiniz",
+    "profileNumber": "Profil nömrəsi",
     "nav": {
       "listings": "Elanlarım",
       "transactions": "Əməliyyatlar",
       "invoices": "Ödənişlər",
       "payments": "Balans artır",
-      "balanceShort": "Balans",
+      "balanceShort": "Şəxsi Hesab",
       "business": "Biznes",
       "limits": "Limitlər",
       "favorites": "Seçilmiş Elanlar",
@@ -368,6 +371,7 @@
       "settings": "Parametrlər",
       "packages": "Paketlər",
       "notifications": "Bildirişlər",
+      "otherSections": "Digər Bölmələr",
       "adminPanel": "Admin Panel"
     },
     "favorites": {
@@ -449,6 +453,12 @@
     "settings": {
       "title": "Tənzimləmələr",
       "subtitle": "Hesab və mağaza məlumatlarınızı idarə edin",
+      "popularQuestions": "Populyar suallar",
+      "aboutUs": "Haqqımızda",
+      "editProfile": "Profilə düzəliş et",
+      "changePassword": "Şifrəni dəyişdir",
+      "storeSettings": "Mağaza ayarları",
+      "contactUs": "Bizimlə əlaqə",
       "profileTab": "Profil Ayarları",
       "securityTab": "Təhlükəsizlik",
       "storeTab": "Mağaza Ayarları",
@@ -558,6 +568,7 @@
     "downloadPdf": "PDF Endir",
     "print": "Çap et",
     "noInvoices": "Heç bir invoys tapılmadı",
+    "noInvoicesDesc": "Hələ ki ödəniş tarixçəniz yoxdur.",
     "paid": "Ödənilib",
     "unpaid": "Gözləyir",
     "cancelled": "Ləğv edilib",

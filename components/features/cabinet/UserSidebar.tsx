@@ -33,7 +33,8 @@ export default function UserSidebar() {
   const pathname = usePathname();
   const { user: authUser, logout } = useAuth();
   const [isTopUpModalOpen, setIsTopUpModalOpen] = useState(false);
-  const { t } = useLanguage();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t, language } = useLanguage();
 
   // Use auth user data if available, fallback to defaults
   const user = {
@@ -66,9 +67,182 @@ export default function UserSidebar() {
     }
   };
 
+  const isMainCabinet = pathname === '/cabinet';
+
   return (
     <>
-      <aside className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24">
+      {/* Mobile Profile Summary & Balance Card for Main Cabinet Page */}
+      {isMainCabinet && (
+        <div className="lg:hidden w-full flex flex-col gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className={`bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12 flex items-center justify-center bg-gray-100 flex-shrink-0 ${!user.avatar ? 'border border-gray-200' : ''}`}
+                style={user.avatar ? { backgroundImage: `url("${user.avatar}")` } : {}}
+                role="img"
+                aria-label={user.name}
+              >
+                {!user.avatar && (
+                  <span className="material-symbols-outlined text-gray-400">person</span>
+                )}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <h3 className="text-gray-900 text-[15px] font-black flex items-center gap-2">
+                  <span className="truncate max-w-[160px]">{user.name}</span>
+                  {isAuthenticated && (
+                    <Link href="/cabinet/settings?edit=profile" className="text-gray-400 hover:text-primary transition-colors flex items-center p-0.5 hover:bg-gray-50 rounded-md">
+                      <span className="material-symbols-outlined !text-[18px]">edit</span>
+                    </Link>
+                  )}
+                </h3>
+                {isAuthenticated && (
+                  <p className="text-gray-500 text-[10px] font-bold truncate max-w-[180px] mt-0.5">
+                    {user.email}
+                  </p>
+                )}
+                {isAuthenticated && (authUser as any).createdDate && (
+                  <p className="text-gray-500 text-[9px] font-bold mt-0.5">
+                    {new Date((authUser as any).createdDate).toLocaleDateString(language === 'az' ? 'az-AZ' : 'ru-RU')} tarixindən 2El.az-da
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Actions Container (Gear + Admin) */}
+            {isAuthenticated && (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {isAdminOrModerator && (
+                  <a
+                    href={adminAutoLoginUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:scale-105 active:scale-95 transition-all flex items-center justify-center p-2 rounded-xl shadow-md border border-violet-100 cursor-pointer animate-in zoom-in duration-200"
+                    title={t('cabinet.nav.adminPanel') || 'Admin Panel'}
+                  >
+                    <span className="material-symbols-outlined !text-[20px] text-white">
+                      admin_panel_settings
+                    </span>
+                  </a>
+                )}
+                <Link href="/cabinet/settings" className="text-gray-500 hover:text-primary transition-colors flex items-center justify-center p-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 active:scale-95 duration-200">
+                  <span className="material-symbols-outlined !text-[20px]">settings</span>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Balance card */}
+          {isAuthenticated && (
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 mt-2">
+              <div className="flex flex-col min-w-0">
+                <span className="text-gray-500 text-[10px] font-black tracking-wider mb-0.5">{t('cabinet.balanceShort') || 'Şəxsi Hesab'}</span>
+                <span className="text-gray-900 text-lg font-extrabold whitespace-nowrap">
+                  {user.balance.toFixed(2)} <span className="text-sm font-medium text-gray-400">₼</span>
+                </span>
+              </div>
+              <button
+                onClick={() => setIsTopUpModalOpen(true)}
+                className="px-4 h-9 rounded-xl bg-primary text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md hover:brightness-110 transition-all active:scale-95 border-0"
+              >
+                <span className="material-symbols-outlined !text-[14px]">add</span>
+                <span>{t('cabinet.topUp') || 'Artır'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* Guest login banner */}
+          {!isAuthenticated && (
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 mt-2 text-center">
+              <p className="text-gray-500 text-xs font-semibold mb-3">{t('cabinet.loginRegisterDesc') || 'Elanlarınızı idarə etmək və balansı artırmaq üçün daxil olun'}</p>
+              <Link
+                href={ROUTES.LOGIN}
+                className="w-full flex items-center justify-center h-10 rounded-xl bg-primary text-white text-sm font-bold active:scale-95 shadow-md shadow-primary/10"
+              >
+                {t('cabinet.loginRegister') || 'Daxil ol / Qeydiyyat'}
+              </Link>
+            </div>
+          )}
+
+          {/* Shortcut actions grid for mobile */}
+          {isAuthenticated && (
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              <Link href="/cabinet/transactions" className="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-gray-200 transition-all text-center group">
+                <span className="material-symbols-outlined text-gray-500 group-hover:text-primary transition-colors !text-[24px] mb-1">history</span>
+                <span className="text-[10px] text-gray-700 font-bold leading-tight">{t('cabinet.nav.transactions') || 'Əməliyyatlar'}</span>
+              </Link>
+              <Link href="/cabinet/ad-placement-limits" className="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-gray-200 transition-all text-center group">
+                <span className="material-symbols-outlined text-gray-500 group-hover:text-primary transition-colors !text-[24px] mb-1">bar_chart_4_bars</span>
+                <span className="text-[10px] text-gray-700 font-bold leading-tight">{t('cabinet.nav.limits') || 'Limitlər'}</span>
+              </Link>
+              <Link href="/cabinet/payments" className="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-gray-200 transition-all text-center group">
+                <span className="material-symbols-outlined text-gray-500 group-hover:text-primary transition-colors !text-[24px] mb-1">account_balance_wallet</span>
+                <span className="text-[10px] text-gray-700 font-bold leading-tight">{t('cabinet.nav.payments') || 'Ödənişlər'}</span>
+              </Link>
+            </div>
+          )}
+
+          {/* Settings & Sub-pages list transitions (excluding duplicates and messages) - Collapsible */}
+          {isAuthenticated && (
+            <div className="bg-gray-50 rounded-xl border border-gray-100 overflow-hidden mt-3 animate-in fade-in duration-300">
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-100/50 transition-colors text-left border-0 bg-transparent cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-gray-400 !text-[20px]">widgets</span>
+                  <span className="text-xs font-bold text-gray-800">{t('cabinet.nav.otherSections') || 'Digər Bölmələr'}</span>
+                </div>
+                <span className={`material-symbols-outlined text-gray-400 !text-[18px] transition-transform duration-200 ${isMobileMenuOpen ? 'rotate-180' : ''}`}>expand_more</span>
+              </button>
+
+              {isMobileMenuOpen && (
+                <div className="divide-y divide-gray-100/70 border-t border-gray-100 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <Link
+                    href="/cabinet/invoices"
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-100 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="material-symbols-outlined text-gray-400 !text-[20px]">receipt_long</span>
+                      <span className="text-xs font-bold text-gray-800">{t('cabinet.nav.invoices') || 'Ödənişlər'}</span>
+                    </div>
+                    <span className="material-symbols-outlined text-gray-400 !text-[16px]">chevron_right</span>
+                  </Link>
+
+                  {((authUser as any)?.userType?.toString().toLowerCase() === 'store' ||
+                    (authUser as any)?.userType?.toString() === '1' ||
+                    (authUser as any)?.hasStore === true) && (
+                      <Link
+                        href="/cabinet/business"
+                        className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-100 transition-colors text-left"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="material-symbols-outlined text-gray-400 !text-[20px]">domain</span>
+                          <span className="text-xs font-bold text-gray-800">{t('cabinet.nav.business') || 'Biznes Kabineti'}</span>
+                        </div>
+                        <span className="material-symbols-outlined text-gray-400 !text-[16px]">chevron_right</span>
+                      </Link>
+                    )}
+
+                  <Link
+                    href="/cabinet/notifications"
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-100 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="material-symbols-outlined text-gray-400 !text-[20px]">notifications</span>
+                      <span className="text-xs font-bold text-gray-800">{t('cabinet.nav.notifications') || 'Bildirişlər'}</span>
+                    </div>
+                    <span className="material-symbols-outlined text-gray-400 !text-[16px]">chevron_right</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Desktop Sidebar (hidden on mobile) */}
+      <aside className="hidden lg:block w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24">
         <div className="flex flex-col gap-4 lg:gap-6 bg-white shadow-sm border border-gray-200 p-4 lg:p-6 rounded-2xl">
 
           {/* User and Balance Section */}
@@ -112,7 +286,7 @@ export default function UserSidebar() {
                 {/* Mobile Balance Box */}
                 <div className="sm:hidden flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
                   <div className="flex flex-col min-w-0">
-                    <span className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-0.5">{t('cabinet.balanceShort')}</span>
+                    <span className="text-gray-500 text-[10px] font-semibold tracking-wider mb-0.5">{t('cabinet.balanceShort')}</span>
                     <span className="text-gray-900 text-lg font-bold whitespace-nowrap">
                       {user.balance.toFixed(2)} <span className="text-sm font-medium text-gray-400">₼</span>
                     </span>

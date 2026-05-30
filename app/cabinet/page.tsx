@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import UserListingCard from '@/components/features/cabinet/UserListingCard';
 import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
 import { adService } from '@/services/ad.service';
+import { accountService } from '@/services/account.service';
 import { AdListItem } from '@/types/api';
 import { getImageUrl } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -35,7 +37,7 @@ interface Listing {
 
 export default function CabinetPage() {
   const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'inactive' | 'rejected'>('active');
-  const { t, language } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +54,19 @@ export default function CabinetPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [deleteAdId, setDeleteAdId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [companySettings, setCompanySettings] = useState<{ contactPhone?: string; email?: string } | null>(null);
+
+  useEffect(() => {
+    const fetchCompanySettings = async () => {
+      try {
+        const data = await accountService.getCompanySettings();
+        setCompanySettings(data);
+      } catch (error) {
+        console.error('Error fetching company settings:', error);
+      }
+    };
+    fetchCompanySettings();
+  }, []);
 
   const fetchAds = async () => {
     setIsLoading(true);
@@ -202,10 +217,10 @@ export default function CabinetPage() {
           <UserSidebar />
 
           <div className="flex-1 overflow-hidden">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8">
               {/* Page Heading */}
-              <div className="mb-6">
-                <h1 className="text-gray-900 text-3xl sm:text-4xl font-bold leading-tight tracking-tight mb-2">
+              <div className="mb-4 sm:mb-6">
+                <h1 className="text-gray-900 text-2xl sm:text-3xl font-bold leading-tight tracking-tight mb-1.5">
                   {t('cabinet.myListings')}
                 </h1>
                 <p className="text-gray-500 text-sm font-medium">
@@ -214,7 +229,7 @@ export default function CabinetPage() {
               </div>
 
               {/* Tabs */}
-              <div className="border-b border-gray-100 mb-8">
+              <div className="border-b border-gray-100 mb-6 sm:mb-8">
                 <div className="grid grid-cols-2 sm:flex items-center sm:gap-8">
                   {(['active', 'pending', 'inactive', 'rejected'] as const).map((tab) => {
                     const iconMap = {
@@ -333,6 +348,69 @@ export default function CabinetPage() {
                   )}
                 </>
               )}
+
+              {/* Mobile-only Cabinet Footer Section */}
+              <div className="lg:hidden border-t border-gray-100 mt-8 pt-6 space-y-6">
+                <div className="flex flex-col gap-3 px-1">
+                  <Link href="/pages/rules" className="text-gray-500 hover:text-primary text-sm font-bold transition-colors">
+                    {t('footer.rules') || 'Qaydalar'}
+                  </Link>
+                  <Link href="/pages/about" className="text-gray-500 hover:text-primary text-sm font-bold transition-colors">
+                    {t('footer.aboutUs') || 'Layihə haqqında'}
+                  </Link>
+                  <Link href="/pages/terms-and-conditions" className="text-gray-500 hover:text-primary text-sm font-bold transition-colors">
+                    {t('footer.terms') || 'İstifadəçi razılaşması'}
+                  </Link>
+                  <Link href="/pages/privacy" className="text-gray-500 hover:text-primary text-sm font-bold transition-colors">
+                    {t('footer.privacyPolicy') || 'Məxfilik siyasəti'}
+                  </Link>
+                  <Link href="/pages/proposal" className="text-gray-500 hover:text-primary text-sm font-bold transition-colors">
+                    {t('footer.proposal') || 'Ümumi oferta müqaviləsi'}
+                  </Link>
+                </div>
+
+                <div className="px-1 border-t border-gray-100/60 pt-6 space-y-3">
+                  <div className="flex items-center gap-2 text-gray-700 text-sm font-bold">
+                    <span className="material-symbols-outlined !text-[18px] text-gray-400">call</span>
+                    <a href={`tel:${companySettings?.contactPhone?.replace(/\D/g, '') || '0125261919'}`} className="hover:text-primary transition-colors">
+                      {companySettings?.contactPhone || '(012) 526-19-19'}
+                    </a>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700 text-sm font-bold">
+                    <span className="material-symbols-outlined !text-[18px] text-gray-400">mail</span>
+                    <a href={`mailto:${companySettings?.email || 'support@2el.az'}`} className="text-primary hover:underline">
+                      {companySettings?.email || 'support@2el.az'}
+                    </a>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-2">
+                    <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+                      <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path clipRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" fillRule="evenodd"></path>
+                      </svg>
+                    </a>
+                    <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+                      <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path clipRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.013-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.345 2.525c.636-.247 1.363-.416 2.427-.465C9.793 2.013 10.147 2 12.315 2zm-1.003 3.905a1.164 1.164 0 100 2.327 1.164 1.164 0 000-2.327zM12 8.168a3.832 3.832 0 100 7.664 3.832 3.832 0 000-7.664z" fillRule="evenodd"></path>
+                      </svg>
+                    </a>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setLanguage(language === 'az' ? 'ru' : 'az')}
+                    className="flex items-center gap-1.5 pt-4 text-[11px] text-gray-400 font-bold hover:text-primary transition-colors cursor-pointer border-0 bg-transparent p-0"
+                  >
+                    <span className="material-symbols-outlined !text-[16px]">language</span>
+                    <span>{language === 'az' ? 'Русский язык' : 'Azərbaycan dili'}</span>
+                  </button>
+
+                  <div className="pt-6 border-t border-gray-100 text-[10px] text-gray-400 font-bold leading-relaxed">
+                    Saytın Administrasiyası reklam bannerlərinin və yerləşdirilmiş elanların məzmununa görə məsuliyyət daşımır.
+                    <p className="mt-2 text-center">© 2008-{new Date().getFullYear()} 2El.az</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

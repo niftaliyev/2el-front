@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { PackageItem } from '@/types/api';
 import { adService } from '@/services/ad.service';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ROUTES } from '@/constants';
 import { VipIcon, PremiumIcon } from '@/components/ui/AdIcons';
 
 interface PromoteAdModalProps {
@@ -22,8 +24,9 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const { refreshUser } = useAuth();
+  const { refreshUser, isAuthenticated } = useAuth();
   const { t, language } = useLanguage();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -179,13 +182,26 @@ export default function PromoteAdModal({ isOpen, onClose, adId }: PromoteAdModal
               )}
 
               {/* Action */}
-              <button
-                onClick={handleBuy}
-                disabled={!selectedPackage || isSubmitting || packages.length === 0}
-                className="mt-4 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {isSubmitting ? t('promoteModal.waiting') : t('promoteModal.payNow')}
-              </button>
+              {!isAuthenticated ? (
+                <button
+                  onClick={() => {
+                    onClose();
+                    router.push(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(window.location.pathname)}`);
+                  }}
+                  className="mt-4 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined !text-[20px]">login</span>
+                  {language === 'ru' ? 'Войдите, чтобы оплатить' : 'Ödəmək üçün daxil olun'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleBuy}
+                  disabled={!selectedPackage || isSubmitting || packages.length === 0}
+                  className="mt-4 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isSubmitting ? t('promoteModal.waiting') : t('promoteModal.payNow')}
+                </button>
+              )}
             </div>
           )}
         </div>

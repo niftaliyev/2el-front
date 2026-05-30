@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
+import CabinetMobileHeader from '@/components/features/cabinet/CabinetMobileHeader';
 import { accountService, Transaction } from '@/services/account.service';
 import { PaginatedResponse } from '@/types/api';
 import Link from 'next/link';
@@ -48,6 +49,7 @@ export default function TransactionsPage() {
 
   return (
     <main className="bg-gray-50 min-h-screen font-sans">
+      <CabinetMobileHeader title={t('cabinet.transactions.title')} />
       <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <UserSidebar />
@@ -56,7 +58,7 @@ export default function TransactionsPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-0 sm:p-8 overflow-hidden">
               
               <div className="p-5 sm:p-0">
-                <h1 className="text-gray-900 text-2xl sm:text-3xl font-bold mb-6">{t('cabinet.transactions.title')}</h1>
+                <h1 className="hidden md:block text-gray-900 text-2xl sm:text-3xl font-bold mb-6">{t('cabinet.transactions.title')}</h1>
 
                 {/* Sub Tabs */}
                 <div className="flex bg-gray-100/50 p-1 rounded-xl border border-gray-100 mb-8 overflow-x-auto scrollbar-hide sm:w-fit">

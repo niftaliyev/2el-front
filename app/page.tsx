@@ -159,13 +159,13 @@ export default function Home() {
         </aside>
 
         {/* Main Content */}
-        <div className="w-full max-w-[1024px] mx-auto px-4 lg:px-6 pb-6">
-          <div className="w-full pt-4">
+        <div className="w-full max-w-[1024px] mx-auto px-2 sm:px-4 lg:px-6 pb-6">
+          <div className="w-full pt-2 sm:pt-4">
             {/* Categories Section */}
             <CategoryGrid categories={categories} />
 
             {/* Premium Products */}
-            <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-4 sm:pb-6">
+            <div className="px-1 sm:px-4 pt-2 sm:pt-4 pb-4 sm:pb-6">
               {isLoading ? (
                 <div className="w-full">
                   <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">

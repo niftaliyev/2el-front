@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
+import CabinetMobileHeader from '@/components/features/cabinet/CabinetMobileHeader';
 import { accountService } from '@/services/account.service';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -21,18 +22,29 @@ export default function PaymentsPage() {
   const [step2Open, setStep2Open] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [companySettings, setCompanySettings] = useState<{ contactPhone?: string; email?: string } | null>(null);
+
   useEffect(() => {
-    const fetchDetail = async () => {
+    const fetchData = async () => {
       try {
-        const res = await accountService.getPaymentDetail();
+        const [res, settings] = await Promise.all([
+          accountService.getPaymentDetail(),
+          accountService.getCompanySettings().catch(err => {
+            console.error('Failed to fetch company settings', err);
+            return null;
+          })
+        ]);
         if (res && res.content) {
           setPaymentDetail(res.content);
         }
+        if (settings) {
+          setCompanySettings(settings);
+        }
       } catch (err) {
-        console.error('Failed to fetch payment detail', err);
+        console.error('Failed to fetch data', err);
       }
     };
-    fetchDetail();
+    fetchData();
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,6 +97,7 @@ export default function PaymentsPage() {
 
   return (
     <main className="bg-gray-50 min-h-screen font-sans">
+      <CabinetMobileHeader title={t('cabinet.payments.title')} />
       <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <UserSidebar />
@@ -92,7 +105,7 @@ export default function PaymentsPage() {
           <div className="flex-1 overflow-hidden">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
               {/* Page Heading */}
-              <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-gray-50 pb-8">
+              <div className="hidden md:flex mb-8 flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-gray-50 pb-8">
                 <div>
                   <h1 className="text-gray-900 text-2xl sm:text-4xl font-black leading-tight tracking-tight mb-2">
                     {t('cabinet.payments.title')}
@@ -183,7 +196,12 @@ export default function PaymentsPage() {
                               </div>
                               <div className="mt-auto pt-4 border-t border-amber-100/50">
                                 <p className="text-[9px] text-amber-600 font-black uppercase tracking-widest">{t('cabinet.payments.support')}</p>
-                                <p className="text-[11px] text-gray-500 font-bold">+994 50 216 00 00</p>
+                                <a 
+                                  href={`tel:${companySettings?.contactPhone || '+994 50 216 00 00'}`}
+                                  className="text-[11px] text-gray-500 font-bold hover:text-primary transition-colors cursor-pointer block mt-0.5"
+                                >
+                                  {companySettings?.contactPhone || '+994 50 216 00 00'}
+                                </a>
                               </div>
                             </div>
                           </div>

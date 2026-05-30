@@ -25,6 +25,7 @@ export default function Header() {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   const isHome = pathname === '/';
+  const isCabinet = pathname.startsWith('/cabinet');
 
   // Detect if we are on Ad Detail or Store Detail page
   const lastSegment = pathname.split('/').pop() || '';
@@ -101,7 +102,7 @@ export default function Header() {
 
   return (
     <>
-      <header className={`w-full bg-white border-b border-solid border-gray-200 sticky top-0 z-[100] transition-transform duration-300 ease-in-out md:transform-none ${isVisible || isCatalogOpen ? 'transform-none' : '-translate-y-full'}`}>
+      <header className={`w-full bg-white border-b border-solid border-gray-200 sticky top-0 z-[100] transition-transform duration-300 ease-in-out md:transform-none ${isVisible || isCatalogOpen ? 'transform-none' : '-translate-y-full'} ${isCabinet ? 'hidden md:block' : ''}`}>
         {/* ─── Main Row ─── */}
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 gap-3">
 
@@ -244,7 +245,7 @@ export default function Header() {
 
 
         {/* ─── Mobile Search Row ─── */}
-        <div className="md:hidden px-4 pb-3">
+        <div className="md:hidden px-3 pb-2">
           <SearchAutocomplete
             placeholder={t('nav.searchPlaceholder')}
             buttonLabel={<span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
+import CabinetMobileHeader from '@/components/features/cabinet/CabinetMobileHeader';
 import { accountService, AdPlacementLimit } from '@/services/account.service';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -77,6 +78,7 @@ export default function AdPlacementLimitsPage() {
 
   return (
     <main className="bg-gray-50 min-h-screen font-sans">
+      <CabinetMobileHeader title={t('cabinet.limitsPage.title')} />
       <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <UserSidebar />
@@ -84,7 +86,7 @@ export default function AdPlacementLimitsPage() {
           <div className="flex-1 overflow-hidden">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
               {/* Page Heading */}
-              <div className="mb-6">
+              <div className="hidden md:block mb-6">
                 <h1 className="text-gray-900 text-2xl sm:text-4xl font-bold leading-tight tracking-tight mb-2">
                   {t('cabinet.limitsPage.title')}
                 </h1>
