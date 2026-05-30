@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
+import CabinetMobileHeader from '@/components/features/cabinet/CabinetMobileHeader';
 import { notificationService, NotificationListItem, NotificationType } from '@/services/notification.service';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
@@ -127,6 +128,7 @@ export default function NotificationsPage() {
 
   return (
     <main className="bg-gray-50 min-h-screen font-sans">
+      <CabinetMobileHeader title={t('cabinet.notifications.title')} />
       <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <UserSidebar />
@@ -135,7 +137,7 @@ export default function NotificationsPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
               {/* Page Heading */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                <div>
+                <div className="hidden md:block">
                   <h1 className="text-gray-900 text-3xl sm:text-4xl font-bold leading-tight tracking-tight mb-2">
                     {t('cabinet.notifications.title')}
                   </h1>

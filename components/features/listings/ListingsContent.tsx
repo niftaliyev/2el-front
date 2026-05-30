@@ -475,7 +475,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
         </div>
 
         {/* STICKY MOBILE BAR */}
-        <div className={`z-[91] bg-white/95 backdrop-blur-md sticky lg:relative transition-all duration-300 ease-in-out -mx-3 px-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 pt-2 pb-2 mb-2 top-[112px] sm:top-[116px] lg:top-auto lg:!translate-y-0 lg:!opacity-100 lg:!pointer-events-auto ${isHeaderVisible
+        <div className={`z-[91] bg-white/95 backdrop-blur-md sticky lg:relative transition-all duration-300 ease-in-out -mx-3 px-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 pt-1 pb-1 mb-1 sm:pt-2 sm:pb-2 sm:mb-2 top-[112px] sm:top-[116px] lg:top-auto lg:!translate-y-0 lg:!opacity-100 lg:!pointer-events-auto ${isHeaderVisible
           ? 'translate-y-0 opacity-100 pointer-events-auto'
           : '-translate-y-[150px] opacity-0 pointer-events-none'
           }`}>
@@ -492,13 +492,13 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             <div
               ref={carouselRef}
               onScroll={handleCarouselScroll}
-              className="flex overflow-x-auto overscroll-x-contain scrollbar-hide gap-3 pb-2 items-start scroll-smooth"
+              className="flex overflow-x-auto overscroll-x-contain scrollbar-hide gap-2 sm:gap-3 pb-1.5 sm:pb-2 items-start scroll-smooth"
             >
               {categoriesLoading ? (
                 Array.from({ length: 10 }).map((_, i) => (
-                  <div key={i} className="flex flex-col items-center gap-[10px] flex-shrink-0 w-[88px] animate-pulse">
-                    <div className="w-[88px] h-[88px] bg-gray-100 rounded-2xl"></div>
-                    <div className="h-3 w-16 bg-gray-100 rounded"></div>
+                  <div key={i} className="flex flex-col items-center gap-1.5 sm:gap-[10px] flex-shrink-0 w-16 sm:w-[88px] animate-pulse">
+                    <div className="w-16 h-16 sm:w-[88px] sm:h-[88px] bg-gray-100 rounded-2xl"></div>
+                    <div className="h-2.5 w-12 sm:w-16 bg-gray-100 rounded"></div>
                   </div>
                 ))
               ) : (
@@ -559,13 +559,13 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                   return (
                     <>
                       {currentCategoryId && (
-                        <Link href={backHref} key="back-button" className="group flex flex-col items-center gap-[10px] flex-shrink-0 w-[88px]">
-                          <div className="flex items-center justify-center w-[88px] h-[88px] bg-[#f1f2f4] rounded-2xl group-hover:bg-[#e9e9eb] transition-colors">
-                            <span className="material-symbols-outlined !text-[32px] text-[#212121] transition-colors">
+                        <Link href={backHref} key="back-button" className="group flex flex-col items-center gap-1.5 sm:gap-[10px] flex-shrink-0 w-16 sm:w-[88px]">
+                          <div className="flex items-center justify-center w-16 h-16 sm:w-[88px] sm:h-[88px] bg-[#f1f2f4] rounded-2xl group-hover:bg-[#e9e9eb] transition-colors">
+                            <span className="material-symbols-outlined !text-[24px] sm:!text-[32px] text-[#212121] transition-colors">
                               arrow_back
                             </span>
                           </div>
-                          <span className="text-[13px] text-[#212121] text-center leading-[1.3] px-1">
+                          <span className="text-[10px] sm:text-[13px] text-[#212121] text-center leading-[1.3] px-0.5">
                             {t('listings.back')}
                           </span>
                         </Link>
@@ -587,22 +587,22 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                           <Link
                             href={href}
                             key={item.id}
-                            className="group flex flex-col items-center gap-[10px] flex-shrink-0 w-[88px]"
+                            className="group flex flex-col items-center gap-1.5 sm:gap-[10px] flex-shrink-0 w-16 sm:w-[88px]"
                           >
-                            <div className={`flex items-center justify-center w-[88px] h-[88px] rounded-2xl transition-colors overflow-hidden ${isActive ? 'bg-[#607afb]/10 ring-2 ring-[#607afb]/20' : 'bg-[#f1f2f4] group-hover:bg-[#e9e9eb]'}`}>
+                            <div className={`flex items-center justify-center p-1 sm:p-0 w-16 h-16 sm:w-[88px] sm:h-[88px] rounded-2xl transition-colors overflow-hidden ${isActive ? 'bg-[#607afb]/10 ring-2 ring-[#607afb]/20' : 'bg-[#f1f2f4] group-hover:bg-[#e9e9eb]'}`}>
                               {item.image ? (
                                 <img
                                   src={item.image}
                                   alt={item.name}
-                                  className="w-full h-full object-contain scale-[1.4] -translate-x-5 translate-y-0 transition-all duration-500 group-hover:scale-[1.5]"
+                                  className="w-full h-full object-contain scale-[1.75] -translate-x-[11px] sm:scale-[1.4] sm:-translate-x-5 sm:translate-y-0 sm:group-hover:scale-[1.5] transition-all duration-500"
                                 />
                               ) : (
-                                <span className={`material-symbols-outlined !text-[32px] transition-colors ${isActive ? 'text-[#607afb]' : 'text-[#212121]'}`}>
+                                <span className={`material-symbols-outlined !text-[24px] sm:!text-[32px] transition-colors ${isActive ? 'text-[#607afb]' : 'text-[#212121]'}`}>
                                   {item.icon || 'category'}
                                 </span>
                               )}
                             </div>
-                            <span className={`text-[13px] text-center leading-[1.3] px-1 line-clamp-2 ${isActive ? 'text-[#607afb] font-bold' : 'text-[#212121]'}`}>
+                            <span className={`text-[10px] sm:text-[13px] text-center leading-[1.3] px-0.5 line-clamp-2 ${isActive ? 'text-[#607afb] font-bold' : 'text-[#212121]'}`}>
                               {item.name}
                             </span>
                           </Link>
@@ -773,7 +773,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             </div>
 
             {vipProducts.length > 0 && page === 1 && (
-              <div className="mb-10">
+              <div className="mb-6 sm:mb-10">
                 <div className="flex items-end justify-between mb-[14px]">
                   <h2 className="text-[16px] text-[#212121] font-normal">{t('listings.vipAds')}</h2>
                   <Link href="/elanlar/vip" className="text-[14px] text-[#0057e6] hover:underline">

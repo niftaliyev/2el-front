@@ -141,7 +141,9 @@
     "faq": "Часто задаваемые вопросы",
     "sitemap": "Карта сайта",
     "apps": "Наши приложения",
-    "rights": "Все права защищены."
+    "rights": "Все права защищены.",
+    "terms": "Пользовательское соглашение",
+    "proposal": "Публичный договор-оферта"
   },
   "home": {
     "premiumAds": "Премиум объявления",
@@ -251,7 +253,7 @@
     "reactivateSuccess": "Объявление обновлено и отправлено на рассмотрение",
     "cityNotShown": "Город не указан",
     "balance": "Ваш баланс",
-    "balanceShort": "Баланс",
+    "balanceShort": "Личный счет",
     "dayShort": "д.",
     "topUp": "Пополнить",
     "login": "Войти",
@@ -260,12 +262,13 @@
     "userNameFallback": "Имя пользователя",
     "guest": "Гость",
     "notLoggedIn": "Вы не вошли",
+    "profileNumber": "Номер профиля",
     "nav": {
       "listings": "Мои объявления",
       "transactions": "Операции",
       "invoices": "Платежи",
       "payments": "Пополнить баланс",
-      "balanceShort": "Баланс",
+      "balanceShort": "Личный счет",
       "business": "Бизнес",
       "limits": "Лимиты",
       "favorites": "Избранные объявления",
@@ -273,6 +276,7 @@
       "settings": "Настройки",
       "packages": "Пакеты",
       "notifications": "Уведомления",
+      "otherSections": "Другие Разделы",
       "adminPanel": "Панель управления"
     },
     "favorites": {
@@ -354,6 +358,12 @@
     "settings": {
       "title": "Настройки",
       "subtitle": "Управляйте данными аккаунта и магазина",
+      "popularQuestions": "Популярные вопросы",
+      "aboutUs": "О нас",
+      "editProfile": "Редактировать профиль",
+      "changePassword": "Сменить пароль",
+      "storeSettings": "Настройки магазина",
+      "contactUs": "Связаться с нами",
       "profileTab": "Настройки профиля",
       "securityTab": "Безопасность",
       "storeTab": "Настройки магазина",
@@ -448,6 +458,7 @@
     "downloadPdf": "Скачать PDF",
     "print": "Печать",
     "noInvoices": "Инвойсы не найдены",
+    "noInvoicesDesc": "У вас пока нет истории платежей.",
     "paid": "Оплачено",
     "unpaid": "Ожидается",
     "cancelled": "Отменено",

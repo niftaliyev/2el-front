@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
+import CabinetMobileHeader from '@/components/features/cabinet/CabinetMobileHeader';
 import { accountService, Invoice } from '@/services/account.service';
 import { PaginatedResponse } from '@/types/api';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -44,13 +45,14 @@ export default function InvoicesPage() {
   return (
     <>
       <main className="bg-gray-50 min-h-screen font-sans">
+        <CabinetMobileHeader title={t('cabinet.nav.invoices')} />
         <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             <UserSidebar />
 
             <div className="flex-1 overflow-hidden">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
-                <h1 className="text-gray-900 text-2xl sm:text-3xl font-bold mb-6">{t('cabinet.nav.invoices')}</h1>
+                <h1 className="hidden md:block text-gray-900 text-2xl sm:text-3xl font-bold mb-6">{t('cabinet.nav.invoices')}</h1>
 
                 {/* Status Tabs */}
                 <div className="grid grid-cols-4 sm:flex items-center sm:gap-10 border-b border-gray-100 mb-8 overflow-hidden">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
+import CabinetMobileHeader from '@/components/features/cabinet/CabinetMobileHeader';
 import { ROUTES } from '@/constants';
 import { formatPrice, getImageUrl, formatRelativeTime } from '@/lib/utils';
 import { adService } from '@/services/ad.service';
@@ -67,6 +68,7 @@ export default function FavoritesPage() {
 
   return (
     <main className="bg-gray-50 min-h-screen font-sans">
+      <CabinetMobileHeader title={t('cabinet.favorites.title')} />
       <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <UserSidebar />
@@ -75,7 +77,7 @@ export default function FavoritesPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-8">
               {/* Page Heading and Tabs */}
               <div className="mb-4 sm:mb-8 border-b border-gray-100 pb-0 shadow-sm">
-                <div className="px-1 sm:px-0 mb-6">
+                <div className="hidden md:block px-1 sm:px-0 mb-6">
                   <h1 className="text-gray-900 text-2xl sm:text-4xl font-black leading-tight tracking-tight mb-2">
                     {t('cabinet.favorites.title')}
                   </h1>
@@ -153,7 +155,7 @@ export default function FavoritesPage() {
                                 </h3>
 
                                 <div className="mt-auto space-y-1 sm:space-y-2">
-                                  <div className="flex justify-between items-center text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+                                  <div className="flex justify-between items-center text-[9px] sm:text-[10px] font-bold text-gray-400 tracking-tight">
                                     <div className="flex items-center gap-0.5 sm:gap-1">
                                       <span className="material-symbols-outlined !text-[12px] sm:!text-[14px]">location_on</span>
                                       <span className="truncate max-w-[50px] sm:max-w-[80px]">{(language === 'ru' && ad.cityRu) ? ad.cityRu : (ad.city || '')}</span>

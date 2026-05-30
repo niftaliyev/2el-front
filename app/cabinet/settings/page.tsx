@@ -1,18 +1,59 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import CabinetMobileHeader from '@/components/features/cabinet/CabinetMobileHeader';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import Input from '@/components/ui/Input';
 import { adService } from '@/services/ad.service';
 import { storeService } from '@/services/store.service';
 import { authService } from '@/services/auth.service';
+import { accountService } from '@/services/account.service';
 import { getImageUrl } from '@/lib/utils';
 import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SettingsPage() {
-  const { t, language } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editParam = searchParams.get('edit');
+  const { logout } = useAuth();
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const [companySettings, setCompanySettings] = useState<{ contactPhone?: string; email?: string } | null>(null);
+
+  useEffect(() => {
+    const fetchCompanySettings = async () => {
+      try {
+        const data = await accountService.getCompanySettings();
+        setCompanySettings(data);
+      } catch (error) {
+        console.error('Error fetching company settings:', error);
+      }
+    };
+    fetchCompanySettings();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -368,6 +409,721 @@ export default function SettingsPage() {
               <div className="animate-spin h-8 w-8 text-primary border-4 border-primary/20 border-t-primary rounded-full shadow-lg shadow-primary/10" />
               <p className="text-gray-400 text-sm font-medium">{t('cabinet.settings.loading')}</p>
             </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (isMobile) {
+    if (!editParam) {
+      return (
+        <main className="bg-gray-50 min-h-screen font-sans pb-10">
+          <CabinetMobileHeader title={t('cabinet.nav.settings') || 'Ayarlar'} onBack={() => router.push('/cabinet')} />
+          <div className="container mx-auto px-4 py-6 space-y-6">
+
+            {/* Account Settings */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <button
+                type="button"
+                onClick={() => router.push('/cabinet/settings?edit=profile')}
+                className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer border-0 bg-transparent"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gray-400">person</span>
+                  <span className="text-sm font-bold text-gray-900">{t('cabinet.settings.editProfile') || 'Profilə düzəliş et'}</span>
+                </div>
+                <span className="material-symbols-outlined text-gray-400 !text-[20px]">chevron_right</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push('/cabinet/settings?edit=security')}
+                className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer border-0 bg-transparent"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gray-400">lock</span>
+                  <span className="text-sm font-bold text-gray-900">{t('cabinet.settings.changePassword') || 'Şifrəni dəyişdir'}</span>
+                </div>
+                <span className="material-symbols-outlined text-gray-400 !text-[20px]">chevron_right</span>
+              </button>
+
+              {hasStore && (
+                <button
+                  type="button"
+                  onClick={() => router.push('/cabinet/settings?edit=store')}
+                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer border-0 bg-transparent"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-gray-400">storefront</span>
+                    <span className="text-sm font-bold text-gray-900">{t('cabinet.settings.storeSettings') || 'Mağaza ayarları'}</span>
+                  </div>
+                  <span className="material-symbols-outlined text-gray-400 !text-[20px]">chevron_right</span>
+                </button>
+              )}
+            </div>
+
+            {/* Support and Info */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100 animate-in fade-in slide-in-from-bottom-3 duration-300">
+              <Link href="/help" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gray-400">help</span>
+                  <span className="text-sm font-bold text-gray-900">{t('cabinet.settings.popularQuestions') || 'Populyar suallar'}</span>
+                </div>
+                <span className="material-symbols-outlined text-gray-400 !text-[20px]">chevron_right</span>
+              </Link>
+
+              <Link href="/pages/about" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gray-400">info</span>
+                  <span className="text-sm font-bold text-gray-900">{t('cabinet.settings.aboutUs') || 'Haqqımızda'}</span>
+                </div>
+                <span className="material-symbols-outlined text-gray-400 !text-[20px]">chevron_right</span>
+              </Link>
+
+              <Link href="/pages/terms-and-conditions" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gray-400">description</span>
+                  <span className="text-sm font-bold text-gray-900">{t('footer.terms') || 'İstifadəçi razılaşması'}</span>
+                </div>
+                <span className="material-symbols-outlined text-gray-400 !text-[20px]">chevron_right</span>
+              </Link>
+
+              <Link href="/pages/privacy" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gray-400">gavel</span>
+                  <span className="text-sm font-bold text-gray-900">{t('footer.privacyPolicy') || 'Məxfilik siyasəti'}</span>
+                </div>
+                <span className="material-symbols-outlined text-gray-400 !text-[20px]">chevron_right</span>
+              </Link>
+
+            </div>
+
+            {/* Logout */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in duration-300">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-5 py-4 text-red-600 hover:bg-red-50 transition-colors text-left cursor-pointer border-0 bg-transparent"
+              >
+                <span className="material-symbols-outlined">logout</span>
+                <span className="text-sm font-black">{t('cabinet.logout') || 'Çıxış'}</span>
+              </button>
+            </div>
+
+            {/* Footer details, contacts and language */}
+            <div className="px-1 space-y-4">
+              <button
+                type="button"
+                onClick={() => setLanguage(language === 'az' ? 'ru' : 'az')}
+                className="flex items-center gap-1.5 text-[11px] text-gray-400 font-bold hover:text-primary transition-colors cursor-pointer border-0 bg-transparent p-0"
+              >
+                <span className="material-symbols-outlined !text-[16px]">language</span>
+                <span>{language === 'az' ? 'Русский язык' : 'Azərbaycan dili'}</span>
+              </button>
+
+              <div className="border-t border-gray-200/60 pt-4 space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{t('cabinet.settings.contactUs') || 'Bizimlə əlaqə'}</p>
+                <div className="flex items-center gap-2 text-gray-700 text-sm font-bold">
+                  <span className="material-symbols-outlined !text-[18px] text-gray-400">call</span>
+                  <a href={`tel:${companySettings?.contactPhone?.replace(/\D/g, '') || '0125261919'}`} className="hover:text-primary transition-colors">
+                    {companySettings?.contactPhone || '(012) 526-19-19'}
+                  </a>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700 text-sm font-bold">
+                  <span className="material-symbols-outlined !text-[18px] text-gray-400">mail</span>
+                  <a href={`mailto:${companySettings?.email || 'support@2el.az'}`} className="text-primary hover:underline">
+                    {companySettings?.email || 'support@2el.az'}
+                  </a>
+                </div>
+
+                <div className="flex items-center gap-4 pt-2">
+                  <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+                    <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path clipRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" fillRule="evenodd"></path>
+                    </svg>
+                  </a>
+                  <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+                    <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path clipRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.013-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.345 2.525c.636-.247 1.363-.416 2.427-.465C9.793 2.013 10.147 2 12.315 2zm-1.003 3.905a1.164 1.164 0 100 2.327 1.164 1.164 0 000-2.327zM12 8.168a3.832 3.832 0 100 7.664 3.832 3.832 0 000-7.664z" fillRule="evenodd"></path>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      );
+    }
+
+    const editTitles: Record<string, string> = {
+      profile: 'Profilə düzəliş et',
+      security: 'Şifrəni dəyişdir',
+      store: 'Mağaza ayarları',
+    };
+
+    return (
+      <main className="bg-gray-50 min-h-screen font-sans pb-10">
+        <CabinetMobileHeader title={editTitles[editParam] || 'Ayarlar'} onBack={() => router.push('/cabinet/settings')} />
+        <div className="container mx-auto px-4 py-6">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            {success && (
+              <div className="mb-6 bg-green-50 border border-green-100 rounded-xl p-4 flex items-center gap-3 animate-in slide-in-from-top">
+                <span className="material-symbols-outlined text-green-500 font-bold">check_circle</span>
+                <p className="text-green-700 text-sm font-bold">{success}</p>
+              </div>
+            )}
+            {error && (
+              <div className="mb-6 bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3 animate-in shake">
+                <span className="material-symbols-outlined text-red-500 font-bold">warning</span>
+                <p className="text-red-700 text-sm font-bold">{error}</p>
+              </div>
+            )}
+
+            {editParam === 'profile' && (
+              <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-300">
+                <div className="flex flex-col items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div
+                    className="w-20 h-20 rounded-xl bg-cover bg-center bg-gray-200 flex items-center justify-center overflow-hidden border-2 border-white shadow-md relative cursor-pointer"
+                    style={profilePhoto ? { backgroundImage: `url("${profilePhoto}")` } : {}}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {!profilePhoto && <span className="material-symbols-outlined text-gray-400 !text-3xl">person</span>}
+                    <div className="absolute inset-0 bg-black/30 opacity-0 active:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="material-symbols-outlined text-white font-bold">photo_camera</span>
+                    </div>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                  <span className="text-xs text-primary font-bold uppercase tracking-wider">{t('cabinet.settings.changePhoto') || 'Şəkli dəyişdir'}</span>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-gray-500 text-[10px] font-bold tracking-wider">{t('cabinet.settings.fullName') || 'Adınız'}</label>
+                    <input
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:border-primary transition-all outline-none font-bold text-gray-900 text-sm"
+                      placeholder={t('cabinet.settings.fullNamePlaceholder') || 'Adınızı daxil edin'}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-gray-500 text-[10px] font-bold tracking-wider">{t('cabinet.settings.email') || 'E-mail'}</label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      disabled
+                      className="w-full h-12 px-4 rounded-xl border border-gray-100 bg-gray-100/50 text-gray-400 font-bold outline-none cursor-not-allowed text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-gray-500 text-[10px] font-bold tracking-wider">{t('cabinet.settings.phone') || 'Telefon'}</label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:border-primary transition-all outline-none font-bold text-gray-900 text-sm"
+                      placeholder={t('cabinet.settings.phonePlaceholder') || 'Telefon nömrəsi'}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/95 transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer border-0 mt-4 text-xs"
+                >
+                  {isLoading ? t('cabinet.settings.saving') || 'Saxlanılır...' : t('cabinet.settings.save') || 'Yadda saxla'}
+                </button>
+              </form>
+            )}
+
+            {editParam === 'security' && (
+              <form onSubmit={handlePasswordSubmit} className="space-y-4 animate-in fade-in duration-300">
+                <Input
+                  label={t('cabinet.settings.currentPassword') || 'Cari şifrə'}
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                  required
+                  placeholder="••••••••"
+                />
+                <Input
+                  label={t('cabinet.settings.newPassword') || 'Yeni şifrə'}
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                  required
+                  placeholder="••••••••"
+                />
+                <Input
+                  label={t('cabinet.settings.confirmNewPassword') || 'Yeni şifrənin təsdiqi'}
+                  type="password"
+                  value={passwordForm.confirmNewPassword}
+                  onChange={(e) => handlePasswordChange('confirmNewPassword', e.target.value)}
+                  required
+                  placeholder="••••••••"
+                />
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/95 transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer border-0 mt-4 text-xs"
+                >
+                  {isLoading ? 'Gözləyin...' : t('cabinet.settings.updatePassword') || 'Şifrəni yenilə'}
+                </button>
+              </form>
+            )}
+
+            {editParam === 'store' && (
+              <form onSubmit={handleStoreSubmit} className="space-y-6 animate-in fade-in duration-300">
+                <div className="space-y-5">
+
+                  {/* Media Section (Logo & Cover Upload) */}
+                  <div className="grid grid-cols-1 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div>
+                      <h3 className="text-gray-900 text-[10px] font-black uppercase tracking-widest mb-2">{t('cabinet.settings.storeLogo') || 'Mağaza loqosu'}</h3>
+                      <div className="relative group cursor-pointer w-24 h-24" onClick={() => storeLogoInputRef.current?.click()}>
+                        <div className="aspect-square rounded-xl bg-gray-200 overflow-hidden border-2 border-white shadow-sm size-full flex items-center justify-center">
+                          {storeLogo ? (
+                            <img src={storeLogo} className="size-full object-cover" />
+                          ) : (
+                            <span className="material-symbols-outlined text-gray-300 !text-3xl">storefront</span>
+                          )}
+                          <div className="absolute inset-0 bg-black/30 opacity-0 active:opacity-100 transition-all flex items-center justify-center rounded-xl">
+                            <span className="material-symbols-outlined text-white !text-xl">photo_camera</span>
+                          </div>
+                        </div>
+                      </div>
+                      <input
+                        type="file"
+                        ref={storeLogoInputRef}
+                        className="hidden"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 5 * 1024 * 1024) {
+                              setError(t('cabinet.payments.errorSize') || 'Şəkil ölçüsü 5MB-dan çox olmamalıdır');
+                              return;
+                            }
+                            setStoreLogoFile(file);
+                            setStoreLogo(URL.createObjectURL(file));
+                            setError(null);
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <h3 className="text-gray-900 text-[10px] font-black uppercase tracking-widest mb-2">{t('cabinet.settings.storeCover') || 'Mağaza coveri'}</h3>
+                      <div className="relative group cursor-pointer" onClick={() => storeCoverInputRef.current?.click()}>
+                        <div className="aspect-video rounded-xl bg-gray-200 overflow-hidden border-2 border-white shadow-sm w-full flex items-center justify-center">
+                          {storeCover ? (
+                            <img src={storeCover} className="size-full object-cover" />
+                          ) : (
+                            <span className="material-symbols-outlined text-gray-300 !text-3xl">image</span>
+                          )}
+                          <div className="absolute inset-0 bg-black/30 opacity-0 active:opacity-100 transition-all flex items-center justify-center rounded-xl">
+                            <span className="material-symbols-outlined text-white !text-xl">photo_camera</span>
+                          </div>
+                        </div>
+                      </div>
+                      <input
+                        type="file"
+                        ref={storeCoverInputRef}
+                        className="hidden"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 10 * 1024 * 1024) {
+                              setError(language === 'ru' ? 'Размер изображения не должен превышать 10MB' : 'Şəkil ölçüsü 10MB-dan çox olmamalıdır');
+                              return;
+                            }
+                            setStoreCoverFile(file);
+                            setStoreCover(URL.createObjectURL(file));
+                            setError(null);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Basic Info */}
+                  <Input
+                    label={t('cabinet.settings.storeName') || 'Mağaza adı'}
+                    value={storeFormData.storeName}
+                    onChange={(e) => handleStoreInputChange('storeName', e.target.value)}
+                    required
+                  />
+
+                  <Textarea
+                    label={t('cabinet.settings.storeAbout') || 'Mağaza haqqında'}
+                    value={storeFormData.description}
+                    onChange={(e) => handleStoreInputChange('description', e.target.value)}
+                    rows={3}
+                    required
+                  />
+
+                  <Textarea
+                    label={(t('cabinet.settings.storeAbout') || 'Mağaza haqqında') + " (RU)"}
+                    value={storeFormData.descriptionRu}
+                    onChange={(e) => handleStoreInputChange('descriptionRu', e.target.value)}
+                    rows={3}
+                    required
+                  />
+
+                  <Input
+                    label={t('cabinet.settings.headline') || 'Mağaza Başlığı/Sloqanı'}
+                    value={storeFormData.headline}
+                    onChange={(e) => handleStoreInputChange('headline', e.target.value)}
+                    placeholder={t('cabinet.settings.headlinePlaceholder') || 'Məs: Ən ucuz oyun dükkanı'}
+                  />
+
+                  <Input
+                    label={(t('cabinet.settings.headline') || 'Mağaza Başlığı/Sloqanı') + " (RU)"}
+                    value={storeFormData.headlineRu}
+                    onChange={(e) => handleStoreInputChange('headlineRu', e.target.value)}
+                    placeholder={t('cabinet.settings.headlinePlaceholder') || 'Məs: Ən ucuz oyun dükkanı'}
+                  />
+
+                  {/* Contact details */}
+                  <Input
+                    label={t('cabinet.settings.mainPhone') || 'Əsas telefon'}
+                    type="tel"
+                    value={storeFormData.contactNumber}
+                    onChange={(e) => handleStoreInputChange('contactNumber', e.target.value)}
+                    required
+                    placeholder="Nümunə: 0501234567"
+                    pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
+                    title="Səhv format. Nümunə: 0501234567"
+                  />
+
+                  <Input
+                    label={t('cabinet.settings.phone2') || 'Əlavə Əlaqə Nömrəsi 1'}
+                    type="tel"
+                    value={storeFormData.contactNumber2}
+                    onChange={(e) => handleStoreInputChange('contactNumber2', e.target.value)}
+                    placeholder="Nümunə: 0501234567"
+                    pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
+                    title="Səhv format. Nümunə: 0501234567"
+                  />
+
+                  <Input
+                    label={t('cabinet.settings.phone3') || 'Əlavə Əlaqə Nömrəsi 2'}
+                    type="tel"
+                    value={storeFormData.contactNumber3}
+                    onChange={(e) => handleStoreInputChange('contactNumber3', e.target.value)}
+                    placeholder="Nümunə: 0501234567"
+                    pattern="^(?:\+994|0)(?:10|50|51|55|70|77|99)\d{7}$"
+                    title="Səhv format. Nümunə: 0501234567"
+                  />
+
+                  <Input
+                    label={t('cabinet.settings.address') || 'Ünvan'}
+                    value={storeFormData.address}
+                    onChange={(e) => handleStoreInputChange('address', e.target.value)}
+                    required
+                  />
+
+                  <div className="space-y-2">
+                    <label className="block text-gray-500 text-[11px] font-bold uppercase tracking-wider px-1">{t('cabinet.settings.city') || 'Şəhər'}</label>
+                    <select
+                      value={storeFormData.cityId}
+                      onChange={(e) => handleStoreInputChange('cityId', e.target.value)}
+                      className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-gray-900 cursor-pointer text-sm"
+                    >
+                      <option value="">{t('cabinet.settings.citySelect') || 'Şəhər seçin'}</option>
+                      {cities.map(city => (
+                        <option key={city.id} value={city.id}>{language === 'ru' && city.nameRu ? city.nameRu : city.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Web & Socials */}
+                  <Input
+                    label={t('cabinet.settings.website') || 'Vebsayt'}
+                    value={storeFormData.website}
+                    onChange={(e) => handleStoreInputChange('website', e.target.value)}
+                  />
+
+                  <Input
+                    label={t('cabinet.settings.instagram') || 'Instagram (İstifadəçi adı)'}
+                    value={storeFormData.instagram}
+                    onChange={(e) => handleStoreInputChange('instagram', e.target.value)}
+                    placeholder="@username"
+                  />
+
+                  <Input
+                    label={t('cabinet.settings.tiktok') || 'TikTok (İstifadəçi adı)'}
+                    value={storeFormData.tiktok}
+                    onChange={(e) => handleStoreInputChange('tiktok', e.target.value)}
+                    placeholder="@username"
+                  />
+
+                  <Input
+                    label={t('cabinet.settings.facebook') || 'Facebook'}
+                    value={storeFormData.facebook}
+                    onChange={(e) => handleStoreInputChange('facebook', e.target.value)}
+                  />
+
+                  {/* Working Hours */}
+                  <div className="space-y-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowWorkHours(!showWorkHours)}
+                      className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-all group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">schedule</span>
+                        <label className="text-gray-900 text-[11px] font-black uppercase tracking-widest cursor-pointer">{t('cabinet.settings.workHours') || 'İş vaxtları'}</label>
+                      </div>
+                      <span className={`material-symbols-outlined text-gray-400 transition-transform duration-300 ${showWorkHours ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+
+                    {showWorkHours && (
+                      <div className="bg-gray-50 rounded-xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="divide-y divide-gray-100">
+                          {storeFormData.workSchedules.map((ws, idx) => (
+                            <div key={idx} className="p-4 flex flex-col gap-3 hover:bg-white transition-colors">
+                              <div>
+                                <span className="text-gray-900 text-xs font-black uppercase tracking-wider">{t(`common.days.${ws.dayOfWeek}`)}</span>
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-2 rounded-xl border border-gray-100 shadow-sm">
+                                  <input
+                                    type="checkbox"
+                                    checked={ws.isClosed}
+                                    onChange={(e) => handleWorkScheduleChange(idx, 'isClosed', e.target.checked)}
+                                    className="size-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                  />
+                                  <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">{t('cabinet.settings.closed') || 'Bağlı'}</span>
+                                </label>
+
+                                <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-2 rounded-xl border border-gray-100 shadow-sm">
+                                  <input
+                                    type="checkbox"
+                                    checked={ws.isOpen24Hours}
+                                    onChange={(e) => handleWorkScheduleChange(idx, 'isOpen24Hours', e.target.checked)}
+                                    className="size-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                  />
+                                  <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">{t('cabinet.settings.open24h') || '24 Saat'}</span>
+                                </label>
+
+                                {!ws.isClosed && !ws.isOpen24Hours && (
+                                  <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 w-full mt-1">
+                                    <input
+                                      type="time"
+                                      value={ws.openTime?.substring(0, 5) || '09:00'}
+                                      onChange={(e) => handleWorkScheduleChange(idx, 'openTime', e.target.value + ':00')}
+                                      className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-900 bg-white outline-none focus:border-primary shadow-sm cursor-pointer flex-1 text-center"
+                                    />
+                                    <span className="text-gray-400 font-bold">-</span>
+                                    <input
+                                      type="time"
+                                      value={ws.closeTime?.substring(0, 5) || '18:00'}
+                                      onChange={(e) => handleWorkScheduleChange(idx, 'closeTime', e.target.value + ':00')}
+                                      className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-900 bg-white outline-none focus:border-primary shadow-sm cursor-pointer flex-1 text-center"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Categories selection */}
+                  <div className="space-y-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowCategories(!showCategories)}
+                      className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-all group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">category</span>
+                        <label className="text-gray-900 text-[11px] font-black uppercase tracking-widest cursor-pointer">{t('cabinet.settings.categories') || 'Kateqoriyalar'}</label>
+                      </div>
+                      <span className={`material-symbols-outlined text-gray-400 transition-transform duration-300 ${showCategories ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+
+                    {showCategories && (
+                      <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        {categories.map(parent => (
+                          <div key={parent.id} className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-3">
+                            <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-2">
+                              <h4 className="text-gray-900 text-xs font-black uppercase tracking-tight">{language === 'ru' && parent.nameRu ? parent.nameRu : parent.name}</h4>
+                              <button
+                                type="button"
+                                onClick={() => toggleCategory(parent.id)}
+                                className={`size-6 rounded-full flex items-center justify-center transition-all cursor-pointer border-0 ${storeFormData.categoryIds.includes(parent.id) ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'}`}
+                              >
+                                <span className="material-symbols-outlined !text-xs font-bold">{storeFormData.categoryIds.includes(parent.id) ? 'done' : 'add'}</span>
+                              </button>
+                            </div>
+
+                            <div className="flex flex-wrap gap-1.5">
+                              {parent.children?.map((child: any) => (
+                                <button
+                                  key={child.id}
+                                  type="button"
+                                  onClick={() => toggleCategory(child.id)}
+                                  className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all border cursor-pointer ${storeFormData.categoryIds.includes(child.id)
+                                    ? 'bg-primary/10 border-primary text-primary'
+                                    : 'bg-white border-gray-200 text-gray-500 hover:border-gray-400'
+                                    }`}
+                                >
+                                  {language === 'ru' && child.nameRu ? child.nameRu : child.name}
+                                </button>
+                              ))}
+                              {parent.subCategories?.map((child: any) => (
+                                <button
+                                  key={child.id}
+                                  type="button"
+                                  onClick={() => toggleCategory(child.id)}
+                                  className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all border cursor-pointer ${storeFormData.categoryIds.includes(child.id)
+                                    ? 'bg-primary/10 border-primary text-primary'
+                                    : 'bg-white border-gray-200 text-gray-500 hover:border-gray-400'
+                                    }`}
+                                >
+                                  {language === 'ru' && child.nameRu ? child.nameRu : child.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Store Gallery */}
+                  <div className="space-y-4 pt-2">
+                    <div className="flex items-center justify-between px-1">
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-gray-400 !text-lg">collections</span>
+                        <label className="block text-gray-900 text-[11px] font-black uppercase tracking-widest">{t('cabinet.settings.storeGallery') || 'Mağaza Qalereya'}</label>
+                      </div>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('cabinet.settings.max10Photos') || 'Maksimum 10 şəkil'}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Existing Photos */}
+                      {storeGalleryPhotos.filter(p => !photosToRemove.includes(p.id)).map((photo, index, arr) => (
+                        <div key={photo.id} className="relative aspect-square rounded-xl bg-gray-100 overflow-hidden group border-2 border-transparent hover:border-primary/20 transition-all shadow-sm">
+                          <img src={getImageUrl(photo.filePath)} className="size-full object-cover" alt="Gallery" />
+
+                          {/* Controls overlay */}
+                          <div className="absolute inset-0 bg-black/40 transition-all flex flex-col justify-between p-2">
+                            <div className="flex justify-end">
+                              <button
+                                type="button"
+                                onClick={() => setPhotosToRemove(prev => [...prev, photo.id])}
+                                className="size-7 rounded-lg bg-red-500 text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer border-0"
+                                title={t('cabinet.settings.delete') || 'Sil'}
+                              >
+                                <span className="material-symbols-outlined !text-base">delete</span>
+                              </button>
+                            </div>
+
+                            <div className="flex justify-center gap-2">
+                              {index > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => movePhoto(index, 'left')}
+                                  className="size-7 rounded-lg bg-white/35 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/50 active:scale-95 transition-all shadow-sm cursor-pointer border-0"
+                                  title={t('cabinet.settings.moveLeft') || 'Sola çək'}
+                                >
+                                  <span className="material-symbols-outlined !text-base">arrow_back</span>
+                                </button>
+                              )}
+                              {index < arr.length - 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => movePhoto(index, 'right')}
+                                  className="size-7 rounded-lg bg-white/35 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/50 active:scale-95 transition-all shadow-sm cursor-pointer border-0"
+                                  title={t('cabinet.settings.moveRight') || 'Sağa çək'}
+                                >
+                                  <span className="material-symbols-outlined !text-base">arrow_forward</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="absolute bottom-2 left-2 size-5 rounded bg-black/40 backdrop-blur-md text-white text-[9px] font-bold flex items-center justify-center">
+                            {index + 1}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* New Photos Previews */}
+                      {newGalleryPhotos.map((file, idx) => (
+                        <div key={idx} className="relative aspect-square rounded-xl bg-gray-100 overflow-hidden group border-2 border-primary/20 shadow-sm transition-all">
+                          <img src={URL.createObjectURL(file)} className="size-full object-cover" alt="New Gallery" />
+                          <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-primary text-white text-[7px] font-black uppercase tracking-wider shadow">{t('cabinet.settings.new') || 'YENİ'}</div>
+                          <button
+                            type="button"
+                            onClick={() => setNewGalleryPhotos(prev => prev.filter((_, i) => i !== idx))}
+                            className="absolute top-2 right-2 size-7 rounded-lg bg-red-500 text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow border-0"
+                          >
+                            <span className="material-symbols-outlined !text-base">close</span>
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* Upload Button */}
+                      {(storeGalleryPhotos.length - photosToRemove.length + newGalleryPhotos.length) < 10 && (
+                        <button
+                          type="button"
+                          onClick={() => galleryInputRef.current?.click()}
+                          className="aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-2 hover:bg-gray-100 hover:border-primary/30 transition-all group cursor-pointer"
+                        >
+                          <div className="size-9 rounded-lg bg-white flex items-center justify-center text-gray-400 group-hover:text-primary shadow-sm transition-colors ring-1 ring-gray-100">
+                            <span className="material-symbols-outlined !text-lg">add_photo_alternate</span>
+                          </div>
+                          <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest group-hover:text-primary transition-colors text-center px-1">{t('cabinet.settings.addPhoto') || 'Şəkil Əlavə Et'}</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <input
+                      type="file"
+                      ref={galleryInputRef}
+                      multiple
+                      accept=".jpg,.jpeg,.png,.webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        const currentCount = storeGalleryPhotos.length - photosToRemove.length + newGalleryPhotos.length;
+                        const remaining = 10 - currentCount;
+                        const slicedFiles = files.slice(0, remaining);
+                        setNewGalleryPhotos(prev => [...prev, ...slicedFiles]);
+                      }}
+                    />
+                  </div>
+
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 rounded-xl bg-primary text-white font-bold uppercase tracking-wider hover:bg-primary/95 transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer border-0 mt-4 text-xs"
+                >
+                  {isLoading ? (t('cabinet.settings.saving') || 'Saxlanılır...') : (t('cabinet.settings.updateStore') || 'Mağazanı Yenilə')}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </main>
