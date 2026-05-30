@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CabinetMobileHeader from '@/components/features/cabinet/CabinetMobileHeader';
 import Link from 'next/link';
@@ -17,6 +17,24 @@ import Badge from '@/components/ui/Badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <main className="bg-gray-50 min-h-screen font-sans">
+        <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+            <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-2xl shadow-sm border border-gray-100">
+              <div className="animate-spin h-8 w-8 text-primary border-4 border-primary/20 border-t-primary rounded-full shadow-lg shadow-primary/10" />
+            </div>
+          </div>
+        </div>
+      </main>
+    }>
+      <SettingsPageContent />
+    </Suspense>
+  );
+}
+
+function SettingsPageContent() {
   const { t, language, setLanguage } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
