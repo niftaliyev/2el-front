@@ -434,7 +434,8 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
                     <div className="absolute inset-0 z-0">
                       <Image
                         src={images[activeImageIndex]}
-                        alt="Background Blur"
+                        alt={product.title}
+                        title={product.title}
                         fill
                         className="object-cover blur-2xl scale-110 opacity-30"
                       />
@@ -461,7 +462,8 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
                           >
                             <Image
                               src={img}
-                              alt={`${product.title} - Image ${idx + 1}`}
+                              alt={product.title}
+                              title={product.title}
                               fill
                               className="object-contain"
                               priority={idx === 0}
@@ -509,7 +511,8 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
                           <div className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all shadow-sm ${activeImageIndex === idx ? 'border-primary' : 'border-transparent hover:border-gray-300'}`}>
                             <Image
                               src={img}
-                              alt={`Thumbnail ${idx + 1}`}
+                              alt={product.title}
+                              title={product.title}
                               fill
                               className="object-cover"
                             />
@@ -903,7 +906,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
               <Swiper onSwiper={setLightboxSwiper} modules={[Navigation, Pagination, FreeMode]} navigation={{ prevEl: '.swiper-button-prev-modal', nextEl: '.swiper-button-next-modal' }} initialSlide={activeImageIndex} onSlideChange={(s) => setActiveImageIndex(s.realIndex)} className="w-full h-full" spaceBetween={30}>
                 {images.map((img, idx) => (
                   <SwiperSlide key={idx} className="flex items-center justify-center">
-                    <div className="relative w-full h-full"><Image src={img} alt={`Modal view ${idx + 1}`} fill className="object-contain" /></div>
+                    <div className="relative w-full h-full"><Image src={img} alt={product.title} title={product.title} fill className="object-contain" /></div>
                   </SwiperSlide>
                 ))}
               </Swiper>
@@ -914,7 +917,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
             <div className="flex gap-3">
               {images.map((img, idx) => (
                 <div key={idx} onClick={() => { setActiveImageIndex(idx); lightboxSwiper?.slideTo(idx); }} className={`relative size-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${activeImageIndex === idx ? 'border-primary' : 'border-transparent opacity-50'}`}>
-                  <Image src={img} alt={`Thumb ${idx + 1}`} fill className="object-cover" />
+                  <Image src={img} alt={product.title} title={product.title} fill className="object-cover" />
                 </div>
               ))}
             </div>
