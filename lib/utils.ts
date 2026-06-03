@@ -155,6 +155,32 @@ export function debounce<T extends (...args: any[]) => any>(
 }
 
 /**
+ * Get full frontend site URL dynamically
+ */
+export function getSiteUrl(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return 'http://84.247.184.186:3000';
+  }
+  return 'http://localhost:3000';
+}
+
+/**
+ * Get backend base URL dynamically
+ */
+export function getBackendUrl(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return 'http://84.247.184.186:5000';
+  }
+  return 'http://localhost:5156';
+}
+
+/**
  * Get full image URL from relative path
  */
 export function getImageUrl(imagePath: string | undefined | null): string {
@@ -166,10 +192,7 @@ export function getImageUrl(imagePath: string | undefined | null): string {
     return imagePath;
   }
 
-  // Local Development: 'http://localhost:5156'
-  // Local  Docker: 'http://localhost:5000'
-  // Prod Development: 'http://84.247.184.186:5000'
-  const baseUrl = 'http://84.247.184.186:5000';
+  const baseUrl = getBackendUrl();
 
   // Build normalized path (ensuring it starts with / and doesn't overlap)
   const cleanPath = imagePath.trim();

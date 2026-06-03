@@ -26,6 +26,7 @@ export interface Category {
   icon?: string;
   image?: string;
   parentId?: string;
+  isParent?: boolean;
   children?: Category[];
   productCount?: number;
 }
@@ -83,6 +84,7 @@ export interface SearchFilters {
   userId?: string;
   page?: number;
   limit?: number;
+  seoPageId?: string;
 }
 
 export interface PaginatedResponse<T> {

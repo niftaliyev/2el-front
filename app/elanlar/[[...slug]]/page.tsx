@@ -3,9 +3,30 @@ import { Metadata } from 'next';
 import ListingsContent from '@/components/features/listings/ListingsContent';
 import ProductDetailContent from '@/components/features/products/ProductDetailContent';
 import { adService } from '@/services/ad.service';
-import { generateSlug, toAccusativeCaseAz } from '@/lib/utils';
+import { generateSlug, toAccusativeCaseAz, getSiteUrl } from '@/lib/utils';
 import { SearchFilters } from '@/types';
 import { AdDetail } from '@/types/api';
+
+interface CategoryNode {
+  id: string;
+  name: string;
+  nameRu?: string;
+  children?: CategoryNode[];
+}
+
+function findCategoryPath(tree: CategoryNode[], targetId: string, currentPath: CategoryNode[] = []): CategoryNode[] | null {
+  for (const node of tree) {
+    const path = [...currentPath, node];
+    if (node.id === targetId) {
+      return path;
+    }
+    if (node.children && node.children.length > 0) {
+      const found = findCategoryPath(node.children, targetId, path);
+      if (found) return found;
+    }
+  }
+  return null;
+}
 
 // Helper to resolve the parameters from slug array on the server
 async function resolveSlugPath(slug: string[]) {
@@ -15,10 +36,12 @@ async function resolveSlugPath(slug: string[]) {
   let subCategoryName = '';
   let categoryId = '';
   let subCategoryId = '';
+  let seoPage: any = null;
+  let categoryPath: CategoryNode[] | null = null;
 
   if (slug.length > 0) {
     const lastSegment = slug[slug.length - 1];
-    
+
     // Check for PinCode (tap.az style)
     const numericMatch = lastSegment.match(/(?:^|-)([0-9]{5,})$/);
     const detectedPinCode = numericMatch ? numericMatch[1] : null;
@@ -34,8 +57,26 @@ async function resolveSlugPath(slug: string[]) {
     }
   }
 
-  // If not a product page, resolve category/subcategory hierarchy
-  if (!productId && slug.length > 0) {
+  // If not a product page, check if it's a custom SEO page!
+  if (!productId && slug.length === 1) {
+    try {
+      const { seoService } = await import('@/services/seo.service');
+      const pageData = await seoService.getPageBySlug(slug[0]);
+      if (pageData) {
+        seoPage = pageData;
+        resolvedFilters = { categoryId: pageData.categoryId, seoPageId: pageData.id };
+        if (pageData.categoryId) {
+          const tree = await adService.getCategoryTree();
+          categoryPath = findCategoryPath(tree, pageData.categoryId);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching SEO page:', e);
+    }
+  }
+
+  // If not a product page and not an SEO page, resolve category/subcategory hierarchy
+  if (!productId && !seoPage && slug.length > 0) {
     try {
       const tree = await adService.getCategoryTree();
 
@@ -82,7 +123,9 @@ async function resolveSlugPath(slug: string[]) {
     productId,
     resolvedFilters,
     categoryName,
-    subCategoryName
+    subCategoryName,
+    seoPage,
+    categoryPath
   };
 }
 
@@ -96,38 +139,64 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const unwrappedParams = await params;
   const unwrappedSearchParams = await searchParams;
   const slug = unwrappedParams.slug || [];
+  const siteUrl = getSiteUrl();
 
-  const { productId, categoryName } = await resolveSlugPath(slug);
+  const { productId, categoryName, seoPage } = await resolveSlugPath(slug);
 
   if (productId) {
     try {
       const product = await adService.getAdById(productId);
-      const titleText = `${product.title}: ${product.price} AZN — ${product.city || 'Bakı'}, Azərbaycan | ${product.pinCode || product.id} — 2El.az`;
-      const plainTitle = product.title;
+      const titleText = product.title;
       const cleanDesc = product.description
         ? product.description.replace(/<[^>]*>/g, '').slice(0, 160)
         : `2El.az elan portalında ${product.title} sərfəli qiymətə alın və ya tez satın.`;
-      
-      const imageUrl = product.images && product.images.length > 0 
-        ? product.images[0] 
-        : 'https://2el.az/logo.png';
+
+      const imageUrl = product.images && product.images.length > 0
+        ? product.images[0]
+        : `${siteUrl}/logo.png`;
 
       return {
         title: {
           absolute: titleText
         },
         description: cleanDesc,
+        alternates: {
+          canonical: `${siteUrl}/elanlar/${slug.join('/')}`,
+        },
         openGraph: {
-          title: plainTitle,
+          title: titleText,
           description: cleanDesc,
           type: 'website',
-          url: `https://2el.az/elanlar/${slug.join('/')}`,
-          images: [{ url: imageUrl, alt: plainTitle }]
+          url: `${siteUrl}/elanlar/${slug.join('/')}`,
+          images: [{ url: imageUrl, alt: titleText }]
         }
       };
     } catch (err) {
       console.error('Error generating metadata for product:', err);
     }
+  }
+
+  // SEO Page
+  if (seoPage) {
+    const cleanDesc = seoPage.contentTop
+      ? seoPage.contentTop.replace(/<[^>]*>/g, '').slice(0, 160)
+      : `2El.az elan portalında ${seoPage.titleH1} sərfəli qiymətə elanlar.`;
+
+    return {
+      title: {
+        absolute: `${seoPage.titleH1} — Bakı, Azərbaycan | 2El.az`
+      },
+      description: cleanDesc,
+      alternates: {
+        canonical: `${siteUrl}/elanlar/${slug.join('/')}`,
+      },
+      openGraph: {
+        title: seoPage.titleH1,
+        description: cleanDesc,
+        type: 'website',
+        url: `${siteUrl}/elanlar/${slug.join('/')}`,
+      }
+    };
   }
 
   // Category Page
@@ -141,22 +210,25 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
         absolute: catTitle
       },
       description: catDesc,
+      alternates: {
+        canonical: `${siteUrl}/elanlar/${slug.join('/')}`,
+      },
       openGraph: {
         title: catTitle,
         description: catDesc,
         type: 'website',
-        url: `https://2el.az/elanlar/${slug.join('/')}`,
+        url: `${siteUrl}/elanlar/${slug.join('/')}`,
       }
     };
   }
 
   // Search Results Page
-  const query = typeof unwrappedSearchParams.search === 'string' 
-    ? unwrappedSearchParams.search 
-    : typeof unwrappedSearchParams.q === 'string' 
-      ? unwrappedSearchParams.q 
+  const query = typeof unwrappedSearchParams.search === 'string'
+    ? unwrappedSearchParams.search
+    : typeof unwrappedSearchParams.q === 'string'
+      ? unwrappedSearchParams.q
       : '';
-  
+
   if (query) {
     const searchTitle = `${query} — Bütün kateqoriyalar — Bakı, Azərbaycan | 2El.az`;
     const searchDesc = `Ucuz qiymətə ${query} tap – 2El.az pulsuz elanlar portalında axtarış nəticələri.`;
@@ -165,6 +237,9 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
         absolute: searchTitle
       },
       description: searchDesc,
+      alternates: {
+        canonical: `${siteUrl}/elanlar?search=${encodeURIComponent(query)}`,
+      },
       openGraph: {
         title: searchTitle,
         description: searchDesc,
@@ -177,15 +252,19 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     title: {
       absolute: 'Bütün elanlar — Bakı, Azərbaycan | 2El.az'
     },
-    description: 'Bütün elanlar Bakı, Azərbaycan. 2El.az elan portalında hər növ məhsul və xidmətləri sərfəli alın və ya satın.'
+    description: 'Bütün elanlar Bakı, Azərbaycan. 2El.az elan portalında hər növ məhsul və xidmətləri sərfəli alın və ya satın.',
+    alternates: {
+      canonical: `${siteUrl}/elanlar`,
+    }
   };
 }
 
 export default async function ElanlarDynamicPage({ params, searchParams }: PageProps) {
   const unwrappedParams = await params;
   const slug = unwrappedParams.slug || [];
+  const siteUrl = getSiteUrl();
 
-  const { productId, resolvedFilters, categoryName, subCategoryName } = await resolveSlugPath(slug);
+  const { productId, resolvedFilters, categoryName, subCategoryName, seoPage, categoryPath } = await resolveSlugPath(slug);
 
   let initialProduct: AdDetail | null = null;
   if (productId) {
@@ -202,22 +281,43 @@ export default async function ElanlarDynamicPage({ params, searchParams }: PageP
       "@type": "ListItem",
       "position": 1,
       "name": "Ana Səhifə",
-      "item": "https://2el.az"
+      "item": siteUrl
     },
     {
       "@type": "ListItem",
       "position": 2,
       "name": "Bütün Elanlar",
-      "item": "https://2el.az/elanlar"
+      "item": `${siteUrl}/elanlar`
     }
   ];
 
-  if (slug.length >= 1 && categoryName) {
+  if (seoPage) {
+    if (categoryPath && categoryPath.length > 0) {
+      let currentSlugPath = '';
+      categoryPath.forEach((catNode, index) => {
+        const catSlug = generateSlug(catNode.name);
+        currentSlugPath = currentSlugPath ? `${currentSlugPath}/${catSlug}` : catSlug;
+        breadcrumbElements.push({
+          "@type": "ListItem",
+          "position": 3 + index,
+          "name": catNode.name,
+          "item": `${siteUrl}/elanlar/${currentSlugPath}`
+        });
+      });
+    }
+    // Add the custom SEO page itself
+    breadcrumbElements.push({
+      "@type": "ListItem",
+      "position": 3 + (categoryPath ? categoryPath.length : 0),
+      "name": seoPage.titleH1,
+      "item": `${siteUrl}/elanlar/${slug.join('/')}`
+    });
+  } else if (slug.length >= 1 && categoryName) {
     breadcrumbElements.push({
       "@type": "ListItem",
       "position": 3,
       "name": categoryName,
-      "item": `https://2el.az/elanlar/${slug[0]}`
+      "item": `${siteUrl}/elanlar/${slug[0]}`
     });
 
     if (slug.length >= 2 && subCategoryName) {
@@ -225,7 +325,7 @@ export default async function ElanlarDynamicPage({ params, searchParams }: PageP
         "@type": "ListItem",
         "position": 4,
         "name": subCategoryName,
-        "item": `https://2el.az/elanlar/${slug[0]}/${slug[1]}`
+        "item": `${siteUrl}/elanlar/${slug[0]}/${slug[1]}`
       });
     }
   }
@@ -242,8 +342,8 @@ export default async function ElanlarDynamicPage({ params, searchParams }: PageP
   if (initialProduct) {
     const imageUrls = initialProduct.images && initialProduct.images.length > 0
       ? initialProduct.images
-      : ['https://2el.az/logo.png'];
-    
+      : [`${siteUrl}/logo.png`];
+
     jsonLdData.push({
       "@context": "https://schema.org",
       "@type": "Product",
@@ -254,7 +354,7 @@ export default async function ElanlarDynamicPage({ params, searchParams }: PageP
       "mpn": initialProduct.pinCode || initialProduct.id,
       "offers": {
         "@type": "Offer",
-        "url": `https://2el.az/elanlar/${slug.join('/')}`,
+        "url": `${siteUrl}/elanlar/${slug.join('/')}`,
         "priceCurrency": "AZN",
         "price": initialProduct.price,
         "priceValidUntil": new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString().split('T')[0],
@@ -281,7 +381,12 @@ export default async function ElanlarDynamicPage({ params, searchParams }: PageP
         <ProductDetailContent id={productId} initialProduct={initialProduct || undefined} />
       ) : (
         <Suspense fallback={<div className="flex justify-center items-center py-20 min-h-screen animate-pulse text-gray-400">Yüklənir...</div>}>
-          <ListingsContent initialFilters={resolvedFilters} />
+          <ListingsContent
+            initialFilters={resolvedFilters}
+            seoPage={seoPage}
+            initialCategoryName={categoryName || undefined}
+            initialSubCategoryName={subCategoryName || undefined}
+          />
         </Suspense>
       )}
     </>

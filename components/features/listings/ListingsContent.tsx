@@ -17,7 +17,34 @@ import { Button } from '@/components/ui';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-export default function ListingsContent({ initialFilters }: { initialFilters?: Partial<SearchFilters> }) {
+function findCategoryName(items: any[], id: string): string | null {
+  for (const item of items) {
+    if (item.id === id) {
+      return item.name;
+    }
+    if (item.children && item.children.length > 0) {
+      const found = findCategoryName(item.children, id);
+      if (found) return found;
+    }
+    if (item.subCategories && item.subCategories.length > 0) {
+      const found = findCategoryName(item.subCategories, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+export default function ListingsContent({
+  initialFilters,
+  seoPage,
+  initialCategoryName,
+  initialSubCategoryName
+}: {
+  initialFilters?: Partial<SearchFilters>;
+  seoPage?: any;
+  initialCategoryName?: string;
+  initialSubCategoryName?: string;
+}) {
   const router = useRouter();
   const { t, language } = useLanguage();
   const searchParams = useSearchParams();
@@ -74,6 +101,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
     sortBy: searchParams.get('sortBy') || initialFilters?.sortBy || 'latest',
     isDeliverable: searchParams.get('delivery') === 'true' ? true : (searchParams.get('delivery') === 'false' ? false : initialFilters?.isDeliverable),
     userId: searchParams.get('userId') || initialFilters?.userId || undefined,
+    seoPageId: initialFilters?.seoPageId || undefined,
     dynamicProperties: {
       ...initialFilters?.dynamicProperties,
       ...Object.fromEntries(
@@ -83,6 +111,24 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       )
     },
   });
+
+  const getActiveCategoryTitle = () => {
+    if (seoPage) return seoPage.titleH1;
+
+    if (filters.subCategoryId) {
+      const name = findCategoryName(categories, filters.subCategoryId);
+      if (name) return name;
+      if (initialSubCategoryName) return initialSubCategoryName;
+    }
+
+    if (filters.categoryId) {
+      const name = findCategoryName(categories, filters.categoryId);
+      if (name) return name;
+      if (initialCategoryName) return initialCategoryName;
+    }
+
+    return t('listings.allCategories');
+  };
 
   // Sync state when URL params or initialFilters change
   useEffect(() => {
@@ -96,6 +142,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
     const currentSort = searchParams.get('sortBy') || initialFilters?.sortBy || 'latest';
     const currentDelivery = searchParams.get('delivery') === 'true' ? true : (searchParams.get('delivery') === 'false' ? false : initialFilters?.isDeliverable);
     const currentUser = searchParams.get('userId') || initialFilters?.userId || undefined;
+    const currentSeoPageId = initialFilters?.seoPageId || undefined;
 
     const currentDynamic = {
       ...initialFilters?.dynamicProperties,
@@ -118,6 +165,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       isDeliverable: currentDelivery,
       dynamicProperties: currentDynamic,
       userId: currentUser,
+      seoPageId: currentSeoPageId,
     };
 
     // Deep comparison to prevent infinite loops
@@ -194,12 +242,14 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             icon: ICONS[cat.name] || 'category',
             image: LOCAL_IMAGES[cat.name] || getImageUrl(cat.imageUrl),
             slug: generateSlug(cat.name),
+            isParent: true,
             categoryFields: cat.categoryFields || [],
             subCategories: cat.subCategories?.map((sc: any) => ({
               ...sc,
               name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
               parentSlug: generateSlug(cat.name),
-              image: getImageUrl(sc.imageUrl)
+              image: getImageUrl(sc.imageUrl),
+              isParent: false
             })) || [],
             children: cat.children?.map((child: any) => ({
               id: child.id,
@@ -208,12 +258,14 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
               image: getImageUrl(child.imageUrl),
               parentId: cat.id,
               parentSlug: generateSlug(cat.name),
+              isParent: false,
               categoryFields: child.categoryFields || [],
               subCategories: child.subCategories?.map((sc: any) => ({
                 ...sc,
                 name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
                 parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}`,
-                image: getImageUrl(sc.imageUrl)
+                image: getImageUrl(sc.imageUrl),
+                isParent: false
               })) || [],
               children: child.children?.map((gc: any) => ({
                 id: gc.id,
@@ -222,12 +274,14 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                 image: getImageUrl(gc.imageUrl),
                 parentId: child.id,
                 parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}`,
+                isParent: false,
                 categoryFields: gc.categoryFields || [],
                 subCategories: gc.subCategories?.map((sc: any) => ({
                   ...sc,
                   name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
                   parentSlug: `${generateSlug(cat.name)}/${generateSlug(child.name)}/${generateSlug(gc.name)}`,
-                  image: getImageUrl(sc.imageUrl)
+                  image: getImageUrl(sc.imageUrl),
+                  isParent: false
                 })) || []
               })) || []
             })) || []
@@ -255,6 +309,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           isNew: filters.condition === 'new' ? true : (filters.condition === 'used' ? false : undefined),
           isDeliverable: filters.isDeliverable,
           userId: filters.userId,
+          seoPageId: filters.seoPageId,
           ...Object.fromEntries(
             Object.entries(filters.dynamicProperties || {}).map(([id, val]) => [`p[${id}]`, val])
           )
@@ -325,6 +380,7 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
           isDeliverable: filters.isDeliverable,
           sortBy: filters.sortBy !== 'latest' ? filters.sortBy : undefined,
           userId: filters.userId,
+          seoPageId: filters.seoPageId,
           ...Object.fromEntries(
             Object.entries(filters.dynamicProperties || {}).map(([id, val]) => [`p[${id}]`, val])
           )
@@ -460,8 +516,13 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
       <Container className="pt-3 sm:pt-6 pb-8 px-3 sm:px-6">
         <div className="mb-3 sm:mb-4">
           <div className="flex items-center justify-between mb-3 sm:mb-6">
-            <h1 className="text-[17px] sm:text-[20px] font-bold text-[#212121] tracking-tight">
-              {t('listings.allCategories')} <span className="text-[#999] font-normal text-[13px] sm:text-[15px] ml-1">({totalElements})</span>
+            <h1 className="text-[17px] sm:text-[20px] font-bold text-[#212121] tracking-tight flex items-center min-w-0 gap-1">
+              <span className="truncate" title={getActiveCategoryTitle()}>
+                {getActiveCategoryTitle()}
+              </span>
+              <span className="text-[#999] font-normal text-[13px] sm:text-[15px] flex-shrink-0">
+                ({totalElements})
+              </span>
             </h1>
             {/* Mobile Filter Toggle Button */}
             <button
@@ -594,7 +655,11 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                                 <img
                                   src={item.image}
                                   alt={item.name}
-                                  className="w-full h-full object-contain scale-[1.75] -translate-x-[11px] sm:scale-[1.4] sm:-translate-x-5 sm:translate-y-0 sm:group-hover:scale-[1.5] transition-all duration-500"
+                                  className={
+                                    item.isParent
+                                      ? "w-full h-full object-contain scale-[1.75] -translate-x-[11px] sm:scale-[1.4] sm:-translate-x-5 sm:translate-y-0 sm:group-hover:scale-[1.5] transition-all duration-500"
+                                      : "w-full h-full object-contain p-2 sm:p-3 group-hover:scale-105 transition-all duration-500"
+                                  }
                                 />
                               ) : (
                                 <span className={`material-symbols-outlined !text-[24px] sm:!text-[32px] transition-colors ${isActive ? 'text-[#607afb]' : 'text-[#212121]'}`}>
@@ -655,6 +720,13 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
             </button>
           </div>
         </div>
+
+        {seoPage && seoPage.contentTop && (
+          <div
+            className="mb-6 p-4 sm:p-5 bg-gray-50 rounded-2xl border border-gray-100 prose max-w-none text-sm text-gray-700 dark:text-gray-300"
+            dangerouslySetInnerHTML={{ __html: seoPage.contentTop }}
+          />
+        )}
 
         {/* Mobile Filter Panel (slide-down) */}
         {isMobileFilterOpen && (
@@ -804,6 +876,20 @@ export default function ListingsContent({ initialFilters }: { initialFilters?: P
                   </div>
                 )}
               </>
+            )}
+
+            {seoPage && (seoPage.titleH2 || seoPage.contentBottom) && (
+              <div className="mt-12 pt-8 border-t border-gray-100 space-y-4">
+                {seoPage.titleH2 && (
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900">{seoPage.titleH2}</h2>
+                )}
+                {seoPage.contentBottom && (
+                  <div
+                    className="prose max-w-none text-sm text-gray-600 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: seoPage.contentBottom }}
+                  />
+                )}
+              </div>
             )}
           </div>
         </div>
