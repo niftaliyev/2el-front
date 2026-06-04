@@ -7,6 +7,8 @@ export interface SeoPageData {
   contentTop?: string;
   titleH2?: string;
   contentBottom?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   categoryId?: string;
   categoryName?: string;
 }

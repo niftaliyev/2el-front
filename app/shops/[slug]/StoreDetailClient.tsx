@@ -270,7 +270,7 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
               <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                 <div className="flex flex-col items-center md:items-start space-y-3">
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                    <h1 className="text-2xl md:text-5xl font-black text-gray-900 tracking-tight text-center md:text-left">
+                    <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight text-center md:text-left">
                       {store.storeName}
                     </h1>
                     <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-600 rounded-full shadow-lg shadow-blue-600/20">
@@ -487,7 +487,7 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
                 <div className="size-10 rounded-xl bg-orange-50 flex items-center justify-center">
                   <span className="material-symbols-outlined !text-xl text-orange-600 font-bold">description</span>
                 </div>
-                <h2 className="text-2xl font-black text-gray-900 tracking-tight">{t('storeDetail.aboutStore')}</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">{t('storeDetail.aboutStore')}</h2>
               </div>
               <p className="text-gray-600 leading-relaxed whitespace-pre-line text-lg font-medium">
                 {language === 'ru' && store.descriptionRu ? store.descriptionRu : store.description}
@@ -500,7 +500,7 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
                   <div className="size-10 rounded-xl bg-purple-50 flex items-center justify-center">
                     <span className="material-symbols-outlined !text-xl text-purple-600 font-bold">collections</span>
                   </div>
-                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">{t('storeDetail.gallery')}</h2>
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">{t('storeDetail.gallery')}</h2>
                 </div>
 
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
@@ -528,7 +528,7 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
             <div>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-6 border-b border-gray-100 overflow-visible">
                 <div className="space-y-1">
-                  <h2 className="text-3xl font-black text-gray-900 tracking-tight">{t('product.storeAds')}</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">{t('product.storeAds')}</h2>
                   <p className="text-sm text-gray-400 font-medium">{t('storeDetail.allAdsFound', { count: filteredAds.length })}</p>
                 </div>
 

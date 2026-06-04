@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const siteUrl = getSiteUrl();
   return {
     title: {
-      default: "2El.az - Azərbaycanın ən böyük elan saytı",
+      default: "2El.az - Azərbaycanın ən böyük elan saytı — Bakı, Azərbaycan",
       template: "%s | 2El.az",
     },
     description: "Asan, sürətli və etibarlı alış-verişin ünvanı. Nəqliyyat, daşınmaz əmlak, elektronika və daha çox.",
