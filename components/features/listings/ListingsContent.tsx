@@ -747,53 +747,125 @@ export default function ListingsContent({
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-8 gap-y-8 items-start mt-2 sm:mt-6">
           <aside className="lg:col-span-1 hidden lg:block sticky top-24 w-full pr-2 pb-8 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="mb-6">
-              <h3 className="text-[#212121] font-bold text-[15px] mb-3">{t('listings.allCategories')}</h3>
-              <ul className="space-y-[10px] pl-2">
-                {categoriesLoading ? (
-                  Array.from({ length: 8 }).map((_, i) => (
-                    <li key={i} className="animate-pulse flex items-center gap-2">
-                      <div className="h-4 w-3/4 bg-gray-100 rounded"></div>
-                    </li>
-                  ))
-                ) : (
-                  categories.map(c => {
-                    const isParentSelected = filters.categoryId === c.id;
-                    const children = (c as any).children || [];
-                    const hasSelectedChild = children.some((ch: any) =>
-                      filters.categoryId === ch.id ||
-                      ch.children?.some((sub: any) => filters.subCategoryId === sub.id)
-                    );
-
-                    return (
-                      <li key={c.id}>
-                        <Link href={`/elanlar/${c.slug}`} className={`text-[14px] hover:text-[#607afb] transition-colors ${isParentSelected ? 'text-[#607afb] font-bold' : 'text-[#4e4e4e]'}`}>
-                          {c.name}
-                        </Link>
-                        {(isParentSelected || hasSelectedChild) && children.length > 0 && (
-                          <ul className="mt-2 ml-4 space-y-2 border-l border-gray-100 pl-3">
-                            {children.map((child: any) => {
-                              const isChildSelected = filters.categoryId === child.id;
-                              const subCategories = child.children || [];
-                              const hasSelectedSub = subCategories.some((sub: any) => filters.subCategoryId === sub.id);
-
-                              return (
-                                <li key={child.id}>
-                                  <Link
-                                    href={`/elanlar/${c.slug}/${child.slug}`}
-                                    className={`text-[13px] hover:text-[#607afb] transition-colors ${(isChildSelected || hasSelectedSub) ? 'text-[#607afb] font-semibold' : 'text-gray-500'}`}
-                                  >
-                                    {child.name}
-                                  </Link>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        )}
+              {categoriesLoading ? (
+                <>
+                  <h3 className="text-[#212121] font-bold text-[15px] mb-3">{t('listings.allCategories')}</h3>
+                  <ul className="space-y-[10px] pl-2">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <li key={i} className="animate-pulse flex items-center gap-2">
+                        <div className="h-4 w-3/4 bg-gray-100 rounded"></div>
                       </li>
-                    );
-                  })
-                )}
-              </ul>
+                    ))}
+                  </ul>
+                </>
+              ) : (() => {
+                let activeLevel0: any = null;
+                let activeLevel1: any = null;
+                let activeLevel2: any = null;
+
+                // Find active category hierarchy
+                for (const cat of categories) {
+                  if (cat.id === filters.categoryId) {
+                    activeLevel0 = cat;
+                    break;
+                  }
+                  const childMatch = cat.children?.find((ch: any) => ch.id === filters.categoryId);
+                  if (childMatch) {
+                    activeLevel0 = cat;
+                    activeLevel1 = childMatch;
+                    break;
+                  }
+                  // Check if filters.subCategoryId is active under this category's children
+                  const childSubMatch = cat.children?.find((ch: any) => ch.id === filters.subCategoryId);
+                  if (childSubMatch) {
+                    activeLevel0 = cat;
+                    activeLevel1 = childSubMatch;
+                    break;
+                  }
+
+                  // Check level-2 grandchild categories
+                  for (const child of (cat.children || [])) {
+                    const gcMatch = child.children?.find((gc: any) => gc.id === filters.categoryId || gc.id === filters.subCategoryId);
+                    if (gcMatch) {
+                      activeLevel0 = cat;
+                      activeLevel1 = child;
+                      activeLevel2 = gcMatch;
+                      break;
+                    }
+                  }
+                  if (activeLevel0) break;
+                }
+
+                if (activeLevel0) {
+                  let backLinkText = t('listings.allCategories');
+                  let backLinkHref = '/elanlar';
+                  let headerText = activeLevel0.name;
+                  let itemsList = activeLevel0.children || [];
+                  let activeItemId = activeLevel1?.id || filters.categoryId || '';
+
+                  // If level-1 is selected and has children (level-2), zoom in to level-1 as parent
+                  if (activeLevel1 && activeLevel1.children && activeLevel1.children.length > 0) {
+                    backLinkText = activeLevel0.name;
+                    backLinkHref = `/elanlar/${activeLevel0.slug}`;
+                    headerText = activeLevel1.name;
+                    itemsList = activeLevel1.children;
+                    activeItemId = activeLevel2?.id || filters.categoryId || filters.subCategoryId || '';
+                  }
+
+                  return (
+                    <div>
+                      <Link
+                        href={backLinkHref}
+                        className="flex items-center gap-1 text-[13px] text-gray-500 hover:text-[#607afb] transition-colors mb-3 group/back"
+                      >
+                        <span className="material-symbols-outlined !text-[18px] transition-transform group-hover/back:-translate-x-0.5">
+                          chevron_left
+                        </span>
+                        <span>{backLinkText}</span>
+                      </Link>
+                      <div className="mb-2.5">
+                        <span className="text-[14.5px] text-[#212121] font-bold block mb-1">
+                          {headerText}
+                        </span>
+                      </div>
+                      <ul className="space-y-[10px] pl-3 border-l border-gray-100 ml-1.5">
+                        {itemsList.map((item: any) => {
+                          const isActive = item.id === activeItemId;
+                          return (
+                            <li key={item.id}>
+                              <Link
+                                href={`/elanlar/${item.parentSlug}/${item.slug}`}
+                                className={`text-[13.5px] hover:text-[#607afb] transition-colors block py-0.5 ${isActive ? 'text-[#607afb] font-semibold' : 'text-[#4e4e4e]'}`}
+                              >
+                                {item.name}
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  );
+                }
+
+                // If no category is selected, render all top-level categories
+                return (
+                  <div>
+                    <h3 className="text-[#212121] font-bold text-[15px] mb-3">{t('listings.allCategories')}</h3>
+                    <ul className="space-y-[10px] pl-2">
+                      {categories.map(c => {
+                        const isParentSelected = filters.categoryId === c.id;
+                        return (
+                          <li key={c.id}>
+                            <Link href={`/elanlar/${c.slug}`} className={`text-[14px] hover:text-[#607afb] transition-colors ${isParentSelected ? 'text-[#607afb] font-bold' : 'text-[#4e4e4e]'}`}>
+                              {c.name}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                );
+              })()}
             </div>
             <FilterPanel filters={filters} onFilterChange={handleFilterChange} categories={categories} />
           </aside>

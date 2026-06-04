@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import ShopsClientContent from './ShopsClientContent';
 
 export const metadata: Metadata = {
-  title: 'Mağazalar — Bakı, Azərbaycan | 2El.az',
+  title: 'Mağazalar — Bakı, Azərbaycan',
   description: 'Mağazalar Bakı, Azərbaycan. 2El.az elan portalında rəsmi mağazaların və dükanların siyahısı. Telefon mağazaları, geyim dükanları və digər kateqoriyalar.',
   openGraph: {
     title: 'Mağazalar — Bakı, Azərbaycan | 2El.az',

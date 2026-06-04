@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { Metadata } from 'next';
+import { permanentRedirect } from 'next/navigation';
 import ListingsContent from '@/components/features/listings/ListingsContent';
 import ProductDetailContent from '@/components/features/products/ProductDetailContent';
 import { adService } from '@/services/ad.service';
@@ -146,7 +147,17 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   if (productId) {
     try {
       const product = await adService.getAdById(productId);
-      const titleText = product.title;
+      
+      const priceText = `${product.price} AZN`;
+      const cityText = `${product.city || 'Bakı'}, Azərbaycan`;
+      const pinText = product.pinCode || product.id;
+      let browserTitle = '';
+      if (product.isStore && product.storeName) {
+        browserTitle = `${product.title}: ${priceText} - ${product.storeName} - Mağazalar — ${cityText} | ${pinText} — 2El.az`;
+      } else {
+        browserTitle = `${product.title}: ${priceText} — ${cityText} | ${pinText} — 2El.az`;
+      }
+
       const cleanDesc = product.description
         ? product.description.replace(/<[^>]*>/g, '').slice(0, 160)
         : `2El.az elan portalında ${product.title} sərfəli qiymətə alın və ya tez satın.`;
@@ -157,18 +168,24 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 
       return {
         title: {
-          absolute: titleText
+          absolute: browserTitle
         },
         description: cleanDesc,
         alternates: {
           canonical: `${siteUrl}/elanlar/${slug.join('/')}`,
         },
         openGraph: {
-          title: titleText,
+          title: product.title,
           description: cleanDesc,
           type: 'website',
           url: `${siteUrl}/elanlar/${slug.join('/')}`,
-          images: [{ url: imageUrl, alt: titleText }]
+          images: [{ url: imageUrl, alt: product.title }]
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: product.title,
+          description: cleanDesc,
+          images: [imageUrl]
         }
       };
     } catch (err) {
@@ -265,6 +282,10 @@ export default async function ElanlarDynamicPage({ params, searchParams }: PageP
   const siteUrl = getSiteUrl();
 
   const { productId, resolvedFilters, categoryName, subCategoryName, seoPage, categoryPath } = await resolveSlugPath(slug);
+
+  if (seoPage && slug.length > 0) {
+    permanentRedirect(`/${slug[0]}`);
+  }
 
   let initialProduct: AdDetail | null = null;
   if (productId) {

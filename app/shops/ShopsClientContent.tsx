@@ -108,7 +108,7 @@ export default function ShopsClientContent() {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('shops.title')}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">{t('shops.title')}</h1>
             <p className="text-gray-500 text-sm font-medium mt-1">{t('shops.subtitle')}</p>
           </div>
 

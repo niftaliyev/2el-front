@@ -6,7 +6,7 @@ export async function GET() {
     const pages = await seoService.getSitemapPages();
     const siteUrl = getSiteUrl();
     const sitemapRows = pages.map(page => {
-      const url = `${siteUrl}/elanlar/${page.slug}`;
+      const url = `${siteUrl}/${page.slug}`;
       const lastmod = new Date(page.lastModified).toISOString().split('T')[0];
 
       return `  <url>
