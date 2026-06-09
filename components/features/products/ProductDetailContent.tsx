@@ -15,6 +15,7 @@ import ProductGrid from '@/components/features/products/ProductGrid';
 import BannerAd from '@/components/features/ads/BannerAd';
 import { AdPosition } from '@/services/banner.service';
 import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
+import SpecialPromoteAdModal from '@/components/features/cabinet/SpecialPromoteAdModal';
 import ReportModal from '@/components/features/ReportModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -72,6 +73,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
     }
   };
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
+  const [isSpecialPromoteModalOpen, setIsSpecialPromoteModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isChangingFav, setIsChangingFav] = useState(false);
   const [lightboxSwiper, setLightboxSwiper] = useState<SwiperType | null>(null);
@@ -595,13 +597,22 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
                         <span>{t('product.updated')}: <span className="text-gray-900 font-semibold">{formatRelativeTime(product.createdDate)}</span></span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => setIsPromoteModalOpen(true)}
-                      className="flex items-center gap-2 px-6 py-2.5 bg-[#e8effd] hover:bg-[#d8e4f9] text-[#4a7ecb] rounded-xl transition-all font-semibold active:scale-[0.98]"
-                    >
-                      <span className="material-symbols-outlined !text-[20px]">monitoring</span>
-                      {t('product.advertise')}
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={() => setIsPromoteModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-2.5 bg-[#e8effd] hover:bg-[#d8e4f9] text-[#4a7ecb] rounded-xl transition-all font-semibold active:scale-[0.98] cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined !text-[20px]">monitoring</span>
+                        {t('product.advertise')}
+                      </button>
+                      <button
+                        onClick={() => setIsSpecialPromoteModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-2.5 bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#16a34a] rounded-xl transition-all font-semibold active:scale-[0.98] cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined !text-[20px]">campaign</span>
+                        {language === 'ru' ? 'Соц./Видео Реклама' : 'Sosial/Video Reklam'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -925,7 +936,10 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
         </div>
       )}
       {product && (
-        <PromoteAdModal isOpen={isPromoteModalOpen} onClose={() => setIsPromoteModalOpen(false)} adId={product.id} />
+        <>
+          <PromoteAdModal isOpen={isPromoteModalOpen} onClose={() => setIsPromoteModalOpen(false)} adId={product.id} />
+          <SpecialPromoteAdModal isOpen={isSpecialPromoteModalOpen} onClose={() => setIsSpecialPromoteModalOpen(false)} adId={product.id} />
+        </>
       )}
       <ReportModal
         isOpen={isReportModalOpen}

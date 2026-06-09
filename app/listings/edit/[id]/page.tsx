@@ -15,7 +15,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 // const SERVER_URL = 'http://84.247.184.186:5000';
 // const SERVER_URL = 'http://localhost:5156';
 // Local  Docker: 'http://localhost:5000'
-const SERVER_URL = 'http://84.247.184.186:5000';
+const SERVER_URL = 'http://localhost:5156';
 
 export default function EditListingPage() {
     const router = useRouter();
@@ -214,7 +214,12 @@ export default function EditListingPage() {
                         // We need to fetch fields from this category
                         const selectedChild = categories.find(c => c.id === ad.subCategoryId);
                         if (selectedChild?.categoryFields) {
-                            setCategoryFields(selectedChild.categoryFields);
+                            const sortedFields = [...selectedChild.categoryFields].sort((a, b) => {
+                                if (a.name === 'Elanın tipi') return -1;
+                                if (b.name === 'Elanın tipi') return 1;
+                                return 0;
+                            });
+                            setCategoryFields(sortedFields);
                         }
                         setSelectedCategory(selectedChild || null);
 
@@ -320,7 +325,12 @@ export default function EditListingPage() {
                     const cats = await adService.getCategories(formData.categoryId);
                     const selectedCat = cats.find(c => c.id === formData.subcategoryId);
                     if (selectedCat?.categoryFields && selectedCat.categoryFields.length > 0) {
-                        setCategoryFields(selectedCat.categoryFields);
+                        const sortedFields = [...selectedCat.categoryFields].sort((a, b) => {
+                            if (a.name === 'Elanın tipi') return -1;
+                            if (b.name === 'Elanın tipi') return 1;
+                            return 0;
+                        });
+                        setCategoryFields(sortedFields);
                     } else {
                         setCategoryFields([]);
                     }
@@ -681,14 +691,14 @@ export default function EditListingPage() {
                 <div className="mb-6">
                     <div className="flex flex-wrap gap-2">
                         <Link href={ROUTES.HOME} className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors">
-                            {t('common.home')}
+                            {t('nav.home')}
                         </Link>
                         <span className="text-gray-500 text-sm font-medium leading-normal">/</span>
                         <Link href="/cabinet" className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors">
-                            {t('cabinet.title')}
+                            {t('nav.cabinet')}
                         </Link>
                         <span className="text-gray-500 text-sm font-medium leading-normal">/</span>
-                        <span className="text-gray-900 text-sm font-medium leading-normal">{t('cabinet.listings.edit')}</span>
+                        <span className="text-gray-900 text-sm font-medium leading-normal">{t('createAd.editTitle')}</span>
                     </div>
                 </div>
 

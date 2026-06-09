@@ -16,10 +16,54 @@ import ProductCardSkeleton from '@/components/features/products/ProductCardSkele
 import { CATEGORIES } from '@/constants';
 
 export default function Home() {
-  const [premiumProducts, setPremiumProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>(CATEGORIES as any);
-  const [isLoading, setIsLoading] = useState(true);
   const { t, language } = useLanguage();
+  const [premiumProducts, setPremiumProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const getInitialCategories = () => {
+    const base = CATEGORIES.map(cat => ({
+      ...cat,
+      name: language === 'ru' && (cat as any).nameRu ? (cat as any).nameRu : cat.name
+    }));
+
+    const extras = [
+      {
+        id: 'telefonlar-init',
+        name: language === 'ru' ? 'Телефоны' : 'Telefonlar',
+        nameRu: 'Телефоны',
+        slug: 'elektronika/telefonlar',
+        icon: 'smartphone',
+        image: '/category-images/telefonlar_cat.png',
+        children: []
+      },
+      {
+        id: 'meiset-init',
+        name: language === 'ru' ? 'Бытовая техника' : 'Məişət texnikası',
+        nameRu: 'Бытовая техника',
+        slug: 'ev-ve-bag-ucun/meiset-texnikasi',
+        icon: 'local_laundry_service',
+        image: '/category-images/meiset_texnikasi_cat.png',
+        children: []
+      }
+    ];
+
+    const combined = [...base, ...extras];
+    combined.sort((a, b) => a.name.localeCompare(b.name, language === 'ru' ? 'ru' : 'az'));
+
+    combined.push({
+      id: 'magazalar-init',
+      name: language === 'ru' ? 'Магазины' : 'Mağazalar',
+      nameRu: 'Магазины',
+      slug: '/shops',
+      icon: 'store',
+      image: '/category-images/magazalar.png',
+      children: []
+    });
+
+    return combined;
+  };
+
+  const [categories, setCategories] = useState<Category[]>(() => getInitialCategories());
 
   useEffect(() => {
     const ICONS: Record<string, string> = {
@@ -52,12 +96,15 @@ export default function Home() {
           'Heyvanlar': '/category-images/heyvanlar_cat.png',
           'İş elanları': '/category-images/is_elanlari_cat.png',
           'Ehtiyat hissələri və aksesuarlar (avto)': '/category-images/ehtiyyat_hisseleri_ve_aksesuarlar_avto_cat.png',
-          'Məktəblilər üçün': '/category-images/mektebliler_ucun_cat.png'
+          'Məktəblilər üçün': '/category-images/mektebliler_ucun_cat.png',
+          'Telefonlar': '/category-images/telefonlar_cat.png',
+          'Məişət texnikası': '/category-images/meiset_texnikasi_cat.png',
+          'Mağazalar': '/category-images/magazalar.png'
         };
 
         const tree = await adService.getCategoryTree();
         if (tree && tree.length > 0) {
-          const dynamicCategories: Category[] = tree.map((cat: any) => ({
+          const parentCategories: Category[] = tree.map((cat: any) => ({
             id: cat.id,
             name: language === 'ru' && cat.nameRu ? cat.nameRu : cat.name,
             slug: generateSlug(cat.name),
@@ -68,7 +115,7 @@ export default function Home() {
               id: child.id,
               name: language === 'ru' && child.nameRu ? child.nameRu : child.name,
               slug: generateSlug(child.name),
-              image: getImageUrl(child.imageUrl),
+              image: LOCAL_IMAGES[child.name] || getImageUrl(child.imageUrl),
               subCategories: child.subCategories?.map((sc: any) => ({
                 id: sc.id,
                 name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
@@ -77,7 +124,54 @@ export default function Home() {
               })) || []
             })) || []
           }));
-          setCategories(dynamicCategories);
+
+          const extraCategories: Category[] = [];
+
+          // 1. Telefonlar under Elektronika
+          const electronics = tree.find((c: any) => c.name === 'Elektronika');
+          const phones = electronics?.children?.find((c: any) => c.name === 'Telefonlar');
+          if (electronics && phones) {
+            extraCategories.push({
+              id: phones.id,
+              name: language === 'ru' && phones.nameRu ? phones.nameRu : phones.name,
+              slug: `${generateSlug(electronics.name)}/${generateSlug(phones.name)}`,
+              icon: 'smartphone',
+              image: LOCAL_IMAGES['Telefonlar'],
+              description: '',
+              children: []
+            });
+          }
+
+          // 2. Məişət texnikası under Ev və bağ üçün
+          const evVeBag = tree.find((c: any) => c.name === 'Ev və bağ üçün');
+          const meiset = evVeBag?.children?.find((c: any) => c.name === 'Məişət texnikası');
+          if (evVeBag && meiset) {
+            extraCategories.push({
+              id: meiset.id,
+              name: language === 'ru' && meiset.nameRu ? meiset.nameRu : meiset.name,
+              slug: `${generateSlug(evVeBag.name)}/${generateSlug(meiset.name)}`,
+              icon: 'local_laundry_service',
+              image: LOCAL_IMAGES['Məişət texnikası'],
+              description: '',
+              children: []
+            });
+          }
+
+          const allCategories = [...parentCategories, ...extraCategories];
+          allCategories.sort((a, b) => a.name.localeCompare(b.name, language === 'ru' ? 'ru' : 'az'));
+
+          // Add Mağazalar at the end
+          allCategories.push({
+            id: 'magazalar',
+            name: language === 'ru' ? 'Магазины' : 'Mağazalar',
+            slug: '/shops',
+            icon: 'store',
+            image: LOCAL_IMAGES['Mağazalar'],
+            description: '',
+            children: []
+          });
+
+          setCategories(allCategories);
         }
       } catch (error) {
         console.error('Error fetching categories:', error);

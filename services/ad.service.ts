@@ -12,6 +12,9 @@ import {
   PackageItem,
   BusinessPackageDto,
   PaginatedResponse,
+  PromotionPackageDto,
+  PromotionRequestDto,
+  BuyPromotionDto,
 } from '@/types/api';
 
 // ── Ad Filters (matches backend AdFilter) ────────────────────────────────────
@@ -371,6 +374,23 @@ class AdService {
   async getCategoryUsage(categoryId: string): Promise<number> {
     const response = await axiosInstance.get<{ usage: number }>(`/ad/usage/${categoryId}`);
     return response.data.usage;
+  }
+
+  // ── Promotion Services ──────────────────────────────────────────────────
+
+  async getPromotionPackages(): Promise<PromotionPackageDto[]> {
+    const response = await axiosInstance.get<PromotionPackageDto[]>('/promotions/packages');
+    return response.data ?? [];
+  }
+
+  async buyPromotion(dto: BuyPromotionDto): Promise<{ message: string; requestId: string }> {
+    const response = await axiosInstance.post<{ message: string; requestId: string }>('/promotions/buy', dto);
+    return response.data;
+  }
+
+  async getMyPromotionRequests(): Promise<PromotionRequestDto[]> {
+    const response = await axiosInstance.get<PromotionRequestDto[]>('/promotions/my-requests');
+    return response.data ?? [];
   }
 }
 

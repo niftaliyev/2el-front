@@ -6,13 +6,59 @@ import ProductGrid from '@/components/features/products/ProductGrid';
 import { Category, Product } from '@/types';
 import { adService } from '@/services/ad.service';
 import { AdListItem } from '@/types/api';
-import { getImageUrl } from '@/lib/utils';
+import { getImageUrl, generateSlug } from '@/lib/utils';
 import { CATEGORIES } from '@/constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function HomeContent() {
+  const { language } = useLanguage();
   const [premiumProducts, setPremiumProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>(CATEGORIES as any);
   const [isLoading, setIsLoading] = useState(true);
+
+  const getInitialCategories = () => {
+    const base = CATEGORIES.map(cat => ({
+      ...cat,
+      name: language === 'ru' && (cat as any).nameRu ? (cat as any).nameRu : cat.name
+    }));
+
+    const extras = [
+      {
+        id: 'telefonlar-init',
+        name: language === 'ru' ? 'Телефоны' : 'Telefonlar',
+        nameRu: 'Телефоны',
+        slug: 'elektronika/telefonlar',
+        icon: 'smartphone',
+        image: '/category-images/telefonlar_cat.png',
+        children: []
+      },
+      {
+        id: 'meiset-init',
+        name: language === 'ru' ? 'Бытовая техника' : 'Məişət texnikası',
+        nameRu: 'Бытовая техника',
+        slug: 'ev-ve-bag-ucun/meiset-texnikasi',
+        icon: 'local_laundry_service',
+        image: '/category-images/meiset_texnikasi_cat.png',
+        children: []
+      }
+    ];
+
+    const combined = [...base, ...extras];
+    combined.sort((a, b) => a.name.localeCompare(b.name, language === 'ru' ? 'ru' : 'az'));
+
+    combined.push({
+      id: 'magazalar-init',
+      name: language === 'ru' ? 'Магазины' : 'Mağazalar',
+      nameRu: 'Магазины',
+      slug: '/shops',
+      icon: 'store',
+      image: '/category-images/magazalar.png',
+      children: []
+    });
+
+    return combined;
+  };
+
+  const [categories, setCategories] = useState<Category[]>(() => getInitialCategories());
 
   useEffect(() => {
     const ICONS: Record<string, string> = {
@@ -33,35 +79,101 @@ export default function HomeContent() {
 
     const fetchCategories = async () => {
       try {
+        const LOCAL_IMAGES: Record<string, string> = {
+          'Elektronika': '/category-images/elektronika_cat.png',
+          'Nəqliyyat': '/category-images/neqliyyat_cat.png',
+          'Ev və bağ üçün': '/category-images/ev_ve_bag_ucun_cat.png',
+          'Daşınmaz əmlak': '/category-images/dasinmaz_emlak_cat.png',
+          'Xidmətlər və biznes': '/category-images/xidmetler_ve_biznes_cat.png',
+          'Şəxsi əşyalar': '/category-images/sexsi_esyalar_cat.png',
+          'Hobbi və asudə': '/category-images/hobbi_ve_asude_cat.png',
+          'Uşaq aləmi': '/category-images/usaq_alemi_cat.png',
+          'Heyvanlar': '/category-images/heyvanlar_cat.png',
+          'İş elanları': '/category-images/is_elanlari_cat.png',
+          'Ehtiyat hissələri və aksesuarlar (avto)': '/category-images/ehtiyyat_hisseleri_ve_aksesuarlar_avto_cat.png',
+          'Məktəblilər üçün': '/category-images/mektebliler_ucun_cat.png',
+          'Telefonlar': '/category-images/telefonlar_cat.png',
+          'Məişət texnikası': '/category-images/meiset_texnikasi_cat.png',
+          'Mağazalar': '/category-images/magazalar.png'
+        };
+
         const tree = await adService.getCategoryTree();
         if (tree && tree.length > 0) {
-          const dynamicCategories: Category[] = tree.map((cat: any) => ({
+          const parentCategories: Category[] = tree.map((cat: any) => ({
             id: cat.id,
-            name: cat.name,
-            slug: cat.name.toLowerCase().replace(/[^a-z0-9_]+/g, '-'),
+            name: language === 'ru' && cat.nameRu ? cat.nameRu : cat.name,
+            slug: generateSlug(cat.name),
             icon: ICONS[cat.name] || 'category',
-            image: cat.imageUrl,
+            image: LOCAL_IMAGES[cat.name] || getImageUrl(cat.imageUrl),
             description: '',
             children: cat.children?.map((child: any) => ({
               id: child.id,
-              name: child.name,
-              slug: child.name.toLowerCase().replace(/[^a-z0-9_]+/g, '-'),
-              image: child.imageUrl,
+              name: language === 'ru' && child.nameRu ? child.nameRu : child.name,
+              slug: generateSlug(child.name),
+              image: LOCAL_IMAGES[child.name] || getImageUrl(child.imageUrl),
               subCategories: child.subCategories?.map((sc: any) => ({
                 id: sc.id,
-                name: sc.name,
-                image: sc.imageUrl
+                name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
+                slug: generateSlug(sc.name),
+                image: getImageUrl(sc.imageUrl)
               })) || []
             })) || []
           }));
-          setCategories(dynamicCategories);
+
+          const extraCategories: Category[] = [];
+
+          // 1. Telefonlar under Elektronika
+          const electronics = tree.find((c: any) => c.name === 'Elektronika');
+          const phones = electronics?.children?.find((c: any) => c.name === 'Telefonlar');
+          if (electronics && phones) {
+            extraCategories.push({
+              id: phones.id,
+              name: language === 'ru' && phones.nameRu ? phones.nameRu : phones.name,
+              slug: `${generateSlug(electronics.name)}/${generateSlug(phones.name)}`,
+              icon: 'smartphone',
+              image: LOCAL_IMAGES['Telefonlar'],
+              description: '',
+              children: []
+            });
+          }
+
+          // 2. Məişət texnikası under Ev və bağ üçün
+          const evVeBag = tree.find((c: any) => c.name === 'Ev və bağ üçün');
+          const meiset = evVeBag?.children?.find((c: any) => c.name === 'Məişət texnikası');
+          if (evVeBag && meiset) {
+            extraCategories.push({
+              id: meiset.id,
+              name: language === 'ru' && meiset.nameRu ? meiset.nameRu : meiset.name,
+              slug: `${generateSlug(evVeBag.name)}/${generateSlug(meiset.name)}`,
+              icon: 'local_laundry_service',
+              image: LOCAL_IMAGES['Məişət texnikası'],
+              description: '',
+              children: []
+            });
+          }
+
+          const allCategories = [...parentCategories, ...extraCategories];
+          allCategories.sort((a, b) => a.name.localeCompare(b.name, language === 'ru' ? 'ru' : 'az'));
+
+          // Add Mağazalar at the end
+          allCategories.push({
+            id: 'magazalar',
+            name: language === 'ru' ? 'Магазины' : 'Mağazalar',
+            slug: '/shops',
+            icon: 'store',
+            image: LOCAL_IMAGES['Mağazalar'],
+            description: '',
+            children: []
+          });
+
+          setCategories(allCategories);
         }
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
     };
     fetchCategories();
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     const fetchPremiumAds = async () => {

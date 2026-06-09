@@ -30,6 +30,7 @@ interface Listing {
 interface UserListingCardProps {
   listing: Listing;
   onPromote: (id: string) => void;
+  onSpecialPromote: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onReactivate?: (id: string) => void;
@@ -38,6 +39,7 @@ interface UserListingCardProps {
 export default function UserListingCard({
   listing,
   onPromote,
+  onSpecialPromote,
   onEdit,
   onDelete,
   onReactivate
@@ -156,13 +158,22 @@ export default function UserListingCard({
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mt-3 pt-3 border-t border-gray-100">
           <div className="flex-1">
             {listing.status === 'active' && (
-              <button
-                onClick={() => onPromote(listing.id)}
-                className="w-full h-8 sm:h-9 rounded-lg sm:rounded-xl bg-primary text-white font-bold uppercase tracking-tight text-[9px] sm:text-[11px] hover:bg-primary/90 transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 group/rocket cursor-pointer"
-              >
-                <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">rocket_launch</span>
-                <span className="truncate text-center">{t('listings.promote')}</span>
-              </button>
+              <div className="grid grid-cols-2 gap-2 w-full">
+                <button
+                  onClick={() => onPromote(listing.id)}
+                  className="h-8 sm:h-9 rounded-lg sm:rounded-xl bg-primary text-white font-bold uppercase tracking-tight text-[9px] sm:text-[11px] hover:bg-primary/90 transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 group/rocket cursor-pointer"
+                >
+                  <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">rocket_launch</span>
+                  <span className="truncate text-center">{t('listings.promote')}</span>
+                </button>
+                <button
+                  onClick={() => onSpecialPromote(listing.id)}
+                  className="h-8 sm:h-9 rounded-lg sm:rounded-xl bg-emerald-600 text-white font-bold uppercase tracking-tight text-[9px] sm:text-[11px] hover:bg-emerald-700 transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 group/campaign cursor-pointer"
+                >
+                  <span className="material-symbols-outlined !text-[14px] sm:!text-[16px] group-hover:scale-105 transition-transform">campaign</span>
+                  <span className="truncate text-center">{language === 'ru' ? 'Соц./Видео' : 'Sosial/Video'}</span>
+                </button>
+              </div>
             )}
 
             {listing.status === 'inactive' && onReactivate && (

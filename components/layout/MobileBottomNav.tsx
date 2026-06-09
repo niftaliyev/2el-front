@@ -11,6 +11,8 @@ import { useState, useEffect } from 'react';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
+  const isShops = pathname === '/shops' || pathname.startsWith('/shops/');
+  if (isShops) return null;
   const { isAuthenticated } = useAuth();
   const isVisible = useScrollDirection();
   const { t } = useLanguage();

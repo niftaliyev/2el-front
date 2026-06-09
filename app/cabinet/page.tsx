@@ -6,6 +6,7 @@ import Link from 'next/link';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import UserListingCard from '@/components/features/cabinet/UserListingCard';
 import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
+import SpecialPromoteAdModal from '@/components/features/cabinet/SpecialPromoteAdModal';
 import { adService } from '@/services/ad.service';
 import { accountService } from '@/services/account.service';
 import { AdListItem } from '@/types/api';
@@ -42,6 +43,7 @@ export default function CabinetPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [promoteAdId, setPromoteAdId] = useState<string | null>(null);
+  const [specialPromoteAdId, setSpecialPromoteAdId] = useState<string | null>(null);
   const [counts, setCounts] = useState({
     active: 0,
     pending: 0,
@@ -299,6 +301,7 @@ export default function CabinetPage() {
                           key={listing.id}
                           listing={listing}
                           onPromote={handlePromote}
+                          onSpecialPromote={(id) => setSpecialPromoteAdId(id)}
                           onEdit={handleEdit}
                           onDelete={(id) => setDeleteAdId(id)}
                           onReactivate={handleReactivate}
@@ -420,6 +423,12 @@ export default function CabinetPage() {
         isOpen={!!promoteAdId}
         onClose={() => setPromoteAdId(null)}
         adId={promoteAdId || ''}
+      />
+
+      <SpecialPromoteAdModal
+        isOpen={!!specialPromoteAdId}
+        onClose={() => setSpecialPromoteAdId(null)}
+        adId={specialPromoteAdId || ''}
       />
 
       <ConfirmDialog
