@@ -247,6 +247,9 @@ export interface StoreListItem {
   cityName?: string;
   cityNameRu?: string;
   contactNumber?: string;
+  contactNumber2?: string;
+  contactNumber3?: string;
+  createdDate?: string;
   categories: string[];
   categoriesRu: string[];
 }
@@ -409,3 +412,42 @@ export interface ReportReasonLookup {
   value: number;
   name: string;
 }
+
+// ================================
+// PROMOTION TYPES
+// ================================
+
+export interface PromotionPackageDto {
+  id: string;
+  name: string;
+  nameRu?: string;
+  price: number;
+  type: string; // "SocialMedia" | "VideoProduction"
+  description: string;
+  descriptionRu?: string;
+}
+
+export interface PromotionRequestDto {
+  id: string;
+  adId: string;
+  adTitle: string;
+  adPinCode: number;
+  userId: string;
+  userName: string;
+  promotionPackageId: string;
+  promotionPackageName: string;
+  promotionPackageNameRu?: string;
+  price: number;
+  status: string; // "Pending" | "Processing" | "Completed" | "Cancelled"
+  phoneNumber: string;
+  rejectReason?: string;
+  adminNotes?: string;
+  createdDate: string;
+}
+
+export interface BuyPromotionDto {
+  adId: string;
+  promotionPackageId: string;
+  phoneNumber?: string;
+}
+

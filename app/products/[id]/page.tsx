@@ -14,6 +14,7 @@ import { Product } from '@/types';
 import { ROUTES } from '@/constants';
 import ProductGrid from '@/components/features/products/ProductGrid';
 import PromoteAdModal from '@/components/features/cabinet/PromoteAdModal';
+import SpecialPromoteAdModal from '@/components/features/cabinet/SpecialPromoteAdModal';
 import ReportModal from '@/components/features/ReportModal';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -37,6 +38,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
+  const [isSpecialPromoteModalOpen, setIsSpecialPromoteModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -187,7 +189,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               {/* Breadcrumb */}
               <div>
                 <div className="flex flex-wrap gap-1.5 items-center">
-                  <Link className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/">{t('common.home')}</Link>
+                  <Link className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/">{t('nav.home')}</Link>
                   <span className="text-gray-400 text-sm font-medium leading-normal">/</span>
                   <Link
                     className="text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors"
@@ -438,13 +440,22 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                           <span>{t('product.updated')}: <span className="text-gray-900 font-semibold">{formatRelativeTime(product.createdDate)}</span></span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => setIsPromoteModalOpen(true)}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-[#e8effd] hover:bg-[#d8e4f9] text-[#4a7ecb] rounded-xl transition-all font-semibold active:scale-[0.98]"
-                      >
-                        <span className="material-symbols-outlined !text-[20px]">monitoring</span>
-                        {t('product.advertise')}
-                      </button>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <button
+                          onClick={() => setIsPromoteModalOpen(true)}
+                          className="flex items-center gap-2 px-6 py-2.5 bg-[#e8effd] hover:bg-[#d8e4f9] text-[#4a7ecb] rounded-xl transition-all font-semibold active:scale-[0.98] cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined !text-[20px]">monitoring</span>
+                          {t('product.advertise')}
+                        </button>
+                        <button
+                          onClick={() => setIsSpecialPromoteModalOpen(true)}
+                          className="flex items-center gap-2 px-6 py-2.5 bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#16a34a] rounded-xl transition-all font-semibold active:scale-[0.98] cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined !text-[20px]">campaign</span>
+                          {language === 'ru' ? 'Соц./Видео Реклама' : 'Sosial/Video Reklam'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -723,6 +734,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       <PromoteAdModal
         isOpen={isPromoteModalOpen}
         onClose={() => setIsPromoteModalOpen(false)}
+        adId={product.id}
+      />
+
+      <SpecialPromoteAdModal
+        isOpen={isSpecialPromoteModalOpen}
+        onClose={() => setIsSpecialPromoteModalOpen(false)}
         adId={product.id}
       />
 

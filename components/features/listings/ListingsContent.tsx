@@ -233,7 +233,10 @@ export default function ListingsContent({
             'Heyvanlar': '/category-images/heyvanlar_cat.png',
             'İş elanları': '/category-images/is_elanlari_cat.png',
             'Ehtiyat hissələri və aksesuarlar (avto)': '/category-images/ehtiyyat_hisseleri_ve_aksesuarlar_avto_cat.png',
-            'Məktəblilər üçün': '/category-images/mektebliler_ucun_cat.png'
+            'Məktəblilər üçün': '/category-images/mektebliler_ucun_cat.png',
+            'Telefonlar': '/category-images/telefonlar_cat.png',
+            'Məişət texnikası': '/category-images/meiset_texnikasi_cat.png',
+            'Mağazalar': '/category-images/magazalar.png'
           };
 
           const mapped = tree.map((cat: any) => ({
@@ -255,7 +258,7 @@ export default function ListingsContent({
               id: child.id,
               name: language === 'ru' && child.nameRu ? child.nameRu : child.name,
               slug: generateSlug(child.name),
-              image: getImageUrl(child.imageUrl),
+              image: LOCAL_IMAGES[child.name] || getImageUrl(child.imageUrl),
               parentId: cat.id,
               parentSlug: generateSlug(cat.name),
               isParent: false,

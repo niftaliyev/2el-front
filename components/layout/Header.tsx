@@ -26,6 +26,7 @@ export default function Header() {
 
   const isHome = pathname === '/';
   const isCabinet = pathname.startsWith('/cabinet');
+  const isShops = pathname === '/shops' || pathname.startsWith('/shops/');
 
   // Detect if we are on Ad Detail or Store Detail page
   const lastSegment = pathname.split('/').pop() || '';
@@ -102,7 +103,7 @@ export default function Header() {
 
   return (
     <>
-      <header className={`w-full bg-white border-b border-solid border-gray-200 sticky top-0 z-[100] transition-transform duration-300 ease-in-out md:transform-none ${isVisible || isCatalogOpen ? 'transform-none' : '-translate-y-full'} ${isCabinet ? 'hidden md:block' : ''}`}>
+      <header className={`w-full bg-white border-b border-solid border-gray-200 sticky top-0 z-[100] transition-transform duration-300 ease-in-out md:transform-none ${isVisible || isCatalogOpen ? 'transform-none' : '-translate-y-full'} ${isCabinet || isShops ? 'hidden md:block' : ''}`}>
         {/* ─── Main Row ─── */}
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 gap-3">
 

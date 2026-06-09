@@ -222,7 +222,12 @@ export default function CreateListingPage() {
           if (selectedCat) {
             setSelectedCategory(selectedCat);
             if (selectedCat.categoryFields && selectedCat.categoryFields.length > 0) {
-              setCategoryFields(selectedCat.categoryFields);
+              const sortedFields = [...selectedCat.categoryFields].sort((a, b) => {
+                if (a.name === 'Elanın tipi') return -1;
+                if (b.name === 'Elanın tipi') return 1;
+                return 0;
+              });
+              setCategoryFields(sortedFields);
             } else {
               setCategoryFields([]);
             }

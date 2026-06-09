@@ -29,6 +29,7 @@ export interface Category {
   isParent?: boolean;
   children?: Category[];
   productCount?: number;
+  description?: string;
 }
 
 export interface Store {
