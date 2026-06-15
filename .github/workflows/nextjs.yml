@@ -20,7 +20,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: "."
           target: "/root/2el-front"
-          overwrite: true
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -35,19 +34,21 @@ jobs:
 
             cd /root/2el-front
 
-            echo "Checking files..."
-            ls -la
+            echo "Stopping old container..."
 
-            echo "Checking docker-compose file..."
-            test -f docker-compose.yml || (echo "ERROR: docker-compose.yml NOT FOUND" && exit 1)
+            docker stop next-app || true
+            docker rm next-app || true
 
-            echo "Docker compose check..."
-            docker compose version
+            echo "Building image..."
 
-            echo "Stopping containers..."
-            docker compose down || true
+            docker build -t next-app .
 
-            echo "Building docker..."
-            docker compose up -d --build
+            echo "Running container..."
+
+            docker run -d \
+              --name next-app \
+              -p 3000:3000 \
+              --restart unless-stopped \
+              next-app
 
             echo "Done!"
