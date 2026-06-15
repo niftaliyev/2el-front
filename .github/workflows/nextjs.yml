@@ -12,6 +12,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Copy project to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "."
+          target: "/root/2el-front"
+          overwrite: true
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -23,27 +33,21 @@ jobs:
 
             export PATH=/usr/local/bin:/usr/bin:/bin:$PATH
 
-            echo "Checking project directory..."
-
-            if [ ! -d /root/2el-front/.git ]; then
-              echo "Cloning repo..."
-              rm -rf /root/2el-front
-              git clone https://github.com/YOUR_USERNAME/2el-front.git /root/2el-front
-            else
-              echo "Pulling latest changes..."
-              cd /root/2el-front
-              git pull
-            fi
-
             cd /root/2el-front
 
-            echo "Checking compose..."
+            echo "Checking files..."
+            ls -la
+
+            echo "Checking docker-compose file..."
+            test -f docker-compose.yml || (echo "ERROR: docker-compose.yml NOT FOUND" && exit 1)
+
+            echo "Docker compose check..."
             docker compose version
 
             echo "Stopping containers..."
             docker compose down || true
 
-            echo "Building containers..."
+            echo "Building docker..."
             docker compose up -d --build
 
             echo "Done!"
