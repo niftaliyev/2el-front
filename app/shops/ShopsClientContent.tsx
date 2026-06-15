@@ -298,7 +298,7 @@ export default function ShopsClientContent() {
               placeholder={language === 'ru' ? 'Поиск магазина...' : 'Mağaza axtarışı'}
               value={searchQuery}
               onChange={handleSearchChange}
-              className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-150 bg-white text-sm font-semibold focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all outline-none"
+              className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-sm font-semibold focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all outline-none"
             />
           </div>
 
@@ -314,7 +314,7 @@ export default function ShopsClientContent() {
                 }}
                 className={`w-full h-11 px-4 rounded-xl border text-sm font-bold text-gray-700 flex items-center justify-between transition-all cursor-pointer ${isCategoryDropdownOpen
                   ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                  : 'border-gray-150 bg-white hover:bg-gray-50 hover:border-gray-300'
+                  : 'border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300'
                   }`}
                 disabled={isLoading}
               >
@@ -403,7 +403,7 @@ export default function ShopsClientContent() {
                 }}
                 className={`w-full h-11 px-4 rounded-xl border text-sm font-bold text-gray-700 flex items-center justify-between transition-all cursor-pointer ${isCityDropdownOpen
                   ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                  : 'border-gray-150 bg-white hover:bg-gray-50 hover:border-gray-300'
+                  : 'border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300'
                   }`}
                 disabled={isLoading}
               >
@@ -460,7 +460,7 @@ export default function ShopsClientContent() {
               }}
               className={`w-full h-11 px-4 rounded-xl border text-sm font-bold text-gray-700 flex items-center justify-between transition-all cursor-pointer ${isSortDropdownOpen
                 ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                : 'border-gray-150 bg-white hover:bg-gray-50 hover:border-gray-300'
+                : 'border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300'
                 }`}
               disabled={isLoading}
             >
@@ -531,7 +531,7 @@ export default function ShopsClientContent() {
               const hasMultiplePhones = phoneNumbers.length > 1;
               return (
                 /* Compact Grid Card (tap.az style) */
-                <div key={store.id} className="bg-white rounded-2xl border border-gray-150 hover:border-primary/20 hover:shadow-md transition-all duration-300 p-4 flex flex-col justify-between h-full group relative overflow-visible">
+                <div key={store.id} className="bg-white rounded-2xl border border-gray-200 hover:border-primary/20 hover:shadow-md transition-all duration-300 p-4 flex flex-col justify-between h-full group relative overflow-visible">
                   <Link href={`/shops/${store.slug || store.id}`} className="flex flex-col flex-1">
                     <div className="flex items-start gap-3">
                       {/* Logo Container */}
@@ -612,7 +612,7 @@ export default function ShopsClientContent() {
                         </button>
 
                         {hasMultiplePhones && activePhoneDropdownStoreId === store.id && (
-                          <div className="absolute top-[calc(100%+6px)] right-0 z-[100] w-52 sm:w-56 bg-white rounded-2xl border border-gray-150 shadow-[0_15px_35px_rgba(0,0,0,0.12)] p-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                          <div className="absolute top-[calc(100%+6px)] right-0 z-[100] w-52 sm:w-56 bg-white rounded-2xl border border-gray-200 shadow-[0_15px_35px_rgba(0,0,0,0.12)] p-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
                             {phoneNumbers.map((num, idx) => (
                               <a
                                 key={idx}
@@ -684,7 +684,7 @@ export default function ShopsClientContent() {
 
         {/* No Results */}
         {!isLoading && filteredStores.length === 0 && (
-          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-150">
+          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
             <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-gray-300 !text-3xl">storefront</span>
             </div>

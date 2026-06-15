@@ -86,6 +86,21 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Top gradient for heart contrast */}
         <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/30 to-transparent pointer-events-none z-10 opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
 
+        {/* Promotion Badges */}
+        <div className="absolute top-2 left-2 flex items-center gap-1 sm:gap-1.5 z-20">
+          {product.isBoosted && (
+            <span className="material-symbols-outlined !text-[18px] sm:!text-[20px] text-green-500 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] shrink-0" title="Boosted">
+              rocket_launch
+            </span>
+          )}
+          {product.isPremium && (
+            <PremiumIcon size={22} className="shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" title="Premium" />
+          )}
+          {product.isFeatured && (
+            <VipIcon size={20} className="shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" title="VIP" />
+          )}
+        </div>
+
         {/* Favorite Button */}
         <button
           className={`absolute top-2 right-2 z-20 transition-all duration-300 hover:scale-110 focus:outline-none ${
@@ -163,17 +178,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-gray-400 font-normal">{mounted ? formatRelativeTime(product.createdAt) : '\u00A0'}</span>
-            <div className="flex items-center gap-1">
-              {product.isBoosted && (
-                <span className="material-symbols-outlined !text-[15px] text-green-600" title="Boosted">rocket_launch</span>
-              )}
-              {product.isPremium && (
-                <PremiumIcon size={18} title="Premium" className="shrink-0" />
-              )}
-              {product.isFeatured && (
-                <VipIcon size={16} title="VIP" className="shrink-0" />
-              )}
-            </div>
           </div>
         </div>
       </div>

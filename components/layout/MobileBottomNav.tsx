@@ -11,12 +11,16 @@ import { useState, useEffect } from 'react';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const isShops = pathname === '/shops' || pathname.startsWith('/shops/');
-  if (isShops) return null;
   const { isAuthenticated } = useAuth();
   const isVisible = useScrollDirection();
   const { t } = useLanguage();
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+
+  const isShops = pathname === '/shops' || pathname.startsWith('/shops/');
+  const lastSegment = pathname.split('/').pop() || '';
+  const isAdDetail = 
+    (pathname.includes('/elanlar/') && (/(?:^|-)[0-9]{5,}$/.test(lastSegment) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lastSegment))) || 
+    pathname.startsWith('/products/');
 
   const NAV_ITEMS = [
     { key: 'home', icon: 'home', labelKey: 'nav.home', authDest: ROUTES.HOME },
@@ -79,6 +83,7 @@ export default function MobileBottomNav() {
     };
   }, [isAuthenticated, pathname]);
 
+  if (isShops || isAdDetail) return null;
 
   return (
     <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : 'translate-y-[150%]'}`}

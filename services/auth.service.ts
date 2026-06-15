@@ -76,6 +76,16 @@ class AuthService {
     await axiosInstance.post('/auth/change-password', data);
   }
 
+  /** Request password reset email */
+  async forgotPassword(email: string): Promise<void> {
+    await axiosInstance.post('/auth/forgot-password', { email });
+  }
+
+  /** Reset password with token */
+  async resetPassword(data: any): Promise<void> {
+    await axiosInstance.post('/auth/reset-password', data);
+  }
+
   /** Check if authenticated */
   isAuthenticated(): boolean {
     return !!this.getAccessToken();

@@ -47,7 +47,7 @@ class ChatService {
   private startPromise: Promise<void> | null = null;
   private baseUrl = process.env.NEXT_PUBLIC_API_URL
     ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
-    : 'http://84.247.184.186:5000';
+    : 'http://13.140.173.54:5000';
 
   // Store handlers to re-attach on reconnect/new connection - multiple handlers per method
   private handlers: Map<string, Set<(...args: any[]) => void>> = new Map();

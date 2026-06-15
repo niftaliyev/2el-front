@@ -233,7 +233,17 @@
     "passwordsNotMatch": "Şifrələr uyğun gəlmir",
     "emailInvalid": "Düzgün e-poçt ünvanı daxil edin",
     "errorOccurred": "Xəta baş verdi:",
-    "loginRequired": "Zəhmət olmasa, əvvəlcə sayta daxil olun."
+    "loginRequired": "Zəhmət olmasa, əvvəlcə sayta daxil olun.",
+    "forgotPasswordTitle": "Şifrəni unutmusunuz?",
+    "forgotPasswordSubtitle": "E-poçt ünvanınızı daxil edin və biz sizə şifrəni sıfırlamaq üçün link göndərəcəyik.",
+    "sendResetLink": "Sıfırlama linkini göndər",
+    "backToLogin": "Giriş səhifəsinə qayıt",
+    "resetPasswordTitle": "Yeni şifrə təyin edin",
+    "resetPasswordSubtitle": "Hesabınız üçün yeni şifrə daxil edin.",
+    "resetPasswordButton": "Şifrəni sıfırla",
+    "resetLinkSent": "Şifrəni sıfırlama linki e-poçtunuza göndərildi. Zəhmət olmasa e-poçt qutunuzu yoxlayın.",
+    "passwordResetSuccess": "Şifrəniz uğurla yeniləndi. İndi daxil ola bilərsiniz.",
+    "passwordResetError": "Şifrə sıfırlanarkən xəta baş verdi. Link köhnəlmiş və ya yanlış ola bilər."
   },
   "product": {
     "today": "Bugün",
@@ -354,6 +364,7 @@
     "login": "Daxil ol",
     "loginRegister": "Daxil ol / Qeydiyyat",
     "logout": "Çıxış",
+    "logoutSuccess": "Uğurla çıxış edildi",
     "userNameFallback": "İstifadəçi Adı",
     "guest": "Qonaq",
     "notLoggedIn": "Giriş etməmisiniz",
@@ -745,6 +756,9 @@
     "currentUsage": "Mövcud istifadə: {{used}} / {{limit}} (son 30 gündə)",
     "priceLabel": "Qiymət",
     "viewAllLimits": "Bütün limitlərə bax",
+    "storeCategoryBP": "Mağaza Kateqoriyası (Biznes Paket)",
+    "storeBPAdLimit": "Biznes paket elan limiti: {{count}} elan qalıb (Ödənişsiz)",
+    "storeBPAdLimitExceeded": "Mağaza kateqoriyasıdır, lakin biznes paket limitiniz bitib.",
     "adTitle": "Elanın başlığı",
     "titlePlaceholder": "Məsələn: iPhone 13 Pro Max 256GB",
     "description": "Təsvir",
@@ -804,7 +818,13 @@
       "category": "KATEQORİYA",
       "limit": "LİMİT",
       "price": "QİYMƏT"
-    }
+    },
+    "buyPackageConfirmTitle": "Paket Alışı",
+    "buyPackageConfirmDesc": "{{category}} kateqoriyası üzrə {{size}} ədədlik elan paketi almaq istəyirsiniz? Qiymət: {{price}} AZN. Müvafiq məbləğ balansınızdan çıxılacaq.",
+    "buyPackageSuccess": "Elan paketi uğurla alındı!",
+    "buyPackageError": "Paket alınarkən xəta baş verdi",
+    "categoryPackageLimit": "Paket limiti",
+    "categoryPackageLimitDesc": "Kateqoriya paketi üzrə qalan elan sayısı"
   },
   "paidServices": {
     "boost": {

@@ -30,6 +30,10 @@ export interface AdPlacementLimit {
   paidCount: number;
   nextFreeAt?: string;
   paidPrice: number;
+  categoryPackageLimitRemaining: number;
+  isStoreCategory?: boolean;
+  storeAdLimitRemaining?: number;
+  hasActiveBusinessPackage?: boolean;
 }
 
 export interface Invoice {
@@ -66,6 +70,11 @@ class AccountService {
 
   async getPlacementLimits(): Promise<AdPlacementLimit[]> {
     const response = await axiosInstance.get<AdPlacementLimit[]>('/account/placement-limits');
+    return response.data;
+  }
+
+  async buyCategoryPackage(categoryId: string, packageSize: number): Promise<{ message: string }> {
+    const response = await axiosInstance.post<{ message: string }>('/account/buy-category-package', { categoryId, packageSize });
     return response.data;
   }
 

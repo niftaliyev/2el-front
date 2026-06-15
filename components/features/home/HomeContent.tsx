@@ -43,7 +43,7 @@ export default function HomeContent() {
     ];
 
     const combined = [...base, ...extras];
-    combined.sort((a, b) => a.name.localeCompare(b.name, language === 'ru' ? 'ru' : 'az'));
+    combined.sort((a, b) => (a.name > b.name ? 1 : a.name < b.name ? -1 : 0));
 
     combined.push({
       id: 'magazalar-init',
@@ -232,6 +232,151 @@ export default function HomeContent() {
           </aside>
 
           <div className="flex-1 min-w-0">
+            {process.env.NODE_ENV === 'development' && (
+              <div className="p-4 bg-white rounded-2xl border border-gray-200/80 shadow-sm mb-6 flex flex-wrap gap-2 items-center">
+                <span className="text-xs font-bold text-gray-500 uppercase mr-2">Dizayn Test Paneli:</span>
+                <button
+                  onClick={() => {
+                    const { toast } = require('sonner');
+                    const NotificationToast = require('@/components/layout/NotificationToast').default;
+                    const { NotificationType } = require('@/services/notification.service');
+                    const newNotif = {
+                      id: 'test-msg',
+                      title: 'Zeynal Zeynalov',
+                      text: 'Salam, yeni elan barədə məlumat ala bilərəm? Bu çox maraqlı gəlir.',
+                      link: '/cabinet/messages?chatId=123',
+                      type: NotificationType.Message,
+                      createdDate: new Date().toISOString()
+                    };
+                    toast.custom((t: string | number) => (
+                      <NotificationToast
+                        notification={newNotif}
+                        toastId={t}
+                        onActionClick={() => {
+                          toast.dismiss(t);
+                          alert('Ətraflı keçidi: ' + newNotif.link);
+                        }}
+                      />
+                    ));
+                  }}
+                  className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
+                >
+                  Mesaj (Göy)
+                </button>
+                <button
+                  onClick={() => {
+                    const { toast } = require('sonner');
+                    const NotificationToast = require('@/components/layout/NotificationToast').default;
+                    const { NotificationType } = require('@/services/notification.service');
+                    const newNotif = {
+                      id: 'test-confirm',
+                      title: 'Sifariş Təsdiqləndi',
+                      text: 'Elanınız uğurla yerləşdirildi və yoxlamadan keçdi.',
+                      link: '/cabinet/listings',
+                      type: NotificationType.Confirm,
+                      createdDate: new Date().toISOString()
+                    };
+                    toast.custom((t: string | number) => (
+                      <NotificationToast
+                        notification={newNotif}
+                        toastId={t}
+                        onActionClick={() => {
+                          toast.dismiss(t);
+                          alert('Ətraflı keçidi: ' + newNotif.link);
+                        }}
+                      />
+                    ));
+                  }}
+                  className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-semibold hover:bg-emerald-600 hover:text-white transition-all cursor-pointer"
+                >
+                  Təsdiq (Yaşıl)
+                </button>
+                <button
+                  onClick={() => {
+                    const { toast } = require('sonner');
+                    const NotificationToast = require('@/components/layout/NotificationToast').default;
+                    const { NotificationType } = require('@/services/notification.service');
+                    const newNotif = {
+                      id: 'test-warning',
+                      title: 'Limit Xəbərdarlığı',
+                      text: 'Pulsuz elan limitiniz bitmək üzrədir.',
+                      link: '/cabinet/limits',
+                      type: NotificationType.Warning,
+                      createdDate: new Date().toISOString()
+                    };
+                    toast.custom((t: string | number) => (
+                      <NotificationToast
+                        notification={newNotif}
+                        toastId={t}
+                        onActionClick={() => {
+                          toast.dismiss(t);
+                          alert('Ətraflı keçidi: ' + newNotif.link);
+                        }}
+                      />
+                    ));
+                  }}
+                  className="px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-semibold hover:bg-amber-600 hover:text-white transition-all cursor-pointer"
+                >
+                  Xəbərdarlıq (Sarı)
+                </button>
+                <button
+                  onClick={() => {
+                    const { toast } = require('sonner');
+                    const NotificationToast = require('@/components/layout/NotificationToast').default;
+                    const { NotificationType } = require('@/services/notification.service');
+                    const newNotif = {
+                      id: 'test-error',
+                      title: 'Ödəniş Xətası',
+                      text: 'Premium xidmət ödənişi yerinə yetirilmədi. Yenidən cəhd edin.',
+                      link: '/cabinet/payment',
+                      type: NotificationType.Error,
+                      createdDate: new Date().toISOString()
+                    };
+                    toast.custom((t: string | number) => (
+                      <NotificationToast
+                        notification={newNotif}
+                        toastId={t}
+                        onActionClick={() => {
+                          toast.dismiss(t);
+                          alert('Ətraflı keçidi: ' + newNotif.link);
+                        }}
+                      />
+                    ));
+                  }}
+                  className="px-3 py-1 bg-rose-50 text-rose-600 rounded-lg text-xs font-semibold hover:bg-rose-600 hover:text-white transition-all cursor-pointer"
+                >
+                  Xəta (Qırmızı)
+                </button>
+                <button
+                  onClick={() => {
+                    const { toast } = require('sonner');
+                    const NotificationToast = require('@/components/layout/NotificationToast').default;
+                    const { NotificationType } = require('@/services/notification.service');
+                    const newNotif = {
+                      id: 'test-info',
+                      title: 'Sistem Yenilənməsi',
+                      text: 'Tətbiqimizdə yeni funksiyalar əlavə edildi. Ətraflı öyrənin.',
+                      link: '/blog/update',
+                      type: NotificationType.Info,
+                      createdDate: new Date().toISOString()
+                    };
+                    toast.custom((t: string | number) => (
+                      <NotificationToast
+                        notification={newNotif}
+                        toastId={t}
+                        onActionClick={() => {
+                          toast.dismiss(t);
+                          alert('Ətraflı keçidi: ' + newNotif.link);
+                        }}
+                      />
+                    ));
+                  }}
+                  className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-semibold hover:bg-indigo-600 hover:text-white transition-all cursor-pointer"
+                >
+                  Sistem/Məlumat (Bənövşəyi)
+                </button>
+              </div>
+            )}
             <CategoryGrid categories={categories} />
             {isLoading ? (
               <div className="container mx-auto px-4 sm:px-10 py-5 sm:py-10">

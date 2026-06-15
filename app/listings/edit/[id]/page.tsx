@@ -8,6 +8,7 @@ import Select, { SelectOption } from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import { adService } from '@/services/ad.service';
+import { accountService, AdPlacementLimit } from '@/services/account.service';
 import { AdImage, AdFieldDto, CategoryFieldDto, CategoryDto } from '@/types/api';
 import { parseCurrency } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -15,7 +16,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 // const SERVER_URL = 'http://84.247.184.186:5000';
 // const SERVER_URL = 'http://localhost:5156';
 // Local  Docker: 'http://localhost:5000'
-const SERVER_URL = 'http://localhost:5156';
+const SERVER_URL = 'http://13.140.173.54:5000';
 
 export default function EditListingPage() {
     const router = useRouter();
@@ -79,6 +80,21 @@ export default function EditListingPage() {
     const lastCategoryId = useRef<string>('');
     const lastSubcategoryId = useRef<string>('');
     const lastAdDataId = useRef<string>('');
+
+    const [userLimits, setUserLimits] = useState<AdPlacementLimit[]>([]);
+
+    // Load user limits on mount
+    useEffect(() => {
+        const fetchLimits = async () => {
+            try {
+                const limitsData = await accountService.getPlacementLimits();
+                setUserLimits(limitsData);
+            } catch (err) {
+                // User not logged in or error - ignore
+            }
+        };
+        fetchLimits();
+    }, []);
 
     // Initialize data
     useEffect(() => {
@@ -772,38 +788,62 @@ export default function EditListingPage() {
                             )}
 
                             {/* Limit Information */}
-                            {selectedCategory && (
-                                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex items-start gap-3 mb-4">
-                                    <span className="material-symbols-outlined text-blue-600 !text-2xl mt-0.5">info</span>
-                                    <div className="flex-1">
-                                        <p className="text-gray-900 text-sm font-semibold">{t('createAd.categoryInfo')}</p>
-                                        <div className="text-gray-600 text-xs mt-1 leading-relaxed">
-                                            {selectedCategory.freeLimit > 0 ? (
-                                                <>{t('createAd.freeLimit', { count: selectedCategory.freeLimit })}</>
-                                            ) : (
-                                                <span className="text-amber-700 font-bold">{t('createAd.paidCategory')}</span>
-                                            )}
+                            {selectedCategory && (() => {
+                                const selectedLimit = userLimits.find(l => l.categoryId === selectedCategory.id);
+                                const categoryPackageRemaining = selectedLimit?.categoryPackageLimitRemaining || 0;
+                                const isStoreCategory = selectedLimit?.isStoreCategory || false;
+                                const hasActiveBusinessPackage = selectedLimit?.hasActiveBusinessPackage || false;
+                                const storeAdLimitRemaining = selectedLimit?.storeAdLimitRemaining || 0;
 
-                                            {categoryUsage !== null && (
-                                                <div className="mt-1 text-gray-500 italic">
-                                                    {t('createAd.currentUsage', { used: categoryUsage, limit: selectedCategory.freeLimit })}
-                                                </div>
-                                            )}
+                                return (
+                                    <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex items-start gap-3 mb-4">
+                                        <span className="material-symbols-outlined text-blue-600 !text-2xl mt-0.5">info</span>
+                                        <div className="flex-1">
+                                            <p className="text-gray-900 text-sm font-semibold">{t('createAd.categoryInfo')}</p>
+                                            <div className="text-gray-600 text-xs mt-1 leading-relaxed">
+                                                {hasActiveBusinessPackage && isStoreCategory ? (
+                                                    storeAdLimitRemaining > 0 ? (
+                                                        <span className="text-emerald-700 font-bold">
+                                                            {t('createAd.storeBPAdLimit', { count: storeAdLimitRemaining })}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-amber-700 font-bold">
+                                                            {t('createAd.storeBPAdLimitExceeded')}
+                                                        </span>
+                                                    )
+                                                ) : selectedCategory.freeLimit > 0 ? (
+                                                    <>{t('createAd.freeLimit', { count: selectedCategory.freeLimit })}</>
+                                                ) : (
+                                                    <span className="text-amber-700 font-bold">{t('createAd.paidCategory')}</span>
+                                                )}
 
-                                            {selectedCategory.paidPrice1 > 0 && (
-                                                <div className="mt-1 border-t border-blue-100/50 pt-1">
-                                                    {t('createAd.priceLabel')}: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} ₼</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-4 mt-2">
-                                            <Link href="/pages/limits_by_category" className="text-primary text-[10px] font-bold uppercase tracking-wider hover:underline">
-                                                {t('createAd.viewAllLimits')}
-                                            </Link>
+                                                {!(hasActiveBusinessPackage && isStoreCategory) && categoryUsage !== null && (
+                                                    <div className="mt-1 text-gray-500 italic">
+                                                        {t('createAd.currentUsage', { used: categoryUsage, limit: selectedCategory.freeLimit })}
+                                                    </div>
+                                                )}
+
+                                                {categoryPackageRemaining > 0 && (
+                                                    <div className="mt-1 text-emerald-600 font-bold">
+                                                        {t('limits.categoryPackageLimit') || 'Paket limiti'}: <span className="font-extrabold">{categoryPackageRemaining} {t('listings.ads').toLowerCase()}</span>
+                                                    </div>
+                                                )}
+
+                                                {(!(hasActiveBusinessPackage && isStoreCategory && storeAdLimitRemaining > 0)) && selectedCategory.paidPrice1 > 0 && (
+                                                    <div className="mt-1 border-t border-blue-100/50 pt-1">
+                                                        {t('createAd.priceLabel')}: <span className="font-bold text-gray-900">{selectedCategory.paidPrice1.toFixed(2)} ₼</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-4 mt-2">
+                                                <Link href="/pages/limits_by_category" className="text-primary text-[10px] font-bold uppercase tracking-wider hover:underline">
+                                                    {t('createAd.viewAllLimits')}
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                );
+                            })()}
 
                             {/* City */}
                             <Select

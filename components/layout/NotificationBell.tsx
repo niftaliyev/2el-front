@@ -9,6 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
 import { az, ru, enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
+import NotificationToast from './NotificationToast';
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState<NotificationListItem[]>([]);
@@ -71,16 +72,17 @@ export default function NotificationBell() {
           toastLink = `/cabinet/messages?chatId=${newNotif.sourceId}`;
         }
 
-        toast(newNotif.title || t('notifications.newNotification') || 'Yeni bildiriş', {
-          description: newNotif.text,
-          action: toastLink ? {
-            label: t('common.details') || 'Bax',
-            onClick: () => {
+        toast.custom((t: string | number) => (
+          <NotificationToast
+            notification={newNotif}
+            toastId={t}
+            onActionClick={() => {
+              toast.dismiss(t);
               if (newNotif.id) markRead(newNotif.id);
-              router.push(toastLink!);
-            }
-          } : undefined
-        });
+              if (toastLink) router.push(toastLink);
+            }}
+          />
+        ));
       });
     };
 

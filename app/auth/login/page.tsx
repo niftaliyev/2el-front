@@ -106,7 +106,7 @@ export default function LoginPage() {
                 onChange={(e) => setRememberMe(e.target.checked)}
               />
               <Link
-                href="#"
+                href={ROUTES.FORGOT_PASSWORD}
                 className="text-sm font-medium text-primary hover:underline"
               >
                 {t('auth.forgotPassword')}
