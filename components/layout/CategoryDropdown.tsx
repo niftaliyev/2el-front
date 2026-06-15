@@ -109,57 +109,6 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
 
   return (
     <>
-      {/* ==================== MOBILE VIEW ==================== */}
-      <div className="lg:hidden fixed inset-0 z-[200] bg-white flex flex-col overscroll-contain overflow-hidden">
-        {/* Mobile Header */}
-        <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200 bg-white flex-shrink-0">
-          <button
-            onClick={onClose}
-            className="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <span className="material-symbols-outlined text-gray-700">close</span>
-          </button>
-          <h2 className="text-lg font-bold text-gray-900">{t('nav.catalog')}</h2>
-          <div className="size-10" /> {/* Spacer for centering */}
-        </div>
-
-        {/* Mobile Category List */}
-        <div className="flex-1 overflow-y-auto">
-          {categories.map((category: any) => (
-            <Link
-              key={category.id}
-              href={ROUTES.CATEGORY(category.slug)}
-              className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-              onClick={onClose}
-            >
-              {/* Icon */}
-              <div className="flex items-center justify-center size-12 rounded-xl bg-gray-100 flex-shrink-0">
-                <span className="material-symbols-outlined text-gray-500 text-[24px]">
-                  {category.icon}
-                </span>
-              </div>
-
-              {/* Text */}
-              <div className="flex-1 min-w-0">
-                <p className="text-[15px] font-bold text-gray-900 leading-tight">
-                  {category.name}
-                </p>
-                {category.description && (
-                  <p className="text-[13px] text-gray-400 leading-tight mt-0.5 truncate">
-                    {category.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Chevron */}
-              <span className="material-symbols-outlined text-gray-300 text-[20px] flex-shrink-0">
-                chevron_right
-              </span>
-            </Link>
-          ))}
-        </div>
-      </div>
-
       {/* ==================== DESKTOP VIEW ==================== */}
       {/* Backdrop */}
       <div

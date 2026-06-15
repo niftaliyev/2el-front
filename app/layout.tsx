@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Header, MobileBottomNav } from "@/components/layout";
+import { Header, MobileBottomNav, MobileCatalog } from "@/components/layout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Toaster } from 'sonner';
@@ -121,6 +121,7 @@ export default function RootLayout({
                 {children}
               </main>
               <MobileBottomNav />
+              <MobileCatalog />
             </AuthProvider>
           </LanguageProvider>
         </div>

@@ -162,7 +162,7 @@ export function getSiteUrl(): string {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
   }
   if (process.env.NODE_ENV === 'production') {
-    return 'http://84.247.184.186:3000';
+    return 'http://13.140.173.54:3000';
   }
   return 'http://localhost:3000';
 }

@@ -2,15 +2,26 @@
 
 import { useEffect, useState, Fragment } from 'react';
 import { adService } from '@/services/ad.service';
+import { accountService } from '@/services/account.service';
+import { authService } from '@/services/auth.service';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { CategoryDto } from '@/types/api';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
 
 export default function LimitsByCategory() {
   const { t, language } = useLanguage();
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Purchase package states
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedCatForPkg, setSelectedCatForPkg] = useState<CategoryDto | null>(null);
+  const [selectedSizeForPkg, setSelectedSizeForPkg] = useState<number>(0);
+  const [selectedPriceForPkg, setSelectedPriceForPkg] = useState<number>(0);
+  const [isBuying, setIsBuying] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -25,6 +36,33 @@ export default function LimitsByCategory() {
     };
     fetchCategories();
   }, [language]);
+
+  const handleBuyClick = (child: CategoryDto, size: number, price: number) => {
+    if (!authService.isAuthenticated()) {
+      toast.error(language === 'ru' ? 'Пожалуйста, сначала войдите в систему' : 'Zəhmət olmasa, əvvəlcə daxil olun');
+      return;
+    }
+    setSelectedCatForPkg(child);
+    setSelectedSizeForPkg(size);
+    setSelectedPriceForPkg(price);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmPurchase = async () => {
+    if (!selectedCatForPkg || !selectedSizeForPkg) return;
+    setIsBuying(true);
+    try {
+      await accountService.buyCategoryPackage(selectedCatForPkg.id, selectedSizeForPkg);
+      toast.success(t('limits.buyPackageSuccess') || 'Elan paketi uğurla alındı!');
+      setConfirmOpen(false);
+    } catch (err: any) {
+      console.error(err);
+      const errorMsg = err.message || err.data?.message || err.data?.error || t('limits.buyPackageError') || 'Paket alınarkən xəta baş verdi';
+      toast.error(errorMsg);
+    } finally {
+      setIsBuying(false);
+    }
+  };
 
   const filteredCategories = categories.filter((cat: CategoryDto) => {
     const name = language === 'ru' && cat.nameRu ? cat.nameRu : cat.name;
@@ -139,9 +177,26 @@ export default function LimitsByCategory() {
                         {[1, 3, 5, 10, 20, 25, 50, 75, 80].map(n => {
                           const priceKey = `paidPrice${n}` as keyof CategoryDto;
                           const price = child[priceKey] as number;
+                          const isBuyablePackage = n > 1 && price > 0;
+
                           return (
                             <td key={n} className="px-4 py-4 text-center border-l border-gray-50 text-gray-700 font-bold text-xs tabular-nums">
-                              {price > 0 ? price.toFixed(2) : '-'}
+                              {price > 0 ? (
+                                isBuyablePackage ? (
+                                  <button
+                                    onClick={() => handleBuyClick(child, n, price)}
+                                    className="cursor-pointer font-extrabold hover:text-primary hover:bg-primary/5 border border-transparent hover:border-primary/10 rounded px-2 py-1 transition-all duration-150 inline-flex items-center gap-1 group/btn select-none"
+                                    title={language === 'ru' ? 'Купить этот пакет' : 'Bu paketi al'}
+                                  >
+                                    <span>{price.toFixed(2)}</span>
+                                    <span className="material-symbols-outlined !text-[10px] text-gray-400 group-hover/btn:text-primary transition-colors">shopping_cart</span>
+                                  </button>
+                                ) : (
+                                  price.toFixed(2)
+                                )
+                              ) : (
+                                '-'
+                              )}
                             </td>
                           );
                         })}
@@ -154,6 +209,20 @@ export default function LimitsByCategory() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmPurchase}
+        title={t('limits.buyPackageConfirmTitle') || 'Paket Alışı'}
+        description={(t('limits.buyPackageConfirmDesc') || '{{category}} kateqoriyası üzrə {{size}} ədədlik elan paketi almaq istəyirsiniz? Qiymət: {{price}} AZN. Müvafiq məbləğ balansınızdan çıxılacaq.')
+          .replace('{{category}}', selectedCatForPkg ? (language === 'ru' && selectedCatForPkg.nameRu ? selectedCatForPkg.nameRu : selectedCatForPkg.name) : '')
+          .replace('{{size}}', selectedSizeForPkg.toString())
+          .replace('{{price}}', selectedPriceForPkg.toFixed(2))}
+        confirmText={t('common.confirm')}
+        cancelText={t('common.cancel')}
+        isLoading={isBuying}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { Product } from '@/types';
 import ReportModal from '@/components/features/ReportModal';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
 
 export default function StoreDetailClient({ initialStore, slug }: { initialStore: StoreDetail; slug: string }) {
   const [store, setStore] = useState<StoreDetail | null>(initialStore || null);
@@ -29,7 +30,6 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { t, language } = useLanguage();
   const router = useRouter();
-  const isNavVisible = useScrollDirection();
 
   const availableCategories = Array.from(new Set(ads.map(ad => ad.category?.name).filter(Boolean))) as string[];
 
@@ -127,6 +127,69 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
   const handleSendMessage = () => {
     if (!store?.id) return;
     router.push(`/cabinet/messages?sellerId=${store.id}`);
+  };
+
+  // Drag-to-scroll gallery handlers for PC
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDown, setIsDown] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [hasMoved, setHasMoved] = useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDown(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+    setHasMoved(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDown(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDown(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDown || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    if (Math.abs(x - startX) > 5) {
+      setHasMoved(true);
+    }
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleShare = async () => {
+    if (typeof window === 'undefined') return;
+
+    const url = window.location.href;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: document.title,
+          url: url,
+        });
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+          toast.error(t('product.shareError'));
+        }
+      }
+    } else {
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(url);
+          toast.success(t('product.linkCopied'));
+        } catch (error) {
+          console.error('Error copying to clipboard:', error);
+        }
+      }
+    }
   };
 
   const filteredAds = ads.filter(ad => {
@@ -270,7 +333,7 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
               <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                 <div className="flex flex-col items-center md:items-start space-y-3">
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                    <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight text-center md:text-left">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight text-center md:text-left">
                       {store.storeName}
                     </h1>
                     <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-600 rounded-full shadow-lg shadow-blue-600/20">
@@ -322,7 +385,7 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
                 <div className="flex items-center justify-center md:justify-start gap-3 md:pb-2 w-full lg:w-auto">
                   <button
                     onClick={handleToggleFollow}
-                    className={`flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 md:px-10 h-14 md:h-16 rounded-[1.25rem] shadow-xl transition-all active:scale-95 font-bold text-sm cursor-pointer ${isFollowing
+                    className={`hidden md:flex flex-1 lg:flex-none items-center justify-center gap-3 px-6 md:px-10 h-14 md:h-16 rounded-[1.25rem] shadow-xl transition-all active:scale-95 font-bold text-sm cursor-pointer ${isFollowing
                       ? 'bg-gray-100 text-gray-500 hover:bg-gray-200 shadow-none'
                       : 'bg-primary text-white shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] active:shadow-none'
                       }`}
@@ -332,7 +395,10 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
                     </span>
                     {isFollowing ? t('storeDetail.followed') : t('storeDetail.followStore')}
                   </button>
-                  <button className="flex items-center justify-center size-14 md:size-16 bg-white text-gray-400 rounded-[1.25rem] border border-gray-100 hover:border-primary/20 hover:text-primary active:scale-95 transition-all shadow-lg hover:shadow-xl group cursor-pointer">
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center justify-center size-14 md:size-16 bg-white text-gray-400 rounded-[1.25rem] border border-gray-100 hover:border-primary/20 hover:text-primary active:scale-95 transition-all shadow-lg hover:shadow-xl group cursor-pointer"
+                  >
                     <span className="material-symbols-outlined !text-[22px] md:!text-[26px] group-hover:rotate-12 transition-transform">share</span>
                   </button>
                   <button
@@ -503,12 +569,25 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
                   <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">{t('storeDetail.gallery')}</h2>
                 </div>
 
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                <div
+                  ref={scrollRef}
+                  onMouseDown={handleMouseDown}
+                  onMouseLeave={handleMouseLeave}
+                  onMouseUp={handleMouseUp}
+                  onMouseMove={handleMouseMove}
+                  className="flex overflow-x-auto flex-nowrap scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 gap-3 pb-2 select-none cursor-grab active:cursor-grabbing"
+                >
                   {store.photos.map((photo, index) => (
                     <div
                       key={index}
-                      className="group relative aspect-square rounded-xl bg-gray-50 overflow-hidden cursor-zoom-in transition-all hover:shadow-xl hover:scale-[1.02] border border-gray-100"
-                      onClick={() => window.open(getImageUrl(photo), '_blank')}
+                      className="group relative flex-shrink-0 w-36 md:w-48 aspect-[4/3] rounded-xl bg-gray-50 overflow-hidden cursor-zoom-in transition-all hover:shadow-xl hover:scale-[1.02] border border-gray-100"
+                      onClick={(e) => {
+                        if (hasMoved) {
+                          e.preventDefault();
+                          return;
+                        }
+                        window.open(getImageUrl(photo), '_blank');
+                      }}
                     >
                       <Image
                         src={getImageUrl(photo)}
@@ -641,11 +720,20 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
       />
 
       <div
-        className={`lg:hidden fixed left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${isNavVisible
-          ? 'bottom-[calc(54px+max(9px,env(safe-area-inset-bottom)))]'
-          : 'bottom-0'
-          }`}
+        className="lg:hidden fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3"
       >
+        <button
+          onClick={handleToggleFollow}
+          className={`flex-1 flex items-center justify-center gap-2 h-14 rounded-2xl font-black uppercase text-sm active:scale-95 transition-all cursor-pointer ${isFollowing
+            ? 'bg-gray-100 text-gray-500 shadow-none'
+            : 'bg-primary text-white shadow-primary/25 shadow-lg'
+            }`}
+        >
+          <span className="material-symbols-outlined !text-[20px]">
+            {isFollowing ? 'person_remove' : 'person_add'}
+          </span>
+          {isFollowing ? t('storeDetail.followed') : t('storeDetail.followStore')}
+        </button>
         <a
           href={`tel:${store.contactNumber.replace(/\s+/g, '')}`}
           className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#22C55E] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(34,197,94,0.3)] active:scale-95 transition-all"
@@ -653,13 +741,6 @@ export default function StoreDetailClient({ initialStore, slug }: { initialStore
           <span className="material-symbols-outlined !text-[20px]">call</span>
           {t('product.call')}
         </a>
-        <button
-          onClick={handleSendMessage}
-          className="flex-1 flex items-center justify-center gap-2 h-14 bg-[#3B82F6] text-white rounded-2xl font-black uppercase text-sm shadow-[0_10px_25px_rgba(59,130,246,0.3)] active:scale-95 transition-all cursor-pointer"
-        >
-          <span className="material-symbols-outlined !text-[20px]">chat</span>
-          {t('product.sendMessage')}
-        </button>
       </div>
     </main>
   );

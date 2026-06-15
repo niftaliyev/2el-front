@@ -48,7 +48,7 @@ export default function Home() {
     ];
 
     const combined = [...base, ...extras];
-    combined.sort((a, b) => a.name.localeCompare(b.name, language === 'ru' ? 'ru' : 'az'));
+    combined.sort((a, b) => (a.name > b.name ? 1 : a.name < b.name ? -1 : 0));
 
     combined.push({
       id: 'magazalar-init',

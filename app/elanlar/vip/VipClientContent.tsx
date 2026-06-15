@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
-import { Container } from '@/components/layout';
 import ProductGrid from '@/components/features/products/ProductGrid';
 import { Product } from '@/types';
 import { adService } from '@/services/ad.service';
@@ -102,17 +101,6 @@ function VipListingsContent() {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
-      {/* Header Section */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <Container>
-          <div className="py-4">
-            <h1 className="text-[20px] font-bold text-[#212121] tracking-tight">
-              {t('vipListings.title')} <span className="text-[#999] font-normal text-[15px] ml-1">({totalItems})</span>
-            </h1>
-          </div>
-        </Container>
-      </div>
-
       <div className="w-full flex">
         {/* Left Banner */}
         <aside className="hidden xl:block flex-1 min-w-[160px] 2xl:min-w-[200px]">
@@ -123,7 +111,15 @@ function VipListingsContent() {
 
         {/* Main Content */}
         <div className="w-full max-w-[1024px] mx-auto px-4 lg:px-6 pb-6">
-          <div className="w-full py-8">
+          {/* Header Title */}
+          <div className="pt-6 pb-2">
+            <h1 className="text-[18px] md:text-[24px] font-bold text-primary tracking-tight flex items-baseline gap-2">
+              <span>{t('vipListings.title')}</span>
+              <span className="hidden md:inline text-sm md:text-base text-primary/70 font-medium">({totalItems})</span>
+            </h1>
+          </div>
+
+          <div className="w-full py-4 md:py-6">
             {/* Products Grid */}
             {loading && page === 1 ? (
               <div className="flex justify-center items-center py-20">

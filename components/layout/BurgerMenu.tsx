@@ -69,23 +69,33 @@ export default function BurgerMenu() {
         </div>
       </button>
 
-      {/* Background Overlay (Mobile only) */}
+      {/* Background Overlay (Mobile/Tablet only) */}
       <div
-        className={`fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[-1] transition-opacity duration-300 sm:hidden cursor-pointer ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[-1] transition-opacity duration-300 lg:hidden cursor-pointer ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setIsOpen(false)}
       />
 
       <div
-        className={`fixed sm:absolute top-20 sm:top-14 left-3 sm:left-0 right-3 sm:right-auto sm:w-[800px] max-h-[80vh] sm:max-h-[calc(100vh-100px)] bg-white rounded-3xl sm:rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] sm:shadow-[0_25px_70px_rgba(0,0,0,0.15)] border border-slate-100 overflow-y-auto no-scrollbar transform origin-top transition-all duration-300 ease-out ${isOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-4 pointer-events-none'
+        className={`fixed lg:absolute top-20 lg:top-14 left-3 lg:left-0 right-3 lg:right-auto lg:w-[800px] max-h-[80vh] lg:max-h-[calc(100vh-100px)] bg-white rounded-3xl lg:rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] lg:shadow-[0_25px_70px_rgba(0,0,0,0.15)] border border-slate-100 overflow-y-auto no-scrollbar transform origin-top transition-all duration-300 ease-out ${isOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-4 pointer-events-none'
           }`}
       >
-        <div className="flex flex-col sm:flex-row gap-10 sm:gap-16 p-6 sm:p-10">
+        <div className="flex flex-col md:flex-row gap-10 md:gap-16 p-6 md:p-10">
           {/* Column 1 */}
           <div className="flex flex-col gap-4 min-w-[150px]">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 sm:mb-2 flex items-center gap-2">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 md:mb-2 flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
               {t('burgerMenu.main')}
             </h4>
+            {/* Mobile-only Kataloq Link */}
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                window.dispatchEvent(new CustomEvent('open-mobile-catalog'));
+              }}
+              className="lg:hidden text-left border-none bg-transparent p-0 text-slate-700 hover:text-primary font-bold transition-all hover:translate-x-1 flex items-center gap-2 cursor-pointer"
+            >
+              {t('nav.catalog')}
+            </button>
             <Link href="/shops" onClick={() => setIsOpen(false)} className="text-slate-700 hover:text-primary font-bold transition-all hover:translate-x-1 flex items-center gap-2">
               {t('burgerMenu.shops')}
             </Link>
@@ -102,7 +112,7 @@ export default function BurgerMenu() {
 
           {/* Column 2 */}
           <div className="flex flex-col gap-3.5 min-w-[200px]">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 sm:mb-2 flex items-center gap-2">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 md:mb-2 flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
               {t('burgerMenu.supportAndRules')}
             </h4>
@@ -129,28 +139,26 @@ export default function BurgerMenu() {
           </div>
 
           {/* Column 3 - Contact */}
-          <div className="flex flex-col gap-6 sm:ml-auto">
+          <div className="flex flex-col gap-6 md:ml-auto">
             {/* Language Switcher */}
             <div className="flex flex-col gap-3">
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{t('burgerMenu.language')}</h4>
               <div className="flex items-center bg-slate-100/80 p-1 rounded-xl w-fit border border-slate-200/60">
                 <button
                   onClick={() => handleLanguageSwitch('az')}
-                  className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
-                    language === 'az'
-                      ? 'bg-white text-primary shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
+                  className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${language === 'az'
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                    }`}
                 >
                   AZ
                 </button>
                 <button
                   onClick={() => handleLanguageSwitch('ru')}
-                  className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
-                    language === 'ru'
-                      ? 'bg-white text-primary shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
+                  className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${language === 'ru'
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                    }`}
                 >
                   RU
                 </button>
@@ -176,8 +184,8 @@ export default function BurgerMenu() {
             </div>
 
             <div className="flex flex-col gap-4">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 text-center sm:text-left">{t('burgerMenu.social')}</h4>
-              <div className="flex gap-3 justify-center sm:justify-start">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 text-center md:text-left">{t('burgerMenu.social')}</h4>
+              <div className="flex gap-3 justify-center md:justify-start">
                 <a href="#" className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all shadow-sm">
                   <span className="material-symbols-outlined !text-[20px]">share</span>
                 </a>

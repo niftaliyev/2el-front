@@ -149,8 +149,14 @@ export default function AdPlacementLimitsPage() {
                     return filteredLimits.length > 0 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                         {filteredLimits.map((limit) => {
-                          const isExpired = limit.usedFreeCount >= limit.freeLimit;
-                          const percentage = Math.min(100, (limit.usedFreeCount / limit.freeLimit) * 100);
+                          const isStoreBP = limit.hasActiveBusinessPackage && limit.isStoreCategory;
+                          const isExpired = isStoreBP 
+                            ? (limit.storeAdLimitRemaining || 0) <= 0 
+                            : limit.usedFreeCount >= limit.freeLimit;
+
+                          const percentage = isStoreBP
+                            ? 100
+                            : Math.min(100, (limit.usedFreeCount / limit.freeLimit) * 100);
 
                           return (
                             <div
@@ -177,7 +183,12 @@ export default function AdPlacementLimitsPage() {
                                   <h3 className="text-gray-900 font-bold text-[12px] sm:text-[14px] group-hover:text-primary transition-colors line-clamp-2 leading-tight">
                                     {language === 'ru' && limit.categoryNameRu ? limit.categoryNameRu : limit.categoryName}
                                   </h3>
-                                  <p className="text-gray-400 text-[9px] sm:text-[10px] font-medium uppercase tracking-wider mt-0.5 truncate">{t('cabinet.limitsPage.contingent')}</p>
+                                  <p className="text-gray-400 text-[9px] sm:text-[10px] font-medium uppercase tracking-wider mt-0.5 truncate">
+                                    {isStoreBP 
+                                      ? (language === 'ru' ? 'Бизнес-пакет' : 'Biznes paket')
+                                      : t('cabinet.limitsPage.contingent')
+                                    }
+                                  </p>
                                 </div>
                                 <div className={`size-5 sm:size-6 rounded-lg flex items-center justify-center flex-shrink-0 ${isExpired ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
                                   <span className="material-symbols-outlined !text-[12px] sm:!text-base">{isExpired ? 'block' : 'task_alt'}</span>
@@ -187,33 +198,65 @@ export default function AdPlacementLimitsPage() {
                               {/* Progress Info */}
                               <div className="mt-auto pt-2">
                                 <div className="flex items-end justify-between mb-2 gap-1 flex-wrap">
-                                  <div className="flex flex-col">
-                                    <span className="text-gray-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest mb-0.5">{t('cabinet.limitsPage.usedFree')}</span>
-                                    <div className="flex items-baseline gap-1">
-                                      <span className={`text-[15px] sm:text-xl font-black tabular-nums transition-colors ${isExpired ? 'text-red-600' : 'text-gray-900'}`}>
-                                        {limit.usedFreeCount}
+                                  {isStoreBP ? (
+                                    <div className="flex flex-col">
+                                      <span className="text-gray-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest mb-0.5">
+                                        {language === 'ru' ? 'Лимит бизнес-пакета' : 'Biznes paket limiti'}
                                       </span>
-                                      <span className="text-[10px] sm:text-xs text-gray-400 font-bold">/ {limit.freeLimit}</span>
+                                      <div className="flex items-baseline gap-1">
+                                        <span className={`text-[15px] sm:text-xl font-black tabular-nums transition-colors ${(limit.storeAdLimitRemaining || 0) <= 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                          {limit.storeAdLimitRemaining || 0}
+                                        </span>
+                                        <span className="text-[10px] sm:text-xs text-gray-400 font-bold">
+                                          {t('listings.ads').toLowerCase()}
+                                        </span>
+                                      </div>
                                     </div>
-                                  </div>
-                                  <span className={`text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-md border ${isExpired ? 'bg-red-50 border-red-100 text-red-600' : 'bg-green-50 border-green-100 text-green-600'
-                                    }`}>
-                                    {Math.round(percentage)}%
-                                  </span>
+                                  ) : (
+                                    <div className="flex flex-col">
+                                      <span className="text-gray-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest mb-0.5">{t('cabinet.limitsPage.usedFree')}</span>
+                                      <div className="flex items-baseline gap-1">
+                                        <span className={`text-[15px] sm:text-xl font-black tabular-nums transition-colors ${isExpired ? 'text-red-600' : 'text-gray-900'}`}>
+                                          {limit.usedFreeCount}
+                                        </span>
+                                        <span className="text-[10px] sm:text-xs text-gray-400 font-bold">/ {limit.freeLimit}</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {!isStoreBP && (
+                                    <span className={`text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-md border ${isExpired ? 'bg-red-50 border-red-100 text-red-600' : 'bg-green-50 border-green-100 text-green-600'
+                                      }`}>
+                                      {Math.round(percentage)}%
+                                    </span>
+                                  )}
                                 </div>
 
                                 {/* Progress Bar */}
-                                <div className="w-full h-1.5 sm:h-2.5 bg-gray-100 rounded-full overflow-hidden mb-3 sm:mb-5">
-                                  <div
-                                    className={`h-full transition-all duration-1000 ease-out relative ${isExpired ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-primary to-primary-dark'
-                                      }`}
-                                    style={{ width: `${percentage}%` }}
-                                  >
-                                    {!isExpired && percentage > 0 && (
-                                      <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                                    )}
+                                {!isStoreBP && (
+                                  <div className="w-full h-1.5 sm:h-2.5 bg-gray-100 rounded-full overflow-hidden mb-3 sm:mb-5">
+                                    <div
+                                      className={`h-full transition-all duration-1000 ease-out relative ${isExpired ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-primary to-primary-dark'
+                                        }`}
+                                      style={{ width: `${percentage}%` }}
+                                    >
+                                      {!isExpired && percentage > 0 && (
+                                        <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
+                                )}
+
+                                {/* Category Package Limit remaining */}
+                                {limit.categoryPackageLimitRemaining > 0 && (
+                                  <div className="flex items-center justify-between p-2 sm:p-3 bg-emerald-50 rounded-xl border border-emerald-100/50 gap-1 mb-2">
+                                    <span className="text-emerald-700 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider">{t('limits.categoryPackageLimit') || 'Paket limiti'}</span>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-xs sm:text-sm font-black text-emerald-800 tabular-nums">{limit.categoryPackageLimitRemaining}</span>
+                                      <span className="text-[9px] sm:text-[10px] text-emerald-600 font-bold">{t('listings.ads').toLowerCase()}</span>
+                                    </div>
+                                  </div>
+                                )}
 
                                 {/* Price Info Row */}
                                 <div className="flex flex-col xl:flex-row items-baseline xl:items-center justify-between p-2 sm:p-3 bg-gray-50/80 rounded-xl border border-gray-100/50 gap-1">
@@ -251,8 +294,13 @@ export default function AdPlacementLimitsPage() {
                       <div className="space-y-3">
                         {myLimits.map((limit) => {
                           const isExpanded = expandedItems.has(limit.categoryId);
-                          const remainingFree = Math.max(0, limit.freeLimit - limit.usedFreeCount);
-                          const hasLimit = remainingFree > 0 || limit.paidCount > 0;
+                          const isStoreBP = limit.hasActiveBusinessPackage && limit.isStoreCategory;
+                          const remainingFree = isStoreBP 
+                            ? (limit.storeAdLimitRemaining || 0) 
+                            : Math.max(0, limit.freeLimit - limit.usedFreeCount);
+                          const hasLimit = isStoreBP
+                            ? remainingFree > 0 || limit.categoryPackageLimitRemaining > 0
+                            : remainingFree > 0 || limit.paidCount > 0 || limit.categoryPackageLimitRemaining > 0;
 
                           return (
                             <div
@@ -292,8 +340,11 @@ export default function AdPlacementLimitsPage() {
                                     ? 'bg-gray-100 text-gray-700'
                                     : 'bg-red-50 text-red-500'
                                     }`}>
-                                    {remainingFree + limit.paidCount}
-                                    {(!hasLimit && limit.nextFreeAt) && (
+                                    {isStoreBP 
+                                      ? remainingFree + limit.categoryPackageLimitRemaining
+                                      : remainingFree + limit.paidCount + limit.categoryPackageLimitRemaining
+                                    }
+                                    {(!hasLimit && !isStoreBP && limit.nextFreeAt) && (
                                       <span className="text-[10px] text-gray-400 ml-1 font-normal">/{formatDate(limit.nextFreeAt)}</span>
                                     )}
                                   </div>
@@ -307,19 +358,38 @@ export default function AdPlacementLimitsPage() {
                               {isExpanded && (
                                 <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-gray-50 bg-gray-50/30">
                                   <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <div className={`size-2 rounded-full ${remainingFree > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                                      <span className="text-sm font-medium text-gray-600">
-                                        {t('cabinet.limitsPage.freeAd')} — <span className={remainingFree > 0 ? 'text-emerald-600' : 'text-red-500'}>{remainingFree} {t('listings.ads').toLowerCase()}</span>
-                                        {limit.nextFreeAt && <span className="text-gray-400 ml-1">{formatDate(limit.nextFreeAt)}-{t('cabinet.dayShort')}</span>}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <div className={`size-2 rounded-full ${limit.paidCount > 0 ? 'bg-blue-500' : 'bg-gray-300'}`} />
-                                      <span className="text-sm font-medium text-gray-600">
-                                        {t('cabinet.limitsPage.paidAd')} — <span className={limit.paidCount > 0 ? 'text-blue-600' : 'text-gray-500'}>{limit.paidCount} {t('listings.ads').toLowerCase()}</span>
-                                      </span>
-                                    </div>
+                                    {isStoreBP ? (
+                                      <div className="flex items-center gap-2">
+                                        <div className={`size-2 rounded-full ${remainingFree > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                        <span className="text-sm font-medium text-gray-600">
+                                          {language === 'ru' ? 'Лимит бизнес-пакета' : 'Biznes paket limiti'} — <span className={remainingFree > 0 ? 'text-emerald-600' : 'text-red-500'}>{remainingFree} {t('listings.ads').toLowerCase()}</span>
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`size-2 rounded-full ${remainingFree > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                          <span className="text-sm font-medium text-gray-600">
+                                            {t('cabinet.limitsPage.freeAd')} — <span className={remainingFree > 0 ? 'text-emerald-600' : 'text-red-500'}>{remainingFree} {t('listings.ads').toLowerCase()}</span>
+                                            {limit.nextFreeAt && <span className="text-gray-400 ml-1">{formatDate(limit.nextFreeAt)}-{t('cabinet.dayShort')}</span>}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`size-2 rounded-full ${limit.paidCount > 0 ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                                          <span className="text-sm font-medium text-gray-600">
+                                            {t('cabinet.limitsPage.paidAd')} — <span className={limit.paidCount > 0 ? 'text-blue-600' : 'text-gray-500'}>{limit.paidCount} {t('listings.ads').toLowerCase()}</span>
+                                          </span>
+                                        </div>
+                                      </>
+                                    )}
+                                    {limit.categoryPackageLimitRemaining > 0 && (
+                                      <div className="flex items-center gap-2">
+                                        <div className="size-2 rounded-full bg-emerald-500" />
+                                        <span className="text-sm font-medium text-gray-600">
+                                          {t('limits.categoryPackageLimit') || 'Paket limiti'} — <span className="text-emerald-600 font-extrabold">{limit.categoryPackageLimitRemaining} {t('listings.ads').toLowerCase()}</span>
+                                        </span>
+                                      </div>
+                                    )}
                                   </div>
 
                                   <div className="mt-4 text-center">

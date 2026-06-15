@@ -2,3 +2,6 @@ export { default as Header } from './Header';
 export { default as Footer } from './Footer';
 export { default as Container } from './Container';
 export { default as MobileBottomNav } from './MobileBottomNav';
+export { default as MobileCatalog } from './MobileCatalog';
+export { default as NotificationToast } from './NotificationToast';
+

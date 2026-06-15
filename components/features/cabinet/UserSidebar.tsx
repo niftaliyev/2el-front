@@ -50,7 +50,7 @@ export default function UserSidebar() {
     ['SuperAdmin', 'Admin', 'Moderator'].includes(role)
   );
 
-  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://84.247.184.186:3002';
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://13.140.173.54:3002';
   const token = typeof window !== 'undefined' ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')) : '';
   const refreshToken = typeof window !== 'undefined' ? (localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken')) : '';
 

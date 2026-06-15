@@ -21,8 +21,23 @@ export default function BannerAd({ position, categoryId, cityId, search, classNa
   const [currentIndex, setCurrentIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const componentId = useId();
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1280px)');
+    setIsDesktop(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => {
+      setIsDesktop(e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktop) return;
+
     const fetchBanners = async () => {
       try {
         setIsLoading(true);
@@ -48,10 +63,10 @@ export default function BannerAd({ position, categoryId, cityId, search, classNa
     };
 
     fetchBanners();
-  }, [position, categoryId, cityId, language, search]);
+  }, [position, categoryId, cityId, language, search, isDesktop]);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
+    if (!isDesktop || banners.length <= 1) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => {
@@ -67,18 +82,20 @@ export default function BannerAd({ position, categoryId, cityId, search, classNa
     }, 5000); // Rotate every 5 seconds
 
     return () => clearInterval(interval);
-  }, [banners]);
+  }, [banners, isDesktop]);
 
   useEffect(() => {
+    if (!isDesktop) return;
+
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'ad-click' && event.data.sourceId === componentId) {
         const adId = event.data.id;
         const targetUrl = event.data.url;
-        
+
         if (adId) {
           bannerService.incrementClick(adId).catch(console.error);
         }
-        
+
         if (targetUrl && targetUrl.trim() !== '') {
           let url = targetUrl;
           if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -91,7 +108,11 @@ export default function BannerAd({ position, categoryId, cityId, search, classNa
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [isDesktop]);
+
+  if (!isDesktop) {
+    return null;
+  }
 
   if (isLoading) {
     return (

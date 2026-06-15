@@ -233,7 +233,17 @@
     "passwordsNotMatch": "Пароли не совпадают",
     "emailInvalid": "Введите корректный адрес электронной почты",
     "errorOccurred": "Произошла ошибка:",
-    "loginRequired": "Пожалуйста, сначала войдите на сайт."
+    "loginRequired": "Пожалуйста, сначала войдите на сайт.",
+    "forgotPasswordTitle": "Забыли пароль?",
+    "forgotPasswordSubtitle": "Введите свой адрес электронной почты, и мы отправим вам ссылку для сброса пароля.",
+    "sendResetLink": "Отправить ссылку для сброса",
+    "backToLogin": "Вернуться на страницу входа",
+    "resetPasswordTitle": "Установить новый пароль",
+    "resetPasswordSubtitle": "Введите новый пароль для вашего аккаунта.",
+    "resetPasswordButton": "Сбросить пароль",
+    "resetLinkSent": "Ссылка для сброса пароля отправлена на вашу электронную почту. Пожалуйста, проверьте свой почтовый ящик.",
+    "passwordResetSuccess": "Ваш пароль успешно изменен. Теперь вы можете войти в систему.",
+    "passwordResetError": "Произошла ошибка при сбросе пароля. Ссылка может быть устаревшей или недействительной."
   },
   "cabinet": {
     "myListings": "Мои объявления",
@@ -259,6 +269,7 @@
     "login": "Войти",
     "loginRegister": "Войти / Регистрация",
     "logout": "Выйти",
+    "logoutSuccess": "Вы успешно вышли из системы",
     "userNameFallback": "Имя пользователя",
     "guest": "Гость",
     "notLoggedIn": "Вы не вошли",
@@ -745,6 +756,9 @@
     "currentUsage": "Текущее использование: {{used}} / {{limit}} (за последние 30 дней)",
     "priceLabel": "Цена",
     "viewAllLimits": "Посмотреть все лимиты",
+    "storeCategoryBP": "Категория Магазина (Бизнес Пакет)",
+    "storeBPAdLimit": "Лимит бизнес-пакета: осталось {{count}} объявлений (Бесплатно)",
+    "storeBPAdLimitExceeded": "Категория магазина, но лимит бизнес-пакета исчерпан.",
     "adTitle": "Заголовок объявления",
     "titlePlaceholder": "Например: iPhone 13 Pro Max 256GB",
     "description": "Описание",
@@ -804,7 +818,13 @@
       "category": "КАТЕГОРИЯ",
       "limit": "ЛИМИТ",
       "price": "ЦЕНА"
-    }
+    },
+    "buyPackageConfirmTitle": "Покупка Пакета",
+    "buyPackageConfirmDesc": "Вы хотите купить пакет из {{size}} объявлений для категории {{category}}? Цена: {{price}} AZN. Соответствующая сумма будет списана с вашего баланса.",
+    "buyPackageSuccess": "Пакет объявлений успешно куплен!",
+    "buyPackageError": "Произошла ошибка при покупке пакета",
+    "categoryPackageLimit": "Лимит пакета",
+    "categoryPackageLimitDesc": "Оставшееся количество объявлений в пакете категории"
   },
   "paidServices": {
     "boost": {

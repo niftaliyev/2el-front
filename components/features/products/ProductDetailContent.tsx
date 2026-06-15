@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Thumbs, FreeMode } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
@@ -44,6 +44,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
   const [showFullPhone, setShowFullPhone] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [hasRefetchedClient, setHasRefetchedClient] = useState(false);
   const [similarVipProducts, setSimilarVipProducts] = useState<Product[]>([]);
   const [similarNormalProducts, setSimilarNormalProducts] = useState<Product[]>([]);
   const [storeAds, setStoreAds] = useState<Product[]>([]);
@@ -77,7 +78,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isChangingFav, setIsChangingFav] = useState(false);
   const [lightboxSwiper, setLightboxSwiper] = useState<SwiperType | null>(null);
-  const isNavVisible = useScrollDirection();
+
 
   const formatBooleanValue = (name: string, value: string | boolean) => {
     const strVal = String(value).toLowerCase();
@@ -93,19 +94,50 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
   };
 
   useEffect(() => {
+    setHasRefetchedClient(false);
+  }, [id]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      if (typeof window !== 'undefined') {
+        const offlineFavs = localStorage.getItem('offline_favourites');
+        if (offlineFavs) {
+          try {
+            const ids = JSON.parse(offlineFavs);
+            if (Array.isArray(ids) && ids.includes(id)) {
+              setIsFavorite(true);
+            } else {
+              setIsFavorite(false);
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+    }
+  }, [id, isAuthenticated]);
+
+  useEffect(() => {
     const fetchProduct = async () => {
       try {
         let data = product;
-        if (!data) {
-          setLoading(true);
+        const shouldFetchOnClient = !data || (isAuthenticated && !hasRefetchedClient);
+
+        if (shouldFetchOnClient) {
+          if (!data) setLoading(true);
           data = await adService.getAdById(id);
           setProduct(data);
           setIsFavorite(data.isFavourite);
           setIsFollowingStore(data.isFollowingStore || false);
-        } else {
+          if (isAuthenticated) {
+            setHasRefetchedClient(true);
+          }
+        } else if (data) {
           setIsFavorite(data.isFavourite);
           setIsFollowingStore(data.isFollowingStore || false);
         }
+
+        if (!data) return;
 
         // Increment view count when viewed
         adService.incrementViewCount(id).catch(err => console.error('Error incrementing view count:', err));
@@ -210,7 +242,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
     };
 
     if (id) fetchProduct();
-  }, [id, language, product]);
+  }, [id, language, product, isAuthenticated, hasRefetchedClient]);
 
   if (loading) {
     return (
@@ -233,7 +265,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
     ? product.images.map(img => getImageUrl(img))
     : ['/placeholder-product.jpg'];
 
-  const handleFavoriteToggle = async () => {
+  const handleFavoriteToggle = useCallback(async () => {
     if (isChangingFav || !product) return;
     try {
       setIsChangingFav(true);
@@ -248,7 +280,29 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
     } finally {
       setIsChangingFav(false);
     }
-  };
+  }, [isFavorite, isChangingFav, product]);
+
+  // Sync favorite status with Header.tsx (mobile)
+  useEffect(() => {
+    // Notify Header of the current status
+    window.dispatchEvent(new CustomEvent('ad-favorite-status', { detail: { isFavorite } }));
+
+    const handleRequest = () => {
+      window.dispatchEvent(new CustomEvent('ad-favorite-status', { detail: { isFavorite } }));
+    };
+
+    const handleToggle = () => {
+      handleFavoriteToggle();
+    };
+
+    window.addEventListener('request-ad-favorite-status', handleRequest);
+    window.addEventListener('toggle-favorite-ad', handleToggle);
+
+    return () => {
+      window.removeEventListener('request-ad-favorite-status', handleRequest);
+      window.removeEventListener('toggle-favorite-ad', handleToggle);
+    };
+  }, [isFavorite, handleFavoriteToggle]);
 
   const handleFollowStore = async () => {
     if (isChangingFav || !product?.storeId) return;
@@ -637,7 +691,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
                         <div className="flex gap-2 shrink-0">
                           <button
                             onClick={handleFavoriteToggle}
-                            className={`flex cursor-pointer items-center justify-center rounded-xl size-11 transition-all border shadow-sm ${isFavorite ? 'bg-red-50 text-red-500 border-red-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`}
+                            className={`hidden md:flex cursor-pointer items-center justify-center rounded-xl size-11 transition-all border shadow-sm ${isFavorite ? 'bg-red-50 text-red-500 border-red-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`}
                             title={t('product.addToFavorites')}
                           >
                             <span className="material-symbols-outlined !text-2xl" style={{ fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
@@ -950,11 +1004,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
 
       {/* Mobile Sticky Action Bar */}
       <div
-        className={`lg:hidden fixed left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${isLightboxOpen ? 'translate-y-full opacity-0 pointer-events-none' :
-          isNavVisible
-            ? 'bottom-[calc(54px+max(9px,env(safe-area-inset-bottom)))]'
-            : 'bottom-0'
-          }`}
+        className={`lg:hidden fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[110] flex gap-3 transition-all duration-300 ease-in-out ${isLightboxOpen ? 'translate-y-full opacity-0 pointer-events-none' : ''}`}
       >
         {showFullPhone ? (
           <a
