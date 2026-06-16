@@ -11,7 +11,7 @@ import { SORT_OPTIONS, ROUTES } from '@/constants';
 import Select, { SelectOption } from '@/components/ui/Select';
 import { adService } from '@/services/ad.service';
 import { AdListItem } from '@/types/api';
-import { getImageUrl, generateSlug } from '@/lib/utils';
+import { getImageUrl, generateSlug, getCategorySortOrder } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
 import { Button } from '@/components/ui';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
@@ -289,7 +289,58 @@ export default function ListingsContent({
               })) || []
             })) || []
           }));
-          setCategories(mapped);
+          const extraCategories: any[] = [];
+
+          // 1. Telefonlar under Elektronika
+          const electronics = tree.find((c: any) => c.name === 'Elektronika');
+          const phones = electronics?.children?.find((c: any) => c.name === 'Telefonlar');
+          if (electronics && phones) {
+            extraCategories.push({
+              id: phones.id,
+              name: language === 'ru' && phones.nameRu ? phones.nameRu : phones.name,
+              icon: 'smartphone',
+              image: LOCAL_IMAGES['Telefonlar'] || getImageUrl(phones.imageUrl),
+              slug: `${generateSlug(electronics.name)}/${generateSlug(phones.name)}`,
+              isParent: true,
+              categoryFields: phones.categoryFields || [],
+              subCategories: phones.subCategories?.map((sc: any) => ({
+                ...sc,
+                name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
+                parentSlug: `${generateSlug(electronics.name)}/${generateSlug(phones.name)}`,
+                image: getImageUrl(sc.imageUrl),
+                isParent: false
+              })) || [],
+              children: []
+            });
+          }
+
+          // 2. Məişət texnikası under Ev və bağ üçün
+          const evVeBag = tree.find((c: any) => c.name === 'Ev və bağ üçün');
+          const meiset = evVeBag?.children?.find((c: any) => c.name === 'Məişət texnikası');
+          if (evVeBag && meiset) {
+            extraCategories.push({
+              id: meiset.id,
+              name: language === 'ru' && meiset.nameRu ? meiset.nameRu : meiset.name,
+              icon: 'local_laundry_service',
+              image: LOCAL_IMAGES['Məişət texnikası'] || getImageUrl(meiset.imageUrl),
+              slug: `${generateSlug(evVeBag.name)}/${generateSlug(meiset.name)}`,
+              isParent: true,
+              categoryFields: meiset.categoryFields || [],
+              subCategories: meiset.subCategories?.map((sc: any) => ({
+                ...sc,
+                name: language === 'ru' && sc.nameRu ? sc.nameRu : sc.name,
+                parentSlug: `${generateSlug(evVeBag.name)}/${generateSlug(meiset.name)}`,
+                image: getImageUrl(sc.imageUrl),
+                isParent: false
+              })) || [],
+              children: []
+            });
+          }
+
+          const allCategories = [...mapped, ...extraCategories];
+          allCategories.sort((a, b) => getCategorySortOrder(a) - getCategorySortOrder(b));
+
+          setCategories(allCategories);
         }
       } catch (e) {
       } finally {

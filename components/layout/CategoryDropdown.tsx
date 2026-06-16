@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { CATEGORIES, ROUTES } from '@/constants';
 import { Category } from '@/types';
 import { adService } from '@/services/ad.service';
-import { generateSlug } from '@/lib/utils';
+import { generateSlug, getCategorySortOrder } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const ICONS: Record<string, string> = {
@@ -54,6 +54,7 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
               slug: generateSlug(c.name)
             })) || []
           }));
+          dynamicTree.sort((a, b) => getCategorySortOrder(a) - getCategorySortOrder(b));
           setCategories(dynamicTree);
           if (!activeMain) setActiveMain(dynamicTree[0]);
         }
@@ -112,12 +113,12 @@ export default function CategoryDropdown({ isOpen, onClose }: CategoryDropdownPr
       {/* ==================== DESKTOP VIEW ==================== */}
       {/* Backdrop */}
       <div
-        className="hidden lg:block fixed inset-0 top-[64px] z-40 bg-black/20 backdrop-blur-[2px] transition-opacity"
+        className="hidden lg:block fixed inset-0 top-[64px] z-[98] bg-black/20 backdrop-blur-[2px] transition-opacity"
         onClick={onClose}
       />
 
       {/* Desktop Dropdown */}
-      <div className="hidden lg:flex fixed top-[72px] left-1/2 -translate-x-1/2 w-full max-w-6xl bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-50 overflow-hidden h-[500px]">
+      <div className="hidden lg:flex fixed top-[72px] left-1/2 -translate-x-1/2 w-full max-w-6xl bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-[99] overflow-hidden h-[500px]">
 
         {/* Column 1: Main Categories */}
         <div className="w-[280px] border-r border-gray-100 overflow-y-auto bg-gray-50/50">

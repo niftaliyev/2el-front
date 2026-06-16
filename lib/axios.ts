@@ -4,8 +4,13 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 // Local  Docker: 'http://localhost:5000/api/'
 // Local: 'http://localhost:5156/api/'
 // Production: 'http://84.247.184.186:5000/api/'
-// Dəyər .env faylından NEXT_PUBLIC_API_URL olaraq oxunacaq
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://13.140.173.54:5000/api/';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+  ? (process.env.NEXT_PUBLIC_API_URL.endsWith('/api') || process.env.NEXT_PUBLIC_API_URL.endsWith('/api/')
+    ? process.env.NEXT_PUBLIC_API_URL
+    : `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/`)
+  : (process.env.NODE_ENV === 'production'
+    ? 'http://13.140.173.54:5000/api/'
+    : 'http://localhost:5156/api/');
 
 // Create axios instance with default config
 const axiosInstance: AxiosInstance = axios.create({

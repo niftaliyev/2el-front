@@ -183,3 +183,13 @@ body {
 .drop-border-pulse {
   animation: borderPulse 1.2s ease-out infinite;
 }
+
+#help-pages-content {
+  scroll-margin-top: 130px;
+}
+
+@media (min-width: 768px) {
+  #help-pages-content {
+    scroll-margin-top: 0;
+  }
+}
