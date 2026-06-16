@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { LegalPolicy, StaticPage, PrivacyPolicy, HelpCategory } from '@/types/help';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -16,6 +17,21 @@ interface PagesSidebarProps {
 export default function PagesSidebar({ helpCategories = [], legalPolicies, staticPages, privacyPolicy }: PagesSidebarProps) {
   const { t, language } = useLanguage();
   const pathname = usePathname();
+
+  useEffect(() => {
+    // Scroll to content on mobile/tablet screens when the page changes
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      const element = document.getElementById('help-pages-content');
+      if (element) {
+        // Next.js scroll restoration might run on route change,
+        // so we use a small timeout to scroll after the page transition finishes.
+        const scrollTimer = setTimeout(() => {
+          element.scrollIntoView({ behavior: 'auto', block: 'start' });
+        }, 150);
+        return () => clearTimeout(scrollTimer);
+      }
+    }
+  }, [pathname]);
 
   const specialLinks = [
     { name: t('burgerMenu.categoryLimits'), href: '/pages/limits_by_category' },

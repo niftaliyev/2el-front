@@ -47,7 +47,9 @@ class ChatService {
   private startPromise: Promise<void> | null = null;
   private baseUrl = process.env.NEXT_PUBLIC_API_URL
     ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
-    : 'http://13.140.173.54:5000';
+    : (process.env.NODE_ENV === 'production'
+      ? 'http://13.140.173.54:5000'
+      : 'http://localhost:5156');
 
   // Store handlers to re-attach on reconnect/new connection - multiple handlers per method
   private handlers: Map<string, Set<(...args: any[]) => void>> = new Map();

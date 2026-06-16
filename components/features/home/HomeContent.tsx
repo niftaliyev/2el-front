@@ -6,7 +6,7 @@ import ProductGrid from '@/components/features/products/ProductGrid';
 import { Category, Product } from '@/types';
 import { adService } from '@/services/ad.service';
 import { AdListItem } from '@/types/api';
-import { getImageUrl, generateSlug } from '@/lib/utils';
+import { getImageUrl, generateSlug, getCategorySortOrder } from '@/lib/utils';
 import { CATEGORIES } from '@/constants';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -43,7 +43,6 @@ export default function HomeContent() {
     ];
 
     const combined = [...base, ...extras];
-    combined.sort((a, b) => (a.name > b.name ? 1 : a.name < b.name ? -1 : 0));
 
     combined.push({
       id: 'magazalar-init',
@@ -54,6 +53,8 @@ export default function HomeContent() {
       image: '/category-images/magazalar.png',
       children: []
     });
+
+    combined.sort((a, b) => getCategorySortOrder(a) - getCategorySortOrder(b));
 
     return combined;
   };
@@ -153,7 +154,6 @@ export default function HomeContent() {
           }
 
           const allCategories = [...parentCategories, ...extraCategories];
-          allCategories.sort((a, b) => a.name.localeCompare(b.name, language === 'ru' ? 'ru' : 'az'));
 
           // Add Mağazalar at the end
           allCategories.push({
@@ -165,6 +165,8 @@ export default function HomeContent() {
             description: '',
             children: []
           });
+
+          allCategories.sort((a, b) => getCategorySortOrder(a) - getCategorySortOrder(b));
 
           setCategories(allCategories);
         }

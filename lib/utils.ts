@@ -175,7 +175,7 @@ export function getBackendUrl(): string {
     return process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
   }
   if (process.env.NODE_ENV === 'production') {
-    return 'http://84.247.184.186:5000';
+    return 'http://13.140.173.54:5000';
   }
   return 'http://localhost:5156';
 }
@@ -348,4 +348,139 @@ export function formatNumberSafe(num: number): string {
   const parts = num.toString().split('.');
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return parts.join('.');
+}
+
+const TAP_AZ_ORDER = [
+  'neqliyyat',
+  'elektronika',
+  'ev-ve-bag-ucun',
+  'ehtiyat-hisseleri-ve-aksesuarlar-avto',
+  'dasinmaz-emlak',
+  'xidmetler-ve-biznes',
+  'sexsi-esyalar',
+  'hobbi-ve-asude',
+  'meiset-texnikasi',
+  'telefonlar',
+  'usaq-alemi',
+  'heyvanlar',
+  'is-elanlari',
+  'mektebliler-ucun',
+  'magazalar'
+];
+
+const QUICK_MATCHES: Record<string, string> = {
+  // IDs
+  '2': 'neqliyyat',
+  '1': 'elektronika',
+  '3': 'ev-ve-bag-ucun',
+  'transport_parts': 'ehtiyat-hisseleri-ve-aksesuarlar-avto',
+  '4': 'dasinmaz-emlak',
+  '5': 'xidmetler-ve-biznes',
+  '6': 'sexsi-esyalar',
+  '8': 'hobbi-ve-asude',
+  'meiset-init': 'meiset-texnikasi',
+  'telefonlar-init': 'telefonlar',
+  '10': 'usaq-alemi',
+  '11': 'heyvanlar',
+  '12': 'is-elanlari',
+  'kids_school': 'mektebliler-ucun',
+  'magazalar-init': 'magazalar',
+
+  // Slugs & Unique Names
+  'transport': 'neqliyyat',
+  'neqliyyat': 'neqliyyat',
+  'electronics': 'elektronika',
+  'elektronika': 'elektronika',
+  'home-garden': 'ev-ve-bag-ucun',
+  'ev-ve-bag-ucun': 'ev-ve-bag-ucun',
+  'auto-parts': 'ehtiyat-hisseleri-ve-aksesuarlar-avto',
+  'ehtiyat-hisseleri-ve-aksesuarlar-avto': 'ehtiyat-hisseleri-ve-aksesuarlar-avto',
+  'ehtiyyat-hisseleri-ve-aksesuarlar-avto-cat': 'ehtiyat-hisseleri-ve-aksesuarlar-avto',
+  'real-estate': 'dasinmaz-emlak',
+  'dasinmaz-emlak': 'dasinmaz-emlak',
+  'services': 'xidmetler-ve-biznes',
+  'xidmetler-ve-biznes': 'xidmetler-ve-biznes',
+  'personal': 'sexsi-esyalar',
+  'sexsi-esyalar': 'sexsi-esyalar',
+  'hobbies': 'hobbi-ve-asude',
+  'hobbi-ve-asude': 'hobbi-ve-asude',
+  'ev-ve-bag-ucun/meiset-texnikasi': 'meiset-texnikasi',
+  'meiset-texnikasi': 'meiset-texnikasi',
+  'elektronika/telefonlar': 'telefonlar',
+  'telefonlar': 'telefonlar',
+  'kids': 'usaq-alemi',
+  'usaq-alemi': 'usaq-alemi',
+  'animals': 'heyvanlar',
+  'heyvanlar': 'heyvanlar',
+  'jobs': 'is-elanlari',
+  'is-elanlari': 'is-elanlari',
+  'school': 'mektebliler-ucun',
+  'mektebliler-ucun': 'mektebliler-ucun',
+  'shops': 'magazalar',
+  '/shops': 'magazalar',
+  'magazalar': 'magazalar',
+
+  // Unique translations / localized names
+  'nəqliyyat': 'neqliyyat',
+  'транспорт': 'neqliyyat',
+  'электроника': 'elektronika',
+  'ev və bağ üçün': 'ev-ve-bag-ucun',
+  'для дома и сада': 'ev-ve-bag-ucun',
+  'ehtiyat hissələri və aksesuarlar (avto)': 'ehtiyat-hisseleri-ve-aksesuarlar-avto',
+  'ehtiyyat hissələri və aksesuarlar (avto)': 'ehtiyat-hisseleri-ve-aksesuarlar-avto',
+  'запчасти и аксессуары': 'ehtiyat-hisseleri-ve-aksesuarlar-avto',
+  'daşınmaz əmlak': 'dasinmaz-emlak',
+  'недвижимость': 'dasinmaz-emlak',
+  'xidmətlər və biznes': 'xidmetler-ve-biznes',
+  'услуги и деловое сотрудничество': 'xidmetler-ve-biznes',
+  'şəxsi əşyalar': 'sexsi-esyalar',
+  'личные вещи': 'sexsi-esyalar',
+  'hobbi və asudə': 'hobbi-ve-asude',
+  'хобби и отдых': 'hobbi-ve-asude',
+  'məişət texnikası': 'meiset-texnikasi',
+  'бытовая техника': 'meiset-texnikasi',
+  'uşaq aləmi': 'usaq-alemi',
+  'детский мир': 'usaq-alemi',
+  'животные': 'heyvanlar',
+  'iş elanları': 'is-elanlari',
+  'работа': 'is-elanlari',
+  'məktəblilər üçün': 'mektebliler-ucun',
+  'для школьников': 'mektebliler-ucun',
+  'магазины': 'magazalar'
+};
+
+export function getCategorySortOrder(cat: any): number {
+  if (!cat) return 999;
+
+  // 1. Match by ID
+  const idStr = String(cat.id || '').toLowerCase();
+  let key = QUICK_MATCHES[idStr];
+  if (key) {
+    const idx = TAP_AZ_ORDER.indexOf(key);
+    if (idx !== -1) return idx;
+  }
+
+  // 2. Match by Slug
+  const slugStr = String(cat.slug || '').toLowerCase();
+  const cleanSlug = slugStr.startsWith('/') ? slugStr.substring(1) : slugStr;
+  key = QUICK_MATCHES[cleanSlug] || QUICK_MATCHES[slugStr];
+  if (key) {
+    const idx = TAP_AZ_ORDER.indexOf(key);
+    if (idx !== -1) return idx;
+  }
+
+  // 3. Match by Name
+  const nameStr = String(cat.name || '').trim().toLowerCase();
+  key = QUICK_MATCHES[nameStr];
+  if (key) {
+    const idx = TAP_AZ_ORDER.indexOf(key);
+    if (idx !== -1) return idx;
+  }
+
+  // 4. Includes Fallback for safety
+  if (nameStr.includes('telefonlar') || nameStr.includes('telefony') || nameStr.includes('телефоны')) return 9;
+  if (nameStr.includes('məişət') || nameStr.includes('meiset') || nameStr.includes('бытовая')) return 8;
+  if (nameStr.includes('ehtiyat') || nameStr.includes('ehtiyyat') || nameStr.includes('запчаст')) return 3;
+
+  return 999;
 }

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/constants';
 import { adService } from '@/services/ad.service';
-import { generateSlug } from '@/lib/utils';
+import { generateSlug, getCategorySortOrder } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const ICONS: Record<string, string> = {
@@ -107,8 +107,8 @@ export default function MobileCatalog() {
           }
 
           const allCategories = [...parentCategories, ...extraCategories];
-          // Sort alphabetically matching AZ/RU
-          allCategories.sort((a, b) => a.name.localeCompare(b.name, language === 'ru' ? 'ru' : 'az'));
+          // Sort in tap.az order
+          allCategories.sort((a, b) => getCategorySortOrder(a) - getCategorySortOrder(b));
 
           setCategories(allCategories);
         }

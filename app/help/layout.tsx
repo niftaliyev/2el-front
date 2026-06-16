@@ -33,7 +33,7 @@ export default async function HelpLayout({
           </div>
 
           {/* Content */}
-          <div className="w-full flex-grow max-w-4xl">
+          <div className="w-full flex-grow max-w-4xl" id="help-pages-content">
             {children}
           </div>
         </div>
