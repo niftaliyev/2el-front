@@ -704,16 +704,12 @@ export default function ListingsContent({
                             key={item.id}
                             className="group flex flex-col items-center gap-1.5 sm:gap-[10px] flex-shrink-0 w-16 sm:w-[88px]"
                           >
-                            <div className={`flex items-center justify-center p-1 sm:p-0 w-16 h-16 sm:w-[88px] sm:h-[88px] rounded-2xl transition-colors overflow-hidden ${isActive ? 'bg-[#607afb]/10 ring-2 ring-[#607afb]/20' : 'bg-[#f1f2f4] group-hover:bg-[#e9e9eb]'}`}>
+                            <div className={`flex items-center justify-center w-16 h-16 sm:w-[88px] sm:h-[88px] rounded-2xl transition-colors overflow-hidden ${isActive ? 'bg-[#607afb]/10 ring-2 ring-[#607afb]/20' : 'bg-[#f1f2f4] group-hover:bg-[#e9e9eb]'} p-1 sm:p-0`}>
                               {item.image ? (
                                 <img
                                   src={item.image}
                                   alt={item.name}
-                                  className={
-                                    item.isParent
-                                      ? "w-full h-full object-contain scale-[1.75] -translate-x-[11px] sm:scale-[1.4] sm:-translate-x-5 sm:translate-y-0 sm:group-hover:scale-[1.5] transition-all duration-500"
-                                      : "w-full h-full object-contain p-2 sm:p-3 group-hover:scale-105 transition-all duration-500"
-                                  }
+                                  className="w-full h-full object-contain p-2 sm:p-3 group-hover:scale-105 transition-all duration-500"
                                 />
                               ) : (
                                 <span className={`material-symbols-outlined !text-[24px] sm:!text-[32px] transition-colors ${isActive ? 'text-[#607afb]' : 'text-[#212121]'}`}>
