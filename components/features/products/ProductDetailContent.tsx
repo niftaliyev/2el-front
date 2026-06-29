@@ -457,13 +457,11 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
                     </Link>
                   </>
                 )}
-                <span className="text-gray-400 text-sm font-medium leading-normal">/</span>
-                <span className="text-gray-900 text-sm font-semibold leading-normal truncate max-w-[150px] sm:max-w-[250px]">{product.title}</span>
               </div>
             </div>
 
             {/* Title Area */}
-            <div className="flex flex-wrap justify-between items-start gap-3">
+            <div className="hidden lg:flex flex-wrap justify-between items-start gap-3">
               <div className="flex flex-col gap-3 flex-1">
                 <div className="flex items-center gap-3 flex-wrap">
                   <h1 className="text-gray-900 text-2xl font-bold leading-tight">
@@ -486,7 +484,19 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
               <div className="lg:col-span-2 space-y-6">
                 {/* Image Gallery */}
                 <div className="space-y-3">
-                  <div className="relative w-full aspect-[4/3] max-h-[500px] bg-gray-100 rounded-xl overflow-hidden shadow-sm border border-gray-100 group">
+                  <div className="relative w-[calc(100%+2rem)] -mx-4 sm:w-full sm:mx-0 aspect-[4/3] max-h-[500px] bg-gray-100 rounded-none sm:rounded-xl overflow-hidden shadow-none sm:shadow-sm border-y border-x-0 sm:border border-gray-100 group">
+                    {/* VIP/Premium Badges Overlay for Mobile */}
+                    {(product.isPremium || product.isVip) && (
+                      <div className="lg:hidden absolute bottom-4 left-4 z-20 flex items-center gap-1.5 bg-white/95 px-2.5 py-1.5 rounded-xl backdrop-blur-sm shadow-md border border-white/20">
+                        {product.isPremium && (
+                          <PremiumIcon size={22} title="Premium" className="shrink-0" />
+                        )}
+                        {product.isVip && (
+                          <VipIcon size={20} title="VIP" className="shrink-0" />
+                        )}
+                      </div>
+                    )}
+
                     <div className="absolute inset-0 z-0">
                       <Image
                         src={images[activeImageIndex]}
@@ -577,6 +587,28 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
                       ))}
                     </Swiper>
                   )}
+                </div>
+
+                {/* Mobile Title & Price Card */}
+                <div className="lg:hidden bg-white rounded-xl shadow-sm p-4 border border-gray-100 flex flex-col gap-2">
+                  <div className="flex justify-between items-start gap-4">
+                    {!isDatingAd && (
+                      <div className="flex items-baseline text-gray-800">
+                        <span className="text-2xl font-bold">{formatNumberSafe(product.price)}</span>
+                        <span className="text-lg font-bold ml-1">₼</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setIsReportModalOpen(true)}
+                      className="flex cursor-pointer items-center justify-center rounded-xl size-10 bg-gray-50 text-gray-400 border border-gray-100 hover:text-red-500 hover:border-red-100 transition-colors shrink-0"
+                      title={t('product.report')}
+                    >
+                      <span className="material-symbols-outlined !text-xl">flag</span>
+                    </button>
+                  </div>
+                  <h1 className="text-gray-600 text-[15px] font-medium leading-relaxed">
+                    {product.title}
+                  </h1>
                 </div>
 
                 {/* Specs */}
@@ -675,7 +707,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
               <div className="lg:col-span-1">
                 <div className="sticky top-24">
                   <div className="bg-white rounded-3xl shadow-2xl shadow-gray-200/40 border border-gray-100 overflow-hidden flex flex-col">
-                    <div className="p-6 pb-4">
+                    <div className="p-6 pb-4 hidden lg:block">
                       <div className="flex items-center justify-between gap-4">
                         {!isDatingAd ? (
                           <div className="min-w-0">
@@ -707,7 +739,7 @@ export default function ProductDetailContent({ id, initialProduct }: { id: strin
                       </div>
                     </div>
 
-                    {!isDatingAd && <div className="h-px bg-gray-50 mx-6" />}
+                    {!isDatingAd && <div className="h-px bg-gray-50 mx-6 hidden lg:block" />}
 
                     {/* Seller Info */}
                     <div className={`p-6 ${isDatingAd ? 'pt-6' : 'pt-5'} space-y-6`}>
