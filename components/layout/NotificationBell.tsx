@@ -58,9 +58,9 @@ export default function NotificationBell() {
           return [newNotif, ...finalPrev.slice(0, 19)];
         });
         const nType = newNotif.type as any;
-        const isMessage = nType === NotificationType.Message || 
-                         nType === 'Message' || 
-                         nType === NotificationType.Message.toString();
+        const isMessage = nType === NotificationType.Message ||
+          nType === 'Message' ||
+          nType === NotificationType.Message.toString();
 
         if (!isMessage) {
           setUnreadCount(prev => prev + 1);
@@ -233,7 +233,7 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[110] overflow-hidden flex flex-col max-h-[500px]">
+        <div className="fixed right-4 top-16 sm:absolute sm:right-0 sm:top-auto mt-2 w-72 sm:w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[110] overflow-hidden flex flex-col max-h-[calc(100vh-120px)] sm:max-h-[500px]">
           <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
             <h3 className="font-bold text-gray-900">{t('notifications.title') || 'Bildirişlər'}</h3>
             {unreadCount > 0 && (
@@ -248,7 +248,7 @@ export default function NotificationBell() {
 
           <div className="overflow-y-auto flex-1 custom-scrollbar">
             {notifications.length === 0 ? (
-              <div className="p-10 text-center text-gray-500 flex flex-col items-center gap-2">
+              <div className="p-6 sm:p-10 text-center text-gray-500 flex flex-col items-center gap-2">
                 <span className="material-symbols-outlined !text-4xl opacity-20">notifications_off</span>
                 <p className="text-sm">{t('notifications.noNotifications') || 'Yeni bildiriş yoxdur'}</p>
               </div>
