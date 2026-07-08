@@ -162,7 +162,7 @@ export function getSiteUrl(): string {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
   }
   if (process.env.NODE_ENV === 'production') {
-    return 'http://13.140.173.54:3000';
+    return 'https://2el.az';
   }
   return 'http://localhost:3000';
 }
@@ -175,7 +175,7 @@ export function getBackendUrl(): string {
     return process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
   }
   if (process.env.NODE_ENV === 'production') {
-    return 'http://13.140.173.54:5000';
+    return 'https://api.2el.az';
   }
   return 'http://localhost:5156';
 }
