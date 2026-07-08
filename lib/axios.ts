@@ -9,7 +9,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL
     ? process.env.NEXT_PUBLIC_API_URL
     : `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/`)
   : (process.env.NODE_ENV === 'production'
-    ? 'http://13.140.173.54:5000/api/'
+    ? 'https://api.2el.az/api/'
     : 'http://localhost:5156/api/');
 
 // Create axios instance with default config

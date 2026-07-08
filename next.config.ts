@@ -21,6 +21,11 @@ const nextConfig: NextConfig = {
         pathname: "/uploads/**",
       },
       {
+        protocol: "https",
+        hostname: "api.2el.az",
+        pathname: "/uploads/**",
+      },
+      {
         protocol: "http",
         hostname: "84.247.184.186:5000",
         pathname: "/uploads/**",

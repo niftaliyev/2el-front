@@ -27,7 +27,7 @@ class NotificationService {
   private baseUrl = process.env.NEXT_PUBLIC_API_URL
     ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
     : (process.env.NODE_ENV === 'production'
-      ? 'http://13.140.173.54:5000'
+      ? 'https://api.2el.az'
       : 'http://localhost:5156');
   private hubUrl = `${this.baseUrl}/api/notificationHub`;
 

@@ -16,7 +16,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 // const SERVER_URL = 'http://84.247.184.186:5000';
 // const SERVER_URL = 'http://localhost:5156';
 // Local  Docker: 'http://localhost:5000'
-const SERVER_URL = 'http://localhost:5156';
+const SERVER_URL = 'https://api.2el.az';
 
 export default function EditListingPage() {
     const router = useRouter();
