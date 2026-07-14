@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Category } from '@/types';
 import { ROUTES } from '@/constants';
 import { cn } from '@/lib/utils';
@@ -27,9 +28,12 @@ export default function CategoryCard({ category }: CategoryCardProps) {
       <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto bg-[#eaecf0] border border-[#d0d5dd] rounded-full overflow-hidden shadow-[0_2px_4px_rgba(0,0,0,0.02)] group-hover:bg-white group-hover:border-primary/30 group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] group-hover:scale-105 transition-all duration-300 flex items-center justify-center">
         {/* Category Image */}
         {category.image ? (
-          <img
+          <Image
             src={category.image}
             alt={displayName}
+            width={56}
+            height={56}
+            priority={true}
             className="w-[70%] h-[70%] object-contain transition-all duration-500 group-hover:scale-110"
           />
         ) : (

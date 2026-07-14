@@ -24,6 +24,7 @@ export interface NotificationListItem {
 
 class NotificationService {
   private hubConnection: HubConnection | null = null;
+  private unreadCountPromise: Promise<number> | null = null;
   private baseUrl = process.env.NEXT_PUBLIC_API_URL
     ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
     : (process.env.NODE_ENV === 'production'
@@ -93,8 +94,15 @@ class NotificationService {
   }
 
   public async getUnreadCount(): Promise<number> {
-    const response = await axiosInstance.get('/notifications/unread-count');
-    return response.data.count; // Backend returns { count: X }
+    if (this.unreadCountPromise) {
+      return this.unreadCountPromise;
+    }
+    this.unreadCountPromise = axiosInstance.get('/notifications/unread-count')
+      .then(res => res.data.count)
+      .finally(() => {
+        this.unreadCountPromise = null;
+      });
+    return this.unreadCountPromise;
   }
 
   public async markAsRead(id: string): Promise<void> {

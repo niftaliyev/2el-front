@@ -48,6 +48,11 @@ export interface SearchParams {
 // ── Ad Service ────────────────────────────────────────────────────────────────
 
 class AdService {
+  private categoryTreePromise: Promise<CategoryDto[]> | null = null;
+  private subCategoriesPromises: Record<string, Promise<SubCategoryDto[]>> = {};
+  private citiesPromise: Promise<LookupItem[]> | null = null;
+  private adTypesPromise: Promise<LookupItem[]> | null = null;
+
   /** All public ads (paginated) */
   async getAllAds(params?: SearchParams): Promise<PaginatedResponse<AdListItem[]>> {
     const response = await axiosInstance.get<PaginatedResponse<AdListItem[]>>('/ad', { params });
@@ -69,26 +74,54 @@ class AdService {
 
   /** Category Tree (for navigation, filters, etc.) */
   async getCategoryTree(): Promise<CategoryDto[]> {
-    const response = await axiosInstance.get<CategoryDto[]>('/category/tree');
-    return response.data;
+    if (!this.categoryTreePromise) {
+      this.categoryTreePromise = axiosInstance.get<CategoryDto[]>('/category/tree')
+        .then(res => res.data)
+        .catch(err => {
+          this.categoryTreePromise = null;
+          throw err;
+        });
+    }
+    return this.categoryTreePromise;
   }
 
   /** SubCategories (brands, types, etc.) */
   async getSubCategories(categoryId: string): Promise<SubCategoryDto[]> {
-    const response = await axiosInstance.get<SubCategoryDto[]>(`/category/${categoryId}/subcategories`);
-    return response.data;
+    if (!this.subCategoriesPromises[categoryId]) {
+      this.subCategoriesPromises[categoryId] = axiosInstance.get<SubCategoryDto[]>(`/category/${categoryId}/subcategories`)
+        .then(res => res.data)
+        .catch(err => {
+          delete this.subCategoriesPromises[categoryId];
+          throw err;
+        });
+    }
+    return this.subCategoriesPromises[categoryId];
   }
 
   /** Ad types lookup */
   async getAdTypes(): Promise<LookupItem[]> {
-    const response = await axiosInstance.get<LookupItem[]>('/ad/types');
-    return response.data;
+    if (!this.adTypesPromise) {
+      this.adTypesPromise = axiosInstance.get<LookupItem[]>('/ad/types')
+        .then(res => res.data)
+        .catch(err => {
+          this.adTypesPromise = null;
+          throw err;
+        });
+    }
+    return this.adTypesPromise;
   }
 
   /** Cities lookup */
   async getCities(): Promise<LookupItem[]> {
-    const response = await axiosInstance.get<LookupItem[]>('/lookup/cities');
-    return response.data;
+    if (!this.citiesPromise) {
+      this.citiesPromise = axiosInstance.get<LookupItem[]>('/lookup/cities')
+        .then(res => res.data)
+        .catch(err => {
+          this.citiesPromise = null;
+          throw err;
+        });
+    }
+    return this.citiesPromise;
   }
 
   /** Create new ad */

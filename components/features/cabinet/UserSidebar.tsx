@@ -51,6 +51,7 @@ export default function UserSidebar() {
   );
 
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.2el.az';
+  // const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
   const token = typeof window !== 'undefined' ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')) : '';
   const refreshToken = typeof window !== 'undefined' ? (localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken')) : '';
 

@@ -30,16 +30,27 @@ export interface AdvertisingSettingDto {
 }
 
 class BannerService {
+  private activeBannersPromises: Record<string, Promise<BannerDto[]>> = {};
+
   async getActiveBanners(position?: AdPosition, categoryId?: string, cityId?: string, language?: string, search?: string): Promise<BannerDto[]> {
-    const params: any = {};
-    if (position) params.position = position;
-    if (categoryId) params.categoryId = categoryId;
-    if (cityId) params.cityId = cityId;
-    if (language) params.language = language;
-    if (search) params.search = search;
-    
-    const response = await axiosInstance.get<BannerDto[]>('/banner/active', { params });
-    return response.data;
+    const key = `${position ?? ''}_${categoryId ?? ''}_${cityId ?? ''}_${language ?? ''}_${search ?? ''}`;
+
+    if (!this.activeBannersPromises[key]) {
+      const params: any = {};
+      if (position) params.position = position;
+      if (categoryId) params.categoryId = categoryId;
+      if (cityId) params.cityId = cityId;
+      if (language) params.language = language;
+      if (search) params.search = search;
+
+      this.activeBannersPromises[key] = axiosInstance.get<BannerDto[]>('/banner/active', { params })
+        .then(res => res.data)
+        .catch(err => {
+          delete this.activeBannersPromises[key];
+          throw err;
+        });
+    }
+    return this.activeBannersPromises[key];
   }
 
   async applyForAd(request: AdApplicationRequest): Promise<void> {
