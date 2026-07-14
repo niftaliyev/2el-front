@@ -83,100 +83,112 @@ export const POPULAR_CATEGORIES = [
 ] as const;
 
 export const CATEGORIES = [
-  { 
-    id: '4', 
-    name: 'Daşınmaz əmlak', 
-    slug: 'real-estate', 
-    icon: 'home',
-    image: '/category-images/dasinmaz_emlak_cat.png',
-    description: 'Mənzillər, həyət və bağ evləri, torpaq sahələri...'
+  {
+    id: "fc77fbb6-c002-492d-8f16-e5992c7de2d4",
+    name: "Daşınmaz əmlak",
+    nameRu: "Недвижимость",
+    slug: "dasinmaz-emlak",
+    icon: "home",
+    image: "/category-images/dasinmaz_emlak_cat.png",
+    description: "Mənzillər, həyət və bağ evləri, torpaq sahələri..."
   },
-  { 
-    id: 'transport_parts', 
-    name: 'Ehtiyat hissələri və aksesuarlar (avto)', 
-    slug: 'auto-parts', 
-    icon: 'settings',
-    image: '/category-images/ehtiyyat_hisseleri_ve_aksesuarlar_avto_cat.png',
-    description: ''
+  {
+    id: "bf444708-6e76-4308-85dd-2b20b320969c",
+    name: "Ehtiyat hissələri və aksesuarlar (avto)",
+    nameRu: "Запчасти и аксессуары (авто)",
+    slug: "ehtiyat-hisseleri-ve-aksesuarlar-avto",
+    icon: "build",
+    image: "/category-images/ehtiyyat_hisseleri_ve_aksesuarlar_avto_cat.png",
+    description: ""
   },
-  { 
-    id: '1', 
-    name: 'Elektronika', 
-    slug: 'electronics', 
-    icon: 'devices',
-    image: '/category-images/elektronika_cat.png',
-    description: 'Audio və video, kompüter aksesuarları, telefon...'
+  {
+    id: "11874ca7-8404-4f9d-a978-0217d51c3b65",
+    name: "Elektronika",
+    nameRu: "Электроника",
+    slug: "elektronika",
+    icon: "devices",
+    image: "/category-images/elektronika_cat.png",
+    description: "Audio və video, kompüter aksesuarları, telefon..."
   },
-  { 
-    id: '3', 
-    name: 'Ev və bağ üçün', 
-    slug: 'home-garden', 
-    icon: 'chair',
-    image: '/category-images/ev_ve_bag_ucun_cat.png',
-    description: 'Təmir və tikinti, mebel və interyer, məişət texn...'
+  {
+    id: "fbe3055d-6609-4173-918e-e3bbd9a9e2f8",
+    name: "Ev və bağ üçün",
+    nameRu: "Для дома и дачи",
+    slug: "ev-ve-bag-ucun",
+    icon: "chair",
+    image: "/category-images/ev_ve_bag_ucun_cat.png",
+    description: "Təmir və tikinti, mebel və interyer, məişət texn..."
   },
-  { 
-    id: '11', 
-    name: 'Heyvanlar', 
-    slug: 'animals', 
-    icon: 'pets',
-    image: '/category-images/heyvanlar_cat.png',
-    description: 'Ev heyvanları, aksesuarlar və yem'
+  {
+    id: "193cc660-5839-42fe-b476-b5b519dcf7e2",
+    name: "Heyvanlar",
+    nameRu: "Животные",
+    slug: "heyvanlar",
+    icon: "pets",
+    image: "/category-images/heyvanlar_cat.png",
+    description: "Ev heyvanları, aksesuarlar və yem"
   },
-  { 
-    id: '8', 
-    name: 'Hobbi və asudə', 
-    slug: 'hobbies', 
-    icon: 'sports_esports',
-    image: '/category-images/hobbi_ve_asude_cat.png',
-    description: 'Biletlər və səyahət, velosipedlər, kolleksiya, id...'
+  {
+    id: "d26d231d-e267-4c04-8491-b3081ea02550",
+    name: "Hobbi və asudə",
+    nameRu: "Хобби и досуг",
+    slug: "hobbi-ve-asude",
+    icon: "sports_esports",
+    image: "/category-images/hobbi_ve_asude_cat.png",
+    description: "Biletlər və səyahət, velosipedlər, kolleksiya, id..."
   },
-  { 
-    id: '12', 
-    name: 'İş elanları', 
-    slug: 'jobs', 
-    icon: 'work',
-    image: '/category-images/is_elanlari_cat.png',
-    description: 'İş elanları, biznes təklifləri'
+  {
+    id: "a9db72a1-fcd5-419f-9f06-cb94684d2a4c",
+    name: "İş elanları",
+    nameRu: "Вакансии",
+    slug: "is-elanlari",
+    icon: "work",
+    image: "/category-images/is_elanlari_cat.png",
+    description: "İş elanları, biznes təklifləri"
   },
-  { 
-    id: 'kids_school', 
-    name: 'Məktəblilər üçün', 
-    slug: 'school', 
-    icon: 'school',
-    image: '/category-images/mektebliler_ucun_cat.png',
-    description: ''
+  {
+    id: "697e8fbe-ddcc-458b-a3a6-c6c347c2d77c",
+    name: "Məktəblilər üçün",
+    nameRu: "Для школьников",
+    slug: "mektebliler-ucun",
+    icon: "school",
+    image: "/category-images/mektebliler_ucun_cat.png",
+    description: ""
   },
-  { 
-    id: '2', 
-    name: 'Nəqliyyat', 
-    slug: 'transport', 
-    icon: 'directions_car',
-    image: '/category-images/neqliyyat_cat.png',
-    description: 'Avtomobillər, ehtiyat hissələri, aksesuarlar, av...'
+  {
+    id: "f4395f20-4b95-4454-a192-a59605fa2271",
+    name: "Nəqliyyat",
+    nameRu: "Транспорт",
+    slug: "neqliyyat",
+    icon: "directions_car",
+    image: "/category-images/neqliyyat_cat.png",
+    description: "Avtomobillər, ehtiyat hissələri, aksesuarlar, av..."
   },
-  { 
-    id: '6', 
-    name: 'Şəxsi əşyalar', 
-    slug: 'personal', 
-    icon: 'watch',
-    image: '/category-images/sexsi_esyalar_cat.png',
-    description: 'Geyim və ayaqqabılar, aksesuarlar, saat və zi...'
+  {
+    id: "3d11e8d5-5cc1-4fcf-88ec-5d8f6420096e",
+    name: "Şəxsi əşyalar",
+    nameRu: "Личные вещи",
+    slug: "sexsi-esyalar",
+    icon: "watch",
+    image: "/category-images/sexsi_esyalar_cat.png",
+    description: "Geyim və ayaqqabılar, aksesuarlar, saat və zi..."
   },
-  { 
-    id: '10', 
-    name: 'Uşaq aləmi', 
-    slug: 'kids', 
-    icon: 'stroller',
-    image: '/category-images/usaq_alemi_cat.png',
-    description: 'Uşaq geyimləri, oyuncaqlar, uşaq arabaları...'
+  {
+    id: "472c8686-a814-42b1-9e41-4e7df8eeb78f",
+    name: "Uşaq aləmi",
+    nameRu: "Детский мир",
+    slug: "usaq-alemi",
+    icon: "stroller",
+    image: "/category-images/usaq_alemi_cat.png",
+    description: "Uşaq geyimləri, oyuncaqlar, uşaq arabaları..."
   },
-  { 
-    id: '5', 
-    name: 'Xidmətlər və biznes', 
-    slug: 'services', 
-    icon: 'home_repair_service',
-    image: '/category-images/xidmetler_ve_biznes_cat.png',
-    description: 'Avadanlıqların icarəsi və quraşdırılması, təmir...'
+  {
+    id: "97d9b1de-4451-4224-911b-af038f6f5f94",
+    name: "Xidmətlər və biznes",
+    nameRu: "Услуги и бизнес",
+    slug: "xidmetler-ve-biznes",
+    icon: "home_repair_service",
+    image: "/category-images/xidmetler_ve_biznes_cat.png",
+    description: "Avadanlıqların icarəsi və quraşdırılması, təmir..."
   }
 ] as const;

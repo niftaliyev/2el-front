@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { authService } from '@/services/auth.service';
 import { adService } from '@/services/ad.service';
 import { storeService } from '@/services/store.service';
+import { chatService } from '@/services/chat.service';
+import { notificationService } from '@/services/notification.service';
 import { AuthUser, LoginRequest, RegisterRequest } from '@/types/auth';
 
 type User = AuthUser;
@@ -62,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const user = await authService.login(credentials);
       setUser(user);
-      
+
       // Sync local favourites and followed stores to the server
       try {
         await Promise.all([
@@ -94,6 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      chatService.stopConnection().catch(e => console.error('Error stopping chat connection:', e));
+      notificationService.stopConnection();
       await authService.logout();
       setUser(null);
     } catch (error) {

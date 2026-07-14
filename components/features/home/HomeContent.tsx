@@ -23,7 +23,7 @@ export default function HomeContent() {
 
     const extras = [
       {
-        id: 'telefonlar-init',
+        id: '1b377370-b5c7-4160-bbfa-b4ea107d7aac',
         name: language === 'ru' ? 'Телефоны' : 'Telefonlar',
         nameRu: 'Телефоны',
         slug: 'elektronika/telefonlar',
@@ -32,7 +32,7 @@ export default function HomeContent() {
         children: []
       },
       {
-        id: 'meiset-init',
+        id: '4faa4f8b-5390-4ecf-97d4-8d9d050ce5d1',
         name: language === 'ru' ? 'Бытовая техника' : 'Məişət texnikası',
         nameRu: 'Бытовая техника',
         slug: 'ev-ve-bag-ucun/meiset-texnikasi',
@@ -45,7 +45,7 @@ export default function HomeContent() {
     const combined = [...base, ...extras];
 
     combined.push({
-      id: 'magazalar-init',
+      id: 'magazalar',
       name: language === 'ru' ? 'Магазины' : 'Mağazalar',
       nameRu: 'Магазины',
       slug: '/shops',

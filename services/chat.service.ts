@@ -45,6 +45,7 @@ export interface ChatDetail extends ChatListItem {
 class ChatService {
   private connection: signalR.HubConnection | null = null;
   private startPromise: Promise<void> | null = null;
+  private totalUnreadCountPromise: Promise<number> | null = null;
   private baseUrl = process.env.NEXT_PUBLIC_API_URL
     ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
     : (process.env.NODE_ENV === 'production'
@@ -70,8 +71,15 @@ class ChatService {
 
   /** REST API: Ümumi oxunmamış mesaj sayını gətir */
   async getTotalUnreadCount(): Promise<number> {
-    const response = await axiosInstance.get<number>('/chat/unread-count');
-    return response.data;
+    if (this.totalUnreadCountPromise) {
+      return this.totalUnreadCountPromise;
+    }
+    this.totalUnreadCountPromise = axiosInstance.get<number>('/chat/unread-count')
+      .then(res => res.data)
+      .finally(() => {
+        this.totalUnreadCountPromise = null;
+      });
+    return this.totalUnreadCountPromise;
   }
 
   /** REST API: Yeni söhbət başlat */
