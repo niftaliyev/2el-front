@@ -47,7 +47,7 @@ class NotificationService {
             return token || '';
           },
           skipNegotiation: false,
-          transport: HttpTransportType.WebSockets | HttpTransportType.LongPolling
+          transport: HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling
         })
         .withAutomaticReconnect()
         .configureLogging(LogLevel.Information)

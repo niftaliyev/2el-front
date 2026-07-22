@@ -127,7 +127,7 @@ class ChatService {
           return token || '';
         },
         skipNegotiation: false,
-        transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling
+        transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.ServerSentEvents | signalR.HttpTransportType.LongPolling
       })
       .withAutomaticReconnect()
       .build();
