@@ -6,6 +6,8 @@ import { reportService } from '@/services/report.service';
 import { ReportReason, ReportReasonLookup } from '@/types/api';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -16,6 +18,8 @@ interface ReportModalProps {
 
 const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, targetId, type }) => {
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [reasons, setReasons] = useState<ReportReasonLookup[]>([]);
   const [selectedReason, setSelectedReason] = useState<number | null>(null);
   const [note, setNote] = useState('');
@@ -23,6 +27,13 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, targetId, ty
 
   useEffect(() => {
     if (isOpen) {
+      if (!isAuthenticated) {
+        toast.error(t('report.loginRequired'));
+        onClose();
+        router.push('/auth/login');
+        return;
+      }
+
       const fetchReasons = async () => {
         try {
           const data = await reportService.getReportReasons();
@@ -33,9 +44,16 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, targetId, ty
       };
       fetchReasons();
     }
-  }, [isOpen]);
+  }, [isOpen, isAuthenticated, onClose, router, t]);
 
   const handleSubmit = async () => {
+    if (!isAuthenticated) {
+      toast.error(t('report.loginRequired'));
+      onClose();
+      router.push('/auth/login');
+      return;
+    }
+
     if (!selectedReason) {
       toast.error(t('report.selectReasonError'));
       return;
@@ -62,8 +80,14 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, targetId, ty
       setSelectedReason(null);
       setNote('');
     } catch (error: any) {
-      const message = error.response?.data?.message || t('common.errorOccurred');
-      toast.error(message);
+      if (error.response?.status === 401) {
+        toast.error(t('report.loginRequired'));
+        onClose();
+        router.push('/auth/login');
+      } else {
+        const message = error.response?.data?.message || t('common.errorOccurred') || t('common.error');
+        toast.error(message);
+      }
     } finally {
       setIsLoading(false);
     }
