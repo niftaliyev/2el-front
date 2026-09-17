@@ -3,6 +3,7 @@
     "loading": "Yüklənir...",
     "locale": "az-AZ",
     "error": "Xəta baş verdi",
+    "errorOccurred": "Xəta baş verdi",
     "save": "Yadda saxla",
     "cancel": "Ləğv et",
     "close": "Bağla",
@@ -855,5 +856,27 @@
     "noNotifications": "Yeni bildiriş yoxdur",
     "seeAll": "Bütün bildirişlər",
     "newNotification": "Yeni bildiriş"
+  },
+  "report": {
+    "adTitle": "Elan üçün şikayət",
+    "storeTitle": "Mağaza üçün şikayət",
+    "reasonLabel": "Şikayət səbəbi",
+    "reasonPlaceholder": "Səbəbi seçin",
+    "noteLabel": "Əlavə qeyd (istəyə bağlı)",
+    "notePlaceholder": "Qeydinizi daxil edin...",
+    "cancel": "Ləğv et",
+    "send": "Göndər",
+    "selectReasonError": "Lütfən şikayət səbəbini seçin.",
+    "successMessage": "Şikayətiniz uğurla göndərildi.",
+    "loginRequired": "Şikayət göndərmək üçün hesabınıza daxil olmalısınız.",
+    "reasons": {
+      "FalseInformation": "Yanlış məlumat",
+      "Fraud": "Dələduzluq",
+      "OffensiveContent": "Uyğunsuz məzmun",
+      "Duplicate": "Təkrar elan",
+      "WrongCategory": "Yanlış kateqoriya",
+      "IllegalItem": "Qadağan olunmuş məhsul",
+      "Other": "Digər"
+    }
   }
 }

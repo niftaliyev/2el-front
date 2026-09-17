@@ -12,18 +12,28 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL
     ? 'https://api.2el.az/api/'
     : 'http://localhost:5156/api/');
 
+const CLIENT_KEY = '2el-web-client-token-9b48c1f7';
+
 // Create axios instance with default config
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 30000, // 30 seconds
   headers: {
     'Content-Type': 'application/json',
+    'X-App-Client-Key': CLIENT_KEY,
+    'X-Requested-With': 'XMLHttpRequest',
   },
 });
 
 // Request interceptor - Add auth token to requests
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // Ensure custom security headers are attached
+    if (config.headers) {
+      config.headers['X-App-Client-Key'] = CLIENT_KEY;
+      config.headers['X-Requested-With'] = 'XMLHttpRequest';
+    }
+
     // Get token from storage (check both)
     const token = typeof window !== 'undefined'
       ? (localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken'))
@@ -67,6 +77,11 @@ axiosInstance.interceptors.response.use(
         if (refreshToken) {
           const response = await axios.post(`${BASE_URL}auth/refresh`, {
             refreshToken,
+          }, {
+            headers: {
+              'X-App-Client-Key': CLIENT_KEY,
+              'X-Requested-With': 'XMLHttpRequest',
+            }
           });
 
           const { accessToken, refreshToken: newRefreshToken } = response.data;

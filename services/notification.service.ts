@@ -46,6 +46,9 @@ class NotificationService {
               : null;
             return token || '';
           },
+          headers: {
+            'X-App-Client-Key': '2el-web-client-token-9b48c1f7',
+          },
           skipNegotiation: false,
           transport: HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling
         })
