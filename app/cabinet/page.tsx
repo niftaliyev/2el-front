@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import UserSidebar from '@/components/features/cabinet/UserSidebar';
 import UserListingCard from '@/components/features/cabinet/UserListingCard';
@@ -36,8 +36,18 @@ interface Listing {
   pinCode?: number;
 }
 
-export default function CabinetPage() {
-  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'inactive' | 'rejected'>('active');
+function CabinetPageContent() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab') as 'active' | 'pending' | 'inactive' | 'rejected' | null;
+  const initialTab = tabParam && ['active', 'pending', 'inactive', 'rejected'].includes(tabParam) ? tabParam : 'active';
+  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'inactive' | 'rejected'>(initialTab);
+
+  useEffect(() => {
+    const currentTab = searchParams.get('tab') as 'active' | 'pending' | 'inactive' | 'rejected' | null;
+    if (currentTab && ['active', 'pending', 'inactive', 'rejected'].includes(currentTab)) {
+      setActiveTab(currentTab);
+    }
+  }, [searchParams]);
   const { t, language, setLanguage } = useLanguage();
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -442,5 +452,17 @@ export default function CabinetPage() {
         isLoading={isDeleting}
       />
     </main>
+  );
+}
+
+export default function CabinetPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    }>
+      <CabinetPageContent />
+    </Suspense>
   );
 }
