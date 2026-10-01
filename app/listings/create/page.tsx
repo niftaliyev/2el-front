@@ -14,6 +14,7 @@ import { parseCurrency } from '@/lib/utils';
 import PromotionPackages from '@/components/listings/PromotionPackages';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
 
 // cityOptions removed - now fetched from API
 
@@ -483,8 +484,9 @@ export default function CreateListingPage() {
         PackagePriceId: selectedPackageId || undefined,
       });
 
-      // Redirect to home page on success
-      router.push(ROUTES.HOME);
+      // Show success toast notification with multi-language support and redirect to Cabinet Pending Ads
+      toast.success(t('createAd.successMessage') || 'Elanınız uğurla yaradıldı və yoxlanışa göndərildi.');
+      router.push('/cabinet?tab=pending');
     } catch (err: any) {
       let errorMessage = 'Elan yerləşdirilərkən xəta baş verdi';
       let isLimitError = false;
